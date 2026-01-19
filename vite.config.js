@@ -33,5 +33,7 @@ export default defineConfig({
   },
   build: {
     outDir: "dist"
-  }
+  },
+  base: "/", // MUST be '/'
+
 });
