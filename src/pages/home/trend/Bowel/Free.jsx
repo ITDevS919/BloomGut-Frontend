@@ -11,11 +11,11 @@ import {
 } from "chart.js";
 import { Bar, Line } from "react-chartjs-2";
 import ChartDataLabels from "chartjs-plugin-datalabels";
-import Type1Image from "@/assets/Images/stool-types/Type 1.png";
-import Type2Image from "@/assets/Images/stool-types/Type 2.png";
-import Type3Image from "@/assets/Images/stool-types/Type 3.png";
-import Type4Image from "@/assets/Images/stool-types/Type 4.png";
-import Type5Image from "@/assets/Images/stool-types/Type 5.png";
+import Type1Image from "@/assets/Images/bowel-types/Type 1.png";
+import Type2Image from "@/assets/Images/bowel-types/Type 2.png";
+import Type3Image from "@/assets/Images/bowel-types/Type 3.png";
+import Type4Image from "@/assets/Images/bowel-types/Type 4.png";
+import Type5Image from "@/assets/Images/bowel-types/Type 5.png";
 import Upgrade from "./Upgrade";
 
 ChartJS.register(

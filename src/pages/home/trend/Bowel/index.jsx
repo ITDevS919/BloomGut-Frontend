@@ -7,9 +7,9 @@ import Premium from "./Premium";
 const Bowel = () => {
   return (
     <div className="p-4">
-      {/* <Free /> */}
+      <Free />
       {/* <Intermediate /> */}
-      <Premium />
+      {/* <Premium /> */}
       {/* <Upgrade /> */}
     </div>
   );
