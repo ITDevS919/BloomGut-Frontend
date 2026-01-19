@@ -16,7 +16,7 @@ const Home = () => {
       <div className="flex flex-col gap-5 mt-auto">
         <Button
           onClick={() => {
-            navigate("/auth/register");
+            navigate("/auth/login");
           }}
           variant="outline"
         >
