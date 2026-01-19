@@ -44,8 +44,8 @@ const ContactUs = () => {
     <div className="bg-ivory min-h-full p-6 text-secondary">
       <style>{`
         .contact-type-btn{background:#fff;padding:10px 18px;border-radius:12px;box-shadow:0 6px 12px rgba(0,0,0,0.06);}
-        .contact-type-btn.selected{border:1px solid #e6d6c2}
-        .submit-btn{background:#cfa76f;color:#fff;padding:12px 0;border-radius:12px;box-shadow:0 6px 0 rgba(0,0,0,0.06);}
+        .contact-type-btn.selected{border:1px solid #5F4239}
+        .submit-btn{background:#C69C6D;color:#fff;padding:12px 0;rounded-lg;shadow-sm;}
       `}</style>
       <div className="flex items-center gap-4 mb-6">
         <button
@@ -60,7 +60,7 @@ const ContactUs = () => {
       </div>
 
       <div className="max-w-sm mt-10">
-        <div className="text-sm text-gray-700 mb-4">
+        <div className="text-sm text-primary mb-4">
           Please select the type of issue you want to provide feedback on, so we
           can serve you better
         </div>
@@ -71,9 +71,8 @@ const ContactUs = () => {
               key={t}
               type="button"
               onClick={() => setSelectedType(t)}
-              className={`contact-type-btn text-sm ${
-                selectedType === t ? "selected" : ""
-              }`}
+              className={`contact-type-btn text-sm ${selectedType === t ? "selected" : ""
+                }`}
             >
               {t}
             </button>
@@ -85,8 +84,8 @@ const ContactUs = () => {
             .option-list{display:flex;flex-direction:column;gap:10px}
             .option-item{background:#fff;padding:12px 14px;border-radius:12px;box-shadow:0 6px 12px rgba(0,0,0,0.06);display:flex;align-items:center;gap:12px}
             .option-radio{width:18px;height:18px;border-radius:50%;border:2px solid #d8d2c8;display:inline-block;flex:0 0 18px;position:relative}
-            .option-radio.selected{border-color:#cfa76f;background:#fff}
-            .option-radio.selected:after{content:'';position:absolute;left:4px;top:3px;width:6px;height:6px;background:#cfa76f;border-radius:50%}
+            .option-radio.selected{border-color:#C69C6D;background:#fff}
+            .option-radio.selected:after{content:'';position:absolute;left:4px;top:3px;width:6px;height:6px;background:#C69C6D;border-radius:50%}
             .option-label{font-size:14px;color:#333}
           `}</style>
 
@@ -137,12 +136,7 @@ const ContactUs = () => {
           className="w-full p-3 rounded-lg border border-gray-200 mb-6 bg-white placeholder-gray-400"
         />
 
-        <button
-          type="button"
-          className="w-full submit-btn"
-          style={{ border: "none" }}
-          onClick={() => alert("Submitted (stub)")}
-        >
+        <button className="px-6 py-2 rounded-lg bg-[#C69C6D] text-white shadow-sm w-10/12 text-center flex items-center justify-center mx-auto mt-3">
           Submit
         </button>
       </div>

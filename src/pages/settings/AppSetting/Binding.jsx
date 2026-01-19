@@ -56,19 +56,19 @@ const Binding = () => {
           Binding third-party services allows you to log in with these accounts and enjoy convenient cross-account features.
         </div>
 
-        <h3 className="text-sm font-semibold text-brown mb-3">Bound Services</h3>
+        <h3 className="text-sm font-semibold text-primary mb-3">Bound Services</h3>
         <div className="space-y-3 mb-6">
           {boundServices.map((s) => (
             <div key={s.id} className="bg-white rounded-xl p-3 flex items-center justify-between shadow-sm">
               <div className="flex items-center gap-3">
                 {renderIcon(s.id)}
                 <div>
-                  <div className="font-medium">{s.name}</div>
+                  <div className="font-medium text-primary">{s.name}</div>
                   <div className="text-xs text-gray-500">{s.subtitle}</div>
                 </div>
               </div>
               <button
-                className="px-4 py-2 rounded-md border bg-white text-gray-700"
+                className="px-4 py-2 rounded-lg shadow-sm bg-white text-primary"
                 onClick={() => toggle(s.id)}
               >
                 Connect
@@ -77,19 +77,19 @@ const Binding = () => {
           ))}
         </div>
 
-        <h3 className="text-sm font-semibold text-brown mb-3">Available Services</h3>
+        <h3 className="text-sm font-semibold text-primary mb-3">Available Services</h3>
         <div className="space-y-3">
           {availableServices.map((s) => (
             <div key={s.id} className="bg-white rounded-xl p-3 flex items-center justify-between shadow-sm">
               <div className="flex items-center gap-3">
                 {renderIcon(s.id)}
                 <div>
-                  <div className="font-medium">{s.name}</div>
+                  <div className="font-medium text-primary">{s.name}</div>
                   <div className="text-xs text-gray-500">{s.subtitle}</div>
                 </div>
               </div>
               <button
-                className="px-4 py-2 rounded-md bg-[#cfa76f] text-white shadow-sm"
+                className="px-4 py-2 rounded-md bg-[#C69C6D] text-white shadow-sm"
                 onClick={() => toggle(s.id)}
               >
                 Disconnect

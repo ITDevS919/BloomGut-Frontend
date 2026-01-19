@@ -79,7 +79,7 @@ const AccountSecurity = () => {
         </button>
 
         {/* Bind Email */}
-        <button className="w-full flex items-center justify-between gap-4 px-4 py-3 bg-white rounded-xl shadow-sm text-left" onClick={() => navigate('/setting/account/mailbox')}>
+        <button className="w-10/12 mx-auto flex items-center justify-between gap-4 px-4 py-3 bg-white rounded-xl shadow-sm text-left" onClick={() => navigate('/setting/account/mailbox')}>
           <div className=" text-base text-primary">Bind Email</div>
           <span className="text-xs text-gray-500 ">
             Bound: {maskEmail(auth.user.primaryEmailAddress)}

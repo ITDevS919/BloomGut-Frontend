@@ -277,7 +277,7 @@ const UrineRecord = () => {
       <div className="text-gray-400 flex text-center justify-center italic">
         For reference only. Consult a physician if needed.
       </div>
-      <button className="px-6 py-2 rounded-lg bg-[#C69C6D] text-white shadow-sm w-1/2 text-center mx-auto mt-5">
+      <button className="px-6 py-2 rounded-2xl bg-[#C69C6D] text-white shadow-sm w-10/12 text-center mx-auto mt-5">
         Save
       </button>
     </div>

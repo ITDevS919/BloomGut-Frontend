@@ -126,7 +126,7 @@ const DietRecord = (props) => {
 
       <div className="text-primary mt-5">
         Gut Calendar View
-        </div>
+      </div>
 
       <div className="text-primary mt-5">
         Gut Trends
@@ -138,7 +138,7 @@ const DietRecord = (props) => {
         </div>
       </div>
 
-      <button className="px-6 py-2 rounded-lg bg-[#C69C6D] text-white shadow-sm w-1/2 text-center mx-auto mt-5">Save Record</button>
+      <button className="px-6 py-2 rounded-2xl bg-[#C69C6D] text-white shadow-sm w-10/12 text-center flex items-center justify-center mx-auto mt-5">Save Record</button>
     </div>
   );
 };

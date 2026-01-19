@@ -1,4 +1,4 @@
-import Free from "./Free";
+import Free from "../Free";
 import DateRangeSelector from "@/components/custom/DateRangeSelector";
 import { Doughnut, Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
@@ -8,7 +8,7 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 
 function Stat({ label, value, valueColor = "text-gray-800" }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-lg border border-gray-200 px-3 py-1.5">
+    <div className="flex items-center justify-between gap-4 rounded-2xl border border-gray-200 px-3 py-1.5">
       <span className="text-gray-500">{label}</span>
       <span className={`font-medium ${valueColor}`}>{value}</span>
     </div>

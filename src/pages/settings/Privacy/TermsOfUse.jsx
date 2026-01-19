@@ -18,9 +18,8 @@ const TermsOfUse = () => {
   const tab = (isActive) => ({
     padding: "8px 16px",
     borderRadius: 8,
-    background: isActive ? "#cfa76f" : "white",
+    background: isActive ? "#C69C6D" : "white",
     color: isActive ? "white" : "#4b332d",
-    fontWeight: 600,
     boxShadow: isActive
       ? "0 4px 8px rgba(0,0,0,0.06)"
       : "0 1px 2px rgba(0,0,0,0.04)",

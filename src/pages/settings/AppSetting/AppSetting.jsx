@@ -27,7 +27,7 @@ const AppSetting = () => {
             </div>
             <div className="text-xs text-gray-400">Update Date: 2025-03-10</div>
           </div>
-          <button className="ml-4 px-4 py-2 bg-[#cfa76f] text-white rounded-lg shadow-sm" onClick={() => navigate("/setting/app-setting/check-update")}>
+          <button className="ml-4 px-4 py-2 bg-[#C69C6D] text-white rounded-lg shadow-sm" onClick={() => navigate("/setting/app-setting/check-update")}>
             Check Update
           </button>
         </div>

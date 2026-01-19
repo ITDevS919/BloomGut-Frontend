@@ -187,7 +187,7 @@ const Free = () => {
   const scorePosition = 45; // Position of indicator (percentage)
 
   return (
-    <div className="p-4">
+    <div className="p-6">
       {/* Score Card */}
       <div className="bg-white rounded-xl p-4 shadow-sm mb-5">
         <div className="flex items-center justify-between mb-4">

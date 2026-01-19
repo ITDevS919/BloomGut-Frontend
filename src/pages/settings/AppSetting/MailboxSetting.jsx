@@ -103,7 +103,7 @@ const MailboxSetting = () => {
 
         <button
           type="button"
-          className={`w-full text-white py-3 rounded-2xl ${error ? "bg-[#c69b6d] shadow-md" : "bg-[#cfa76f] shadow-sm"}`}
+          className={`w-full text-white py-3 rounded-2xl ${error ? "bg-[#c69b6d] shadow-md" : "bg-[#C69C6D] shadow-sm"}`}
           onClick={() => {
             // simple validation: require code, otherwise show specific message; otherwise simulate verification failure
             if (!code) {

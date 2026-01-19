@@ -20,10 +20,10 @@ const FontSize = () => {
         .font-range::-moz-range-thumb{width:22px;height:22px;border-radius:9999px;background:#6b3b26;border:4px solid #ffffff}
 
         /* custom radio */
-        .font-radio{appearance:none;width:22px;height:22px;border-radius:9999px;border:2px solid #cfa76f;background:#fff;display:inline-block;position:relative}
+        .font-radio{appearance:none;width:22px;height:22px;border-radius:9999px;border:2px solid #C69C6D;background:#fff;display:inline-block;position:relative}
         .font-radio:after{content:' ';position:absolute;inset:4px;border-radius:9999px;background:transparent}
-        .font-radio:checked{background:#fff;border:2px solid #cfa76f}
-        .font-radio:checked:after{background:#cfa76f}
+        .font-radio:checked{background:#fff;border:2px solid #C69C6D}
+        .font-radio:checked:after{background:#C69C6D}
       `}</style>
       <div className="flex items-center gap-4 mb-6">
         <button
@@ -42,13 +42,13 @@ const FontSize = () => {
           <div className="text-sm text-gray-700 mb-2">Adjust the display size of the text within the app. The larger the value, the larger the font. Recommended setting: Standard (100%).</div>
         </div>
 
-        <div className="text-sm font-medium mb-2">Preview Effect</div>
+        <div className="text-lg font-medium mb-2 text-primary">Preview Effect</div>
         <div className="bg-white rounded-xl p-4 mb-4 shadow-sm">
-          <div style={{ fontSize: `${value * 0.01 * 20 + 8}px` }} className="font-semibold mb-2">This is Header Text</div>
-          <div style={{ fontSize: `${value * 0.01 * 14}px` }} className="text-gray-700">This is body text. The adjusted effect will be displayed here immediately. Please choose the size that suits you.</div>
+          <div style={{ fontSize: `${value * 0.01 * 20 + 8}px` }} className="font-semibold mb-2 text-primary">This is Header Text</div>
+          <div style={{ fontSize: `${value * 0.01 * 14}px` }} className="text-secondary">This is body text. The adjusted effect will be displayed here immediately. Please choose the size that suits you.</div>
         </div>
 
-        <div className="text-sm font-medium mb-3">Font Size Selection</div>
+        <div className="text-lg text-primary font-medium mb-3">Font Size Selection</div>
         <div className="mb-3">
           <div className="flex items-center">
             <div className="text-xs text-gray-600 mr-3">Small (75%)</div>
@@ -97,7 +97,7 @@ const FontSize = () => {
           </div>
         </div>
 
-        <button className="w-full bg-[#cfa76f] text-white py-3 rounded-2xl shadow-sm" onClick={handleSave}>Save Settings</button>
+        <button className="w-10/12 mx-auto flex items-center justify-center bg-[#C69C6D] text-white py-3 rounded-2xl shadow-sm" onClick={handleSave}>Save Settings</button>
       </div>
     </div>
   );

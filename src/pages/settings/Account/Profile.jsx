@@ -85,7 +85,7 @@ const Profile = () => {
     },
     saveBtn: {
       marginTop: 18,
-      background: "#cfa76f",
+      background: "#C69C6D",
       color: "white",
       padding: "12px 16px",
       borderRadius: 12,
@@ -359,7 +359,9 @@ const Profile = () => {
           />
         </div>
 
-        <button type="submit" style={styles.saveBtn}>
+        <button
+          className="px-6 py-2 rounded-2xl bg-[#C69C6D] text-white shadow-sm w-10/12 text-center flex items-center justify-center mx-auto mt-3"
+        >
           Save Settings
         </button>
       </form>

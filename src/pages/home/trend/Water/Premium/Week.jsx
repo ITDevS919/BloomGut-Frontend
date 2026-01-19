@@ -51,6 +51,7 @@ const Week = () => {
           font: { size: 11 },
         },
       },
+      datalabels: { display: false },
     },
     scales: {
       x: { stacked: true, grid: { display: false } },

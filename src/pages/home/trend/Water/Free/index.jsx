@@ -107,6 +107,7 @@ const CircleStat = ({ value, label, color }) => {
     plugins: {
       tooltip: { enabled: false },
       legend: { display: false },
+      datalabels: { display: false },
     },
   };
 

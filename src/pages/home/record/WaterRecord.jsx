@@ -79,7 +79,7 @@ const WaterRecord = () => {
         {/* Recently Used */}
         <div className="flex items-center justify-between text-sm mt-5">
           <span className="font-medium">Recently Used</span>
-          <button className="shadow-sm border-gray-400 rounded-lg border px-3 py-1 text-xs">
+          <button className="shadow-sm border-gray-400 rounded-2xl border px-3 py-1 text-xs">
             Custom Amount
           </button>
         </div>
@@ -105,7 +105,7 @@ const WaterRecord = () => {
 
         <button
           type="button"
-          className="w-full bg-[#cfa76f] text-white py-3 rounded-2xl shadow-sm mt-5"
+          className="w-full bg-[#C69C6D] text-white py-3 rounded-2xl shadow-sm mt-5"
           onClick={() => alert(`Saved language: ${selected}`)}
         >
           Save

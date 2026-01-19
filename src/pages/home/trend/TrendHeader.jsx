@@ -20,7 +20,7 @@ const TrendHeader = (props) => {
       </div>
 
       <div className="flex justify-end mt-5">
-        <button className="bg-[#E2F1DB] text-[#4F7E4E] text-sm px-6 py-1 rounded-lg shadow-sm">
+        <button className="bg-[#E2F1DB] text-[#4F7E4E] text-sm px-6 py-1 rounded-2xl shadow-sm">
           Free/7 Days
         </button>
       </div>

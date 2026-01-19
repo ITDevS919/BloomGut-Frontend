@@ -169,7 +169,7 @@ function Collapse({ title, showAchievement = false, showSummary = false }) {
             {achievementData.map((item) => (
               <div
                 key={item.label}
-                className="bg-white rounded-lg p-3 shadow-sm border border-gray-100"
+                className="bg-white rounded-2xl p-3 shadow-sm border border-gray-100"
               >
                 {/* Header with label and percentage badge */}
                 <div className="flex items-center justify-between mb-2">

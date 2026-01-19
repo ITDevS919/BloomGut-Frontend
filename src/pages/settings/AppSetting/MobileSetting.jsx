@@ -87,7 +87,7 @@ const MobileSetting = () => {
 
         <button
           type="button"
-          className={`w-full text-white py-3 rounded-2xl ${error ? "bg-[#c69b6d] shadow-md" : "bg-[#cfa76f] shadow-sm"}`}
+          className={`w-full text-white py-3 rounded-2xl ${error ? "bg-[#C69C6D] shadow-md" : "bg-[#C69C6D] shadow-sm"}`}
           onClick={() => {
             // simple client-side validation demo: show error when code empty or incorrect
             if (!code) {

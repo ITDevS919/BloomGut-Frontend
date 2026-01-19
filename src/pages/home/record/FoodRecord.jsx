@@ -294,7 +294,7 @@ const FoodRecord = (props) => {
             
             <button
               onClick={handleStop}
-              className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm"
+              className="px-6 py-2 bg-gray-200 text-gray-700 rounded-2xl text-sm"
             >
               Stop Recording
             </button>
@@ -366,7 +366,7 @@ const FoodRecord = (props) => {
             <p className="text-lg font-medium mb-6" style={{ color: '#5d4037' }}>Sorry. Voice Not</p>
             <button
               onClick={handleTryAgain}
-              className="px-8 py-3 border rounded-lg bg-white font-medium mb-6 hover:opacity-90 transition-opacity"
+              className="px-8 py-3 border rounded-2xl bg-white font-medium mb-6 hover:opacity-90 transition-opacity"
               style={{ 
                 borderColor: '#fca5a5',
                 color: '#ef4444'
@@ -420,7 +420,7 @@ const FoodRecord = (props) => {
             <p className="text-sm mb-4" style={{ color: '#705d56' }}>Voice input complete, press back</p>
             
             {transcript && (
-              <div className="mt-4 p-4 bg-white rounded-lg shadow-sm max-w-md w-full">
+              <div className="mt-4 p-4 bg-white rounded-2xl shadow-sm max-w-md w-full">
                 <p className="text-sm text-gray-500 mb-2">Your food record:</p>
                 <p className="text-base text-gray-700">{transcript}</p>
               </div>

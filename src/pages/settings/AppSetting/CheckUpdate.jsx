@@ -22,13 +22,13 @@ const CheckUpdate = () => {
         <div className="bg-white rounded-xl p-4 mb-4 shadow-sm flex items-start gap-3">
           <div className="w-10 h-10 bg-sky-200 rounded-md flex items-center justify-center text-sky-600">☁️</div>
           <div>
-            <div className="text-sm font-medium">Current Version:</div>
-            <div className="text-sm font-medium">BloomGut Health Assistant</div>
+            <div className="text-sm text-primary">Current Version:</div>
+            <div className="text-sm text-primary">BloomGut Health Assistant</div>
             <div className="text-xs text-gray-400">Update Date: March 10, 2025</div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-3 mb-3 shadow-sm flex items-center justify-between">
+        <div className="bg-white rounded-xl p-3 mb-3 shadow-sm flex items-center justify-between text-primary">
           <div className="text-sm">Update History</div>
           <div className="text-gray-400"> <span className="inline-block">›</span></div>
         </div>
@@ -42,13 +42,13 @@ const CheckUpdate = () => {
               onChange={() => setAutoUpdate((s) => !s)}
               className="sr-only peer"
             />
-            <div className={`w-12 h-7 rounded-full transition-colors ${autoUpdate ? 'bg-[#cfa76f]' : 'bg-gray-300'}`}></div>
+            <div className={`w-12 h-7 rounded-full transition-colors ${autoUpdate ? 'bg-[#C69C6D]' : 'bg-gray-300'}`}></div>
             <div className={`absolute left-1 top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${autoUpdate ? 'translate-x-5' : ''}`}></div>
           </label>
         </div>
 
         <div className="mb-6">
-          <button className="w-full bg-[#cfa76f] text-white py-3 rounded-2xl shadow-sm">Check Updates</button>
+          <button className="w-10/12 mx-auto flex items-center justify-center bg-[#C69C6D] text-white py-3 rounded-2xl shadow-sm">Check Updates</button>
           <div className="text-xs text-gray-400 mt-3 text-center">Last Checked: April 29, 2025, 08:00 AM</div>
         </div>
       </div>

@@ -74,14 +74,14 @@ const HelpSupport = () => {
       </div>
 
       <div className="max-w-sm">
-        <h3 className="text-lg mb-4">Frequently Asked</h3>
+        <h3 className="text-lg text-primary mb-4">Frequently Asked</h3>
 
         <style>{`
           .faq-item{background:#fff;border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 6px 12px rgba(0,0,0,0.06);border:1px solid rgba(0,0,0,0.04)}
           .faq-text{color:#3b3b3b}
           .faq-panel{background:transparent;padding:10px 14px 18px 14px;color:#555}
           .contact-box{background:#eae6e0;padding:22px;border-radius:10px;margin-top:18px;text-align:center}
-          .contact-cta{background:#cfa76f;color:#fff;padding:8px 22px;border-radius:8px;display:inline-block;margin-top:12px;box-shadow:0 6px 0 rgba(0,0,0,0.06)}
+          .contact-cta{background:#C69C6D;color:#fff;padding:8px 22px;border-radius:8px;display:inline-block;margin-top:12px;box-shadow:0 6px 0 rgba(0,0,0,0.06)}
         `}</style>
 
         <div className="flex flex-col gap-3">
@@ -91,10 +91,10 @@ const HelpSupport = () => {
                 .faq-card{background:transparent}
                 .faq-card .card-inner{background:#fff;border-radius:10px;box-shadow:0 6px 12px rgba(0,0,0,0.04);overflow:hidden;border:1px solid rgba(0,0,0,0.04)}
                 .faq-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer}
-                .faq-title{font-size:14px;color:#4b4b4b}
+                .faq-title{font-size:14px;}
                 .faq-body{background:#fff;padding:10px 14px 16px 18px}
                 .faq-list{margin:0;padding:0}
-                .faq-list li{list-style:none;margin:8px 0;padding-left:18px;position:relative;color:#555}
+                .faq-list li{list-style:none;margin:8px 0;padding-left:18px;position:relative;}
                 .faq-list li:before{content:'';position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:50%;background:#8a5a34}
                 .chev{color:#b7b0a6}
               `}</style>
@@ -106,13 +106,13 @@ const HelpSupport = () => {
                   onClick={() => setOpenIndex(openIndex === i ? null : i)}
                   aria-expanded={openIndex === i}
                 >
-                  <span className="faq-title">{q}</span>
+                  <span className="faq-title text-primary">{q}</span>
                   <ChevronDown className={`chev transition-transform ${openIndex === i ? 'rotate-180' : ''}`} />
                 </button>
 
                 {openIndex === i && (
                   <div className="faq-body">
-                    <ul className="faq-list">
+                    <ul className="faq-list text-primary">
                       {answers[i] && answers[i].map((a, idx) => (
                         <li key={idx}>{a}</li>
                       ))}
@@ -124,12 +124,12 @@ const HelpSupport = () => {
           ))}
         </div>
 
-        <div className="contact-box">
-          <div className="text-sm font-semibold mb-1">Need more help?</div>
-          <div className="text-xs text-gray-600">Our customer service is here to assist you</div>
+        <div className="contact-box text-primary">
+          <div className="text-sm mb-1">Need more help?</div>
+          <div className="text-xs">Our customer service is here to assist you</div>
           <button
             type="button"
-            className="contact-cta"
+            className="px-6 py-2 rounded-lg bg-[#C69C6D] text-white shadow-sm w-1/2 text-center flex items-center justify-center mx-auto mt-3"
             onClick={() => navigate("/settings/about/contact-us")}
           >
             Contact Us
