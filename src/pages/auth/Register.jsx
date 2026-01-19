@@ -1,0 +1,269 @@
+import { useEffect, useState } from "react";
+import { useAuth, useSignUp } from "@clerk/clerk-react";
+import { Button } from "@/components/ui/button";
+import Icon from "@/components/common/Icon";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import {
+  emailValidation,
+  passwordValidation,
+  usernameValidation,
+} from "@/utils/validators";
+import FormInput from "@/components/common/FormInput";
+import axios from "axios";
+
+const getPasswordStrength = (password = "") => {
+  if (password.length >= 8 && /[A-Z]/.test(password) && /\d/.test(password)) {
+    return password.length > 8 ? "Strong" : "Medium";
+  }
+  return "Weak";
+};
+
+const strengthValue = {
+  Weak: 33,
+  Medium: 66,
+  Strong: 100,
+};
+
+const Register = () => {
+  const { signUp, isLoaded } = useSignUp();
+  // const [passwordStrength, setPasswordStrength] = useState("Weak");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const { getToken } = useAuth();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+  } = useForm();
+
+  console.log("loading", loading);
+
+  const passwordToValidate = watch("password");
+  const passwordStrength = getPasswordStrength(passwordToValidate);
+
+  const onSubmit = async (data) => {
+    setLoading(true);
+    console.log(data);
+    try {
+      const res = await signUp.create(data);
+      await signUp.prepareEmailAddressVerification({
+        strategy: "email_code",
+      });
+
+      await axios.post('http://localhost:5000/api/v1/user/create',res);
+      toast.success("Sign-up successful!");
+      navigate("/auth/login");
+    } catch (error) {
+      toast.error(error?.errors?.[0]?.longMessage);
+      console.log(
+        "error?.errors?.long_message",
+        error?.errors?.[0]?.longMessage
+      );
+      console.log("error", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isLoaded)
+    return (
+      <div className="flex justify-center items-center w-full">Loading...</div>
+    );
+
+  return (
+    <>
+      <div className="flex flex-col justify-between items-center h-full">
+        <p className="flex items-start">
+          <span onClick={() => navigate("/home")}>
+            <Icon name={"ArrowLeft"} size={30} />
+          </span>
+          <span className="text-lg font-medium text-primary">
+            Create Account
+          </span>
+        </p>
+
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col gap-4 w-full"
+        >
+          <FormInput
+            placeholder="Name"
+            name="username"
+            register={register}
+            rules={usernameValidation}
+            error={errors.username}
+          />
+
+          <FormInput
+            type="email"
+            placeholder="Email"
+            name="emailAddress"
+            register={register}
+            rules={emailValidation}
+            error={errors.emailAddress}
+          />
+
+          <FormInput
+            type="password"
+            placeholder="Password"
+            name="password"
+            register={register}
+            rules={passwordValidation}
+            error={errors.password}
+            displayError={false}
+          />
+
+          <div className="flex flex-col mt-2 gap-2">
+            <div className="flex justify-between text-xs text-primary">
+              <span>Weak</span>
+              <span>Medium</span>
+              <span>Strong</span>
+            </div>
+            <Progress className="h-3" value={strengthValue[passwordStrength]} />
+            <p className="text-xs text-danger mb-4">
+              Min 8 chars, 1 number & 1 uppercase
+            </p>
+          </div>
+
+          <div id="clerk-captcha" />
+
+          <Button type="submit" className="w-[60%] mx-auto">
+            Register
+          </Button>
+        </form>
+
+        <footer className="text-xs text-gray-400 mt-6 text-center border-t w-full px-6 py-3">
+          By registering, you agree to the{" "}
+          <a href="#" className="text-blue-600 ">
+            Terms
+          </a>{" "}
+          &{" "}
+          <a href="#" className="text-blue-600 ">
+            Privacy Policy
+          </a>
+        </footer>
+      </div>
+    </>
+  );
+};
+
+export default Register;
+
+// import { useEffect, useState } from "react";
+// import { useSignUp } from "@clerk/clerk-react";
+// import { Button } from "@/components/ui/button";
+// import Icon from "@/components/common/Icon";
+// import { Input } from "@/components/ui/input";
+// import { Progress } from "@/components/ui/progress";
+// import { useNavigate } from "react-router-dom";
+// import { useForm } from "react-hook-form";
+// import { toast } from "sonner";
+// import { emailValidation, passwordValidation } from "@/utils/validators";
+// import FormInput from "@/components/common/FormInput";
+
+// const getPasswordStrength = (password = "") => {
+//   if (password.length >= 8 && /[A-Z]/.test(password) && /\d/.test(password)) {
+//     return password.length > 8 ? "Strong" : "Medium";
+//   }
+//   return "Weak";
+// };
+
+// const strengthValue = {
+//   Weak: 33,
+//   Medium: 66,
+//   Strong: 100,
+// };
+
+// const Register = () => {
+//   const { signUp, isLoaded } = useSignUp();
+//   const navigate = useNavigate();
+
+//   const {
+//     register,
+//     handleSubmit,
+//     watch,
+//     formState: { errors },
+//   } = useForm();
+
+//   const password = watch("password");
+//   const passwordStrength = getPasswordStrength(password);
+
+//   const onSubmit = async (data) => {
+//     try {
+//       await signUp.create(data);
+//       toast.success("Sign-up successful!");
+//       navigate("/dashboard");
+//     } catch (err) {
+//       toast.error(err?.errors?.[0]?.longMessage);
+//     }
+//   };
+
+//   if (!isLoaded) {
+//     return (
+//       <div className="flex justify-center items-center">
+//         Loading...
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className="bg-ivory flex flex-col">
+//       <div className="flex items-center gap-3">
+//         <Icon name="ArrowLeft" size={30} onClick={() => navigate("/home")} />
+//         <h2 className="text-lg font-medium text-primary">Create Account</h2>
+//       </div>
+
+//       <form
+//         onSubmit={handleSubmit(onSubmit)}
+//         className="flex flex-col gap-4 px-6"
+//       >
+//         <FormInput placeholder="Name" name="username" register={register} />
+
+//         <FormInput
+//           type="email"
+//           placeholder="Email"
+//           name="emailAddress"
+//           register={register}
+//           rules={emailValidation}
+//           error={errors.emailAddress}
+//         />
+
+//         <FormInput
+//           type="password"
+//           placeholder="Password"
+//           name="password"
+//           register={register}
+//           rules={passwordValidation}
+//           error={errors.password}
+//         />
+
+//         <div className="flex flex-col gap-2">
+//           <div className="flex justify-between text-xs text-secondary">
+//             <span>Weak</span>
+//             <span>Medium</span>
+//             <span>Strong</span>
+//           </div>
+//           <Progress value={strengthValue[passwordStrength]} />
+//           <p className="text-xs text-gray-400">
+//             Min 8 chars, 1 number & 1 uppercase
+//           </p>
+//         </div>
+
+//         <div id="clerk-captcha" />
+
+//         <Button type="submit" className="w-[60%] mx-auto">
+//           Register
+//         </Button>
+//       </form>
+//     </div>
+//   );
+// };
+
+// export default Register;
