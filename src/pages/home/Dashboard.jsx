@@ -21,7 +21,7 @@ const Dashboard = () => {
       <div className="flex flex-col overflow-y-auto">
         <div className="text-center">
           <h3 className="text-3xl font-bold text-primary mb-5">Hi {auth.user != null && auth.user.firstName}</h3>
-          <p className="text-primary-muted">My Health Records</p>
+          <p className="text-primary-muted">How is your health today?</p>
         </div>
         <div className="flex flex-col gap-5 mt-15">
           <div
