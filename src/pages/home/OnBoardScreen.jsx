@@ -22,17 +22,17 @@ const OnBoardScreen = () => {
 
   const slides = [
     {
-      icon: <Icon name="iconWave" width={60} height={60} />,
+      icon: <Icon name="iconWave" width={50} height={50} />,
       title: "Smart Health Tracker",
       description: "Record and analyze your key health metrics",
     },
     {
-      icon: <Icon name="userCog" width={60} height={60} />,
+      icon: <Icon name="userCog" width={50} height={50} />,
       title: "Personalized",
       description: "Recive expert health advice from AI Assistant",
     },
     {
-      icon: <Icon name="barChart" width={60} height={60} />,
+      icon: <Icon name="barChart" width={50} height={50} />,
       title: "Data Visualization",
       description: "Intutive Health Trend Analysis",
     },
@@ -45,7 +45,7 @@ const OnBoardScreen = () => {
           Skip
         </Button>
       </div>
-      <div className="relative w-90 h-70">
+      <div className="relative w-85 h-68">
         <img
           src={BloomGut}
           alt="Logo"
