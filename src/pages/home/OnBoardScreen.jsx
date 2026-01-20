@@ -22,17 +22,17 @@ const OnBoardScreen = () => {
 
   const slides = [
     {
-      icon: <Icon name="iconWave" width={50} height={50} />,
+      icon: <Icon name="iconWave" width={40} height={40} />,
       title: "Smart Health Tracker",
       description: "Record and analyze your key health metrics",
     },
     {
-      icon: <Icon name="userCog" width={50} height={50} />,
+      icon: <Icon name="userCog" width={40} height={40} />,
       title: "Personalized",
       description: "Recive expert health advice from AI Assistant",
     },
     {
-      icon: <Icon name="barChart" width={50} height={50} />,
+      icon: <Icon name="barChart" width={40} height={40} />,
       title: "Data Visualization",
       description: "Intutive Health Trend Analysis",
     },
@@ -52,9 +52,9 @@ const OnBoardScreen = () => {
           className=" object-cover"
         />
       </div>
-      <div className="flex flex-col items-center text-center gap-4 mt-6">
-        {/* {slides[activeSlide].icon} */}
-        <h3 className="font-semibold text-lg text-primary leading-6">
+      <div className="flex flex-col items-center text-center gap-4 mt-8">
+        {slides[activeSlide].icon}
+        <h3 className="font-semibold text-lg text-primary leading-2">
           {slides[activeSlide].title}
         </h3>
         <p className="text-sm leading-[18px] text-primary">
