@@ -12,6 +12,21 @@ import { useEffect, useState } from "react";
 import { IoIosArrowBack } from "react-icons/io";
 import { IoIosArrowDown } from "react-icons/io";
 
+import StoolType1 from "@/assets/Images/stool-types/Stool type 1.png";
+import StoolType2 from "@/assets/Images/stool-types/Stool type 2.png";
+import StoolType3 from "@/assets/Images/stool-types/Stool type 3.png";
+import StoolType4 from "@/assets/Images/stool-types/Stool type 4.png";
+import StoolType5 from "@/assets/Images/stool-types/Stool type 5.png";
+import StoolType6 from "@/assets/Images/stool-types/Stool type 6.png";
+import StoolType7 from "@/assets/Images/stool-types/Stool type 7.png";
+import Type1 from "@/assets/Images/stool-types/Type 1.png";
+import Type2 from "@/assets/Images/stool-types/Type 2.png";
+import Type3 from "@/assets/Images/stool-types/Type 3.png";
+import Type4 from "@/assets/Images/stool-types/Type 4.png";
+import Type5 from "@/assets/Images/stool-types/Type 5.png";
+import Type6 from "@/assets/Images/stool-types/Type 6.png";
+import Type7 from "@/assets/Images/stool-types/Type 7.png";
+
 const StoolPage = () => {
   const [timeValue, setTimeValue] = useState("card");
   const [frequencyValue, setFrequencyValue] = useState("card");
@@ -23,46 +38,46 @@ const StoolPage = () => {
   const stoolImages = [
     {
       label: "Hard Lumps",
-      image: "src/assets/images/stool-types/Stool type 1.png",
+      image: StoolType1,
       onclick: () => {
-        setSelectedStool("src/assets/images/stool-types/Type 1.png");
+        setSelectedStool(Type1);
       },
     },
     {
       label: "Lumpy",
-      image: "src/assets/images/stool-types/Stool type 2.png",
+      image: StoolType2,
       onclick: () =>
-        setSelectedStool("src/assets/images/stool-types/Type 2.png"),
+        setSelectedStool(Type2),
     },
     {
       label: "Firm",
-      image: "src/assets/images/stool-types/Stool type 3.png",
+      image: StoolType3,
       onclick: () =>
-        setSelectedStool("src/assets/images/stool-types/Type 3.png"),
+        setSelectedStool(Type3),
     },
     {
       label: "Smooth",
-      image: "src/assets/images/stool-types/Stool type 4.png",
+      image: StoolType4,
       onclick: () =>
-        setSelectedStool("src/assets/images/stool-types/Type 4.png"),
+        setSelectedStool(Type4),
     },
     {
       label: "Soft",
-      image: "src/assets/images/stool-types/Stool type 5.png",
+      image: StoolType5,
       onclick: () =>
-        setSelectedStool("src/assets/images/stool-types/Type 5.png"),
+        setSelectedStool(Type5),
     },
     {
       label: "Mushy",
-      image: "src/assets/images/stool-types/Stool type 6.png",
+      image: StoolType6,
       onclick: () =>
-        setSelectedStool("src/assets/images/stool-types/Type 6.png"),
+        setSelectedStool(Type6),
     },
     {
       label: "Watery",
-      image: "src/assets/images/stool-types/Stool type 7.png",
+      image: StoolType7,
       onclick: () =>
-        setSelectedStool("src/assets/images/stool-types/Type 7.png"),
+        setSelectedStool(Type7),
     },
   ];
 
@@ -135,7 +150,7 @@ const StoolPage = () => {
           src={
             selectedStool
               ? selectedStool
-              : "src/assets/images/stool-types/Type 1.png"
+              : Type1
           }
           className="w-27 h-24.5 object-cover border border-custom-20 rounded-full shadow-sm"
           alt="Logo"
