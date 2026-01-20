@@ -92,7 +92,7 @@ const Login = () => {
       <div className="my-auto">
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 mt-10">
           <FormInput
-            placeholder="Email / Phone Number"
+            placeholder="Email"
             name="identifier"
             register={register}
             rules={emailValidation}
@@ -179,7 +179,7 @@ const Login = () => {
               </span>
               <span className="min-w-20">Google</span>
             </Button>
-            <Button
+            {/* <Button
               type="button"
               variant="outline"
               onClick={() => oauthSignIn("line")}
@@ -189,8 +189,8 @@ const Login = () => {
                 <FaLine className="size-6" size={24} />
               </span>
               <span className="min-w-20">Line</span>
-            </Button>
-            <Button
+            </Button> */}
+            {/* <Button
               type="button"
               variant="outline"
               onClick={() => oauthSignIn("facebook")}
@@ -200,7 +200,7 @@ const Login = () => {
                 <FaFacebook className="size-6" size={24} />
               </span>
               <span className="min-w-20">Facebook</span>
-            </Button>
+            </Button> */}
             <Button
               type="button"
               variant="outline"
