@@ -45,7 +45,7 @@ const OnBoardScreen = () => {
           Skip
         </Button>
       </div>
-      <div className="relative w-85 h-68">
+      <div className="relative w-85 h-60">
         <img
           src={BloomGut}
           alt="Logo"
