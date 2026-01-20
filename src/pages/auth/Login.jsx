@@ -90,7 +90,7 @@ const Login = () => {
 
       {/* Form */}
       <div className="my-auto">
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 mt-10">
           <FormInput
             placeholder="Email / Phone Number"
             name="identifier"
@@ -119,7 +119,7 @@ const Login = () => {
           </div>
 
           {/* Divider */}
-          <div className="flex items-center gap-3 my-2">
+          <div className="flex items-center">
             <div className="flex-1 h-px bg-gray-300" />
             <span className="text-gray-400">or</span>
             <div className="flex-1 h-px bg-gray-300" />
@@ -214,11 +214,11 @@ const Login = () => {
             </Button>
           </div>
 
-          <Button type="submit" className="w-[60%] mx-auto mt-4">
+          <Button type="submit" className="w-[60%] mx-auto mt-3">
             {loading ? "Logging in..." : "Login"}
           </Button>
 
-          <label className="flex items-center gap-2 text-xs text-gray-500">
+          <label className="flex items-center gap-2 text-xs text-gray-500 mt-1">
             <input type="checkbox" />
             Remember Me
           </label>
