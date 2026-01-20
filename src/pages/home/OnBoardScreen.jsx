@@ -4,7 +4,7 @@ import { FaUserCog } from "react-icons/fa";
 import { LuChartNoAxesColumn } from "react-icons/lu";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import BloomGut from "@/assets/BloomGut.png";
+import BloomGut from "@/assets/BloomGut-透明板.png";
 
 import Icon from "@/components/common/Icon";
 
@@ -52,15 +52,12 @@ const OnBoardScreen = () => {
           className=" object-cover"
         />
       </div>
-      <div className="flex flex-col items-center text-center gap-4">
-        {slides[activeSlide].icon}
-      </div>
-      <div className="flex flex-col gap-3 mt-6">
-        <h3 className="font-semibold text-lg text-primary leading-6 text-center">
+      <div className="flex flex-col items-center text-center gap-4 mt-6">
+        {/* {slides[activeSlide].icon} */}
+        <h3 className="font-semibold text-lg text-primary leading-6">
           {slides[activeSlide].title}
         </h3>
-        <p className="text-sm leading-[18px] text-left ml-3">
-          
+        <p className="text-sm leading-[18px] text-primary">
           {slides[activeSlide].description}
         </p>
       </div>
