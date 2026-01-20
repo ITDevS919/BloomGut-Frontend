@@ -89,7 +89,7 @@ const Login = () => {
       </p>
 
       {/* Form */}
-      <div className="my-auto">
+      <div className="mt-15">
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 mt-10">
           <FormInput
             placeholder="Email"
