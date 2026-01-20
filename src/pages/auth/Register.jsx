@@ -145,16 +145,12 @@ const Register = () => {
           </Button>
         </form>
 
-        <div className="text-sm text-gray-400 mt-6 text-center border-t w-full py-3 flex items-end justify-center">
-          By registering, you agree to the{" "}
-          <a href="#" className="text-blue-600 ">
-            Terms
-          </a>{" "}
-          &{" "}
-          <a href="#" className="text-blue-600 ">
-            Privacy Policy
-          </a>
-        </div>
+        <p className="text-sm text-gray-400 mt-6 text-center border-t w-full py-3 flex items-end justify-center whitespace-nowrap gap-1">
+          By registering, you agree to the
+          <a href="#" className="text-blue-600">Terms</a>
+          &
+          <a href="#" className="text-blue-600">Privacy Policy</a>
+        </p>
       </div>
     </>
   );
