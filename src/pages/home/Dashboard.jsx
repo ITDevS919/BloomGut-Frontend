@@ -16,7 +16,7 @@ const Dashboard = () => {
   const auth = useSelector((state) => state.auth);
   console.log(auth)
   return (
-    <div className="flex flex-col relative h-full">
+    <div className="flex flex-col relative h-full p-4">
       {/* Upper Scrollable Area */}
       <div className="flex flex-col overflow-y-auto">
         <div className="text-center">
@@ -25,7 +25,7 @@ const Dashboard = () => {
         </div>
         <div className="flex flex-col gap-5 mt-15">
           <div
-            className="flex justify-start gap-3 bg-[#dfd2b2] rounded-[10px] p-5 cursor-pointer"
+            className="flex justify-start gap-3 bg-[#dfd2b2] rounded-[15px] p-5 cursor-pointer shadow-sm"
             onClick={() => navigate("/stool")}
           >
             <div className="flex-0">
@@ -60,7 +60,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="flex justify-start gap-3 bg-[#e0d5e6] rounded-[10px] p-5 cursor-pointer" onClick={() => navigate("/diet-record")}>
+          <div className="flex justify-start gap-3 bg-[#e0d5e6] rounded-[15px] p-5 cursor-pointer shadow-sm" onClick={() => navigate("/diet-record")}>
             <div>
               <FaUtensils className="text-primary" size={24} />
             </div>
@@ -80,7 +80,7 @@ const Dashboard = () => {
                   </span>
                   <div className="w-full bg-white rounded-full h-3">
                     <div
-                      className="bg-[#ac95cc] h-3 rounded-full transition-all "
+                      className="bg-[#ac95cc] h-3 rounded-full transition-all shadow-sm"
                       style={{ width: `${30}%` }}
                     />
                   </div>
@@ -93,7 +93,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="flex justify-start gap-3 bg-[#d7eaf8] rounded-[10px] p-5 cursor-pointer" onClick={() => navigate("/water-record")}>
+          <div className="flex justify-start gap-3 bg-[#d7eaf8] rounded-[15px] p-5 cursor-pointer shadow-sm" onClick={() => navigate("/water-record")}>
             <div>
               <FaGlassWhiskey className="text-primary" size={24} />
             </div>
@@ -111,7 +111,7 @@ const Dashboard = () => {
                   </span>
                   <div className="w-full bg-white rounded-full h-3">
                     <div
-                      className="bg-[#79b6e2] h-3 rounded-full transition-all "
+                      className="bg-[#79b6e2] h-3 rounded-full transition-all shadow-sm"
                       style={{ width: `${50}%` }}
                     />
                   </div>
@@ -124,7 +124,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="flex justify-start gap-3 bg-[#fff3cd] rounded-[10px] p-5 cursor-pointer" onClick={() => navigate("/urine-record")}>
+          <div className="flex justify-start gap-3 bg-[#fff3cd] rounded-[15px] p-5 cursor-pointer shadow-sm" onClick={() => navigate("/urine-record")}>
             <div>
               <MdWaterDrop className="text-primary" size={24} />
             </div>

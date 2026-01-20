@@ -45,7 +45,7 @@ const OnBoardScreen = () => {
           Skip
         </Button>
       </div>
-      <div className="relative w-85 h-53">
+      <div className="relative w-80 h-65">
         <img
           src={BloomGut}
           alt="Logo"
@@ -54,14 +54,14 @@ const OnBoardScreen = () => {
       </div>
       <div className="flex flex-col items-center text-center gap-4 mt-8">
         {slides[activeSlide].icon}
-        <h3 className="font-semibold text-lg text-primary leading-2">
+        <h3 className="font-semibold text-lg text-primary leading-2 mt-8">
           {slides[activeSlide].title}
         </h3>
         <p className="text-sm leading-[18px] text-primary">
           {slides[activeSlide].description}
         </p>
       </div>
-      <div className="flex gap-2 mt-6">
+      <div className="flex gap-2 mt-12">
         {slides.map((_, index) => (
           <Button
             variant="link"
@@ -75,7 +75,7 @@ const OnBoardScreen = () => {
         <div className="mt-4">
           <Button
             variant="outline"
-            className="border border-custom-16 shadow-sm"
+            className="border border-custom-16 shadow-sm mt-5"
             onClick={() => navigate("/home")}
           >
             Start Now
