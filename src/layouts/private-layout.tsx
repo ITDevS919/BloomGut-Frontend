@@ -51,7 +51,7 @@ const PrivateLayout = ({ children }) => {
               className="flex flex-col justify-center items-center gap-1.5 flex-1 cursor-pointer transition-opacity hover:opacity-80 active:opacity-70"
             >
               <IconComponent 
-                size={24} 
+                size={55} 
                 style={{ color: item.color }}
                 className="shrink-0"
               />
