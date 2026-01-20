@@ -15,24 +15,24 @@ const OnBoardScreen = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveSlide((prev) => (prev < slides.length - 1 ? prev + 1 : prev));
-    }, 5000);
+    }, 2500);
 
     return () => clearInterval(interval);
   }, []);
 
   const slides = [
     {
-      icon: <Icon name="iconWave" width={40} height={40} />,
+      icon: <Icon name="iconWave" width={80} height={80} />,
       title: "Smart Health Tracker",
       description: "Record and analyze your key health metrics",
     },
     {
-      icon: <Icon name="userCog" width={40} height={40} />,
+      icon: <Icon name="userCog" width={80} height={80} />,
       title: "Personalized",
       description: "Recive expert health advice from AI Assistant",
     },
     {
-      icon: <Icon name="barChart" width={40} height={40} />,
+      icon: <Icon name="barChart" width={80} height={80} />,
       title: "Data Visualization",
       description: "Intutive Health Trend Analysis",
     },
@@ -45,11 +45,11 @@ const OnBoardScreen = () => {
           Skip
         </Button>
       </div>
-      <div className="relative w-64 h-64">
+      <div className="relative w-90 h-70">
         <img
           src={BloomGut}
           alt="Logo"
-          className="w-full h-full object-cover"
+          className=" object-cover"
         />
       </div>
       <div className="flex flex-col items-center text-center gap-4">
