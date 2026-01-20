@@ -4,6 +4,7 @@ import { FaUserCog } from "react-icons/fa";
 import { LuChartNoAxesColumn } from "react-icons/lu";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import BloomGut from "@/assets/BloomGut.png";
 
 import Icon from "@/components/common/Icon";
 
@@ -46,7 +47,7 @@ const OnBoardScreen = () => {
       </div>
       <div className="relative w-64 h-64">
         <img
-          src="src/assets/BloomGut.png"
+          src={BloomGut}
           alt="Logo"
           className="w-full h-full object-cover"
         />
