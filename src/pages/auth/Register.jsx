@@ -121,7 +121,7 @@ const Register = () => {
             register={register}
             rules={passwordValidation}
             error={errors.password}
-            displayError={false}
+            displayError={true}
           />
 
           <div className="flex flex-col mt-2 gap-2">
@@ -131,9 +131,11 @@ const Register = () => {
               <span>Strong</span>
             </div>
             <Progress className="h-3" value={strengthValue[passwordStrength]} />
-            <p className="text-xs text-danger mb-4">
-              Min 8 chars, 1 number & 1 uppercase
-            </p>
+            {!errors.password && (
+              <p className="text-xs text-danger mb-4">
+                Min 8 chars, 1 number & 1 uppercase
+              </p>
+            )}
           </div>
 
           <div id="clerk-captcha" />
@@ -143,7 +145,7 @@ const Register = () => {
           </Button>
         </form>
 
-        <footer className="text-xs text-gray-400 mt-6 text-center border-t w-full px-6 py-3">
+        <div className="text-sm text-gray-400 mt-6 text-center border-t w-full py-3 flex items-end justify-center">
           By registering, you agree to the{" "}
           <a href="#" className="text-blue-600 ">
             Terms
@@ -152,7 +154,7 @@ const Register = () => {
           <a href="#" className="text-blue-600 ">
             Privacy Policy
           </a>
-        </footer>
+        </div>
       </div>
     </>
   );

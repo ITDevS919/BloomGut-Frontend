@@ -11,11 +11,11 @@ export const usernameValidation = {
   },
 };
 export const emailValidation = {
-  required: "Email is required",
+  required: "Email Missing @",
   setValueAs: (value) => value?.trim(),
   pattern: {
     value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    message: "Enter a valid email address",
+    message: "Email Missing @",
   },
 };
 
