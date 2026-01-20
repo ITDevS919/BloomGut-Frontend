@@ -22,17 +22,17 @@ const OnBoardScreen = () => {
 
   const slides = [
     {
-      icon: <Icon name="iconWave" width={80} height={80} />,
+      icon: <Icon name="iconWave" width={60} height={60} />,
       title: "Smart Health Tracker",
       description: "Record and analyze your key health metrics",
     },
     {
-      icon: <Icon name="userCog" width={80} height={80} />,
+      icon: <Icon name="userCog" width={60} height={60} />,
       title: "Personalized",
       description: "Recive expert health advice from AI Assistant",
     },
     {
-      icon: <Icon name="barChart" width={80} height={80} />,
+      icon: <Icon name="barChart" width={60} height={60} />,
       title: "Data Visualization",
       description: "Intutive Health Trend Analysis",
     },
@@ -62,19 +62,18 @@ const OnBoardScreen = () => {
           {slides[activeSlide].description}
         </p>
       </div>
-      <div className="flex gap-2 mt-16">
+      <div className="flex gap-2 mt-6">
         {slides.map((_, index) => (
           <Button
             variant="link"
             key={index}
-            className={`p-0 h-2 rounded-full transition-all duration-300 w-2 ${
-              index === activeSlide ? "bg-custom-7" : "bg-custom-18"
-            }`}
+            className={`p-0 h-2 rounded-full transition-all duration-300 w-2 ${index === activeSlide ? "bg-custom-7" : "bg-custom-18"
+              }`}
           />
         ))}
       </div>
       {activeSlide === 2 && (
-        <div className="mt-8">
+        <div className="mt-4">
           <Button
             variant="outline"
             className="border border-custom-16 shadow-sm"
