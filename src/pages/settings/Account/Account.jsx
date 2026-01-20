@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { FaShieldAlt } from "react-icons/fa";
 
 const Account = () => {
     const navigate = useNavigate();
@@ -19,7 +20,7 @@ const Account = () => {
       onclick: () => navigate("/setting/account/profile"),
     },
     {
-      icon: <Shield />,
+      icon: <FaShieldAlt />,
       label: "Account Security",
       onclick: () => navigate("/setting/account/security"),
     },
