@@ -52,9 +52,9 @@ const OnBoardScreen = () => {
           className="object-cover"
         />
       </div>
-      <div className="flex flex-col items-center text-center gap-4 mt-10">
+      <div className="flex flex-col items-center text-center gap-4 mt-8">
         {slides[activeSlide].icon}
-        <h3 className="font-semibold text-lg text-primary leading-2 mt-10">
+        <h3 className="font-semibold text-lg text-primary leading-2 mt-8">
           {slides[activeSlide].title}
         </h3>
         <p className="text-sm leading-[18px] text-primary">
@@ -75,7 +75,7 @@ const OnBoardScreen = () => {
         <div className="mt-4">
           <Button
             variant="outline"
-            className="border border-custom-16 shadow-sm mt-8"
+            className="border border-custom-16 shadow-sm mt-5"
             onClick={() => navigate("/home")}
           >
             Start Now
