@@ -14,6 +14,7 @@ import {
 } from "@/utils/validators";
 import FormInput from "@/components/common/FormInput";
 import axios from "axios";
+import { ChevronLeft } from "lucide-react";
 
 const getPasswordStrength = (password = "") => {
   if (password.length >= 8 && /[A-Z]/.test(password) && /\d/.test(password)) {
@@ -57,7 +58,7 @@ const Register = () => {
         strategy: "email_code",
       });
 
-      await axios.post('http://localhost:5000/api/v1/user/create',res);
+      await axios.post('http://localhost:5000/api/v1/user/create', res);
       toast.success("Sign-up successful!");
       navigate("/auth/login");
     } catch (error) {
@@ -79,15 +80,18 @@ const Register = () => {
 
   return (
     <>
-      <div className="flex flex-col justify-between items-center h-full">
-        <p className="flex items-start">
-          <span onClick={() => navigate("/home")}>
-            <Icon name={"ArrowLeft"} size={30} />
-          </span>
-          <span className="text-lg font-medium text-primary">
-            Create Account
-          </span>
-        </p>
+      <div className="bg-ivory p-6 text-secondary">
+        <div className="flex items-center gap-4 mb-35">
+          <button
+            type="button"
+            className="text-primary text-xl leading-none"
+            aria-label="back"
+            onClick={() => window.history.back()}
+          >
+            <ChevronLeft className="text-primary text-xl leading-none" />
+          </button>
+          <h2 className="text-xl font-semibold">Create Account</h2>
+        </div>
 
         <form
           onSubmit={handleSubmit(onSubmit)}

@@ -105,7 +105,7 @@ const WaterRecord = () => {
 
         <button
           type="button"
-          className="w-full bg-[#C69C6D] text-white py-3 rounded-2xl shadow-sm mt-5"
+          className="w-10/12 mx-auto flex items-center justify-center text-white text-lg font-medium rounded-2xl bg-[#C69C6D] py-3 shadow-sm mt-5"
           onClick={() => alert(`Saved language: ${selected}`)}
         >
           Save

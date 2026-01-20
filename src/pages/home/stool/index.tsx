@@ -112,6 +112,7 @@ const StoolPage = () => {
           variant="ghost"
           size="lg"
           iconSize={24}
+          onClick={() => window.history.back()}
         />
       </div>
 
@@ -263,7 +264,6 @@ const StoolPage = () => {
       <div className="px-6.5 flex flex-col gap-2">
         <CustomHeading
           label="Additional Status"
-          labelClassName="font-bold"
           isRequired
           requiredText="Required, Select ≥ 1"
         />
@@ -302,14 +302,7 @@ const StoolPage = () => {
         <button
           onClick={handleSaveRecord}
           aria-label="Save Record"
-          className="w-full max-w-[360px] text-white text-lg font-medium rounded-[14px]"
-          style={{
-            background: "#c9a57f",
-            boxShadow:
-              "0 6px 0 rgba(0,0,0,0.12), inset 0 2px 0 rgba(255,255,255,0.18)",
-            borderBottom: "4px solid rgba(0,0,0,0.08)",
-            padding: "12px 20px",
-          }}
+          className="w-10/12 mx-auto flex items-center justify-center text-white text-lg font-medium rounded-2xl bg-[#C69C6D] py-3 shadow-sm"
         >
           Save Record
         </button>
