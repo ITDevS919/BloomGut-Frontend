@@ -54,11 +54,13 @@ const OnBoardScreen = () => {
       </div>
       <div className="flex flex-col items-center text-center gap-4">
         {slides[activeSlide].icon}
-        <h3 className="font-semibold text-lg text-primary leading-6">
+      </div>
+      <div className="flex flex-col gap-3 mt-6">
+        <h3 className="font-semibold text-lg text-primary leading-6 text-center">
           {slides[activeSlide].title}
         </h3>
-        <p className="text-sm leading-[18px]">
-          {" "}
+        <p className="text-sm leading-[18px] text-left ml-3">
+          
           {slides[activeSlide].description}
         </p>
       </div>

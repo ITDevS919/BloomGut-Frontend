@@ -197,7 +197,7 @@ const Login = () => {
               className="flex items-center text-primary-muted h-auto rounded-2xl"
             >
               <span className="flex justify-center">
-                <FaFacebook className="size-6" size={24} color="#365999"/>
+                <FaFacebook className="size-6" size={24} color="#365999" />
               </span>
               <span className="min-w-20">Facebook</span>
             </Button>
@@ -214,15 +214,16 @@ const Login = () => {
             </Button>
           </div>
 
-          <Button type="submit" className="w-[60%] mx-auto mt-3 rounded-2xl shadow-sm">
-            {loading ? "Logging in..." : "Login"}
-          </Button>
-
-          <div className="flex justify-center mt-1">
-            <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
-              <input type="checkbox" className="cursor-pointer" />
-              Remember Me
-            </label>
+          <div className="w-[60%] mx-auto mt-3">
+            <Button type="submit" className="w-full rounded-2xl shadow-sm">
+              {loading ? "Logging in..." : "Login"}
+            </Button>
+            <div className="mt-3">
+              <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
+                <input type="checkbox" className="cursor-pointer" />
+                Remember Me
+              </label>
+            </div>
           </div>
         </form>
       </div>
