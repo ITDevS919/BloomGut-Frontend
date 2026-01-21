@@ -10,6 +10,7 @@ import {
 import annotationPlugin from "chartjs-plugin-annotation";
 import { Line } from "react-chartjs-2";
 import { Info } from "lucide-react";
+import { FaUserDoctor } from "react-icons/fa6";
 
 ChartJS.register(
   LineElement,
@@ -30,7 +31,7 @@ const PremiumYear = () => {
       main: "Diarrhea",
       second: "Abd Pain",
       type: 7,
-      bg: "bg-red-200",
+      bg: "#fcc", // Pink
     },
     {
       rank: 2,
@@ -39,7 +40,7 @@ const PremiumYear = () => {
       main: "Constip",
       second: "Abd Pain",
       type: 2,
-      bg: "bg-yellow-200",
+      bg: "#fff0ac", // Yellow
     },
     {
       rank: 3,
@@ -48,7 +49,7 @@ const PremiumYear = () => {
       main: "Bloat",
       second: "Abd Pain",
       type: 6,
-      bg: "bg-yellow-100",
+      bg: "#fff0ac", // Light yellow
     },
   ];
 
@@ -91,24 +92,77 @@ const PremiumYear = () => {
         display: true,
         position: "bottom",
         align: "start",
-      },
-      tooltip: {
-        enabled: true,
-      },
-      annotation: {
-        annotations: {
-          idealRange: {
-            type: "box",
-            xMin: -0.5,
-            xMax: 11.5,
-            yMin: 60,
-            yMax: 85,
-            backgroundColor: "rgba(229, 231, 235, 0.3)", // Light gray with transparency
-            borderColor: "transparent",
-            borderWidth: 0,
+        labels: {
+          color: "#6B7280", // Medium gray for both labels
+          usePointStyle: false,
+          padding: 15,
+          font: {
+            size: 12,
           },
         },
       },
+      tooltip: {
+        enabled: true,
+        backgroundColor: "white",
+        titleColor: "#50403c",
+        titleFont: {
+          size: 18,
+          weight: "bold",
+        },
+        bodyColor: "#9ca3af",
+        bodyFont: {
+          size: 14,
+        },
+        padding: 12,
+        cornerRadius: 8,
+        displayColors: true,
+        boxPadding: 6,
+        usePointStyle: false,
+        callbacks: {
+          title: (context) => {
+            const monthNames = [
+              "January",
+              "February",
+              "March",
+              "April",
+              "May",
+              "June",
+              "July",
+              "August",
+              "September",
+              "October",
+              "November",
+              "December",
+            ];
+            const index = context[0].dataIndex;
+            return monthNames[index] || `Month ${index + 1}`;
+          },
+          label: (context) => {
+            const label = context.dataset.label === "Gut Index"
+              ? "Gut Health"
+              : context.dataset.label === "Last Yr"
+                ? "Last Year"
+                : context.dataset.label;
+            return `${label}: ${context.parsed.y}`;
+          },
+          labelColor: (context) => {
+            const datasetLabel = context.dataset.label;
+            let color = "#9CA3AF"; // Default gray
+            if (datasetLabel === "Gut Index") {
+              color = "#EF4444"; // Red/pinkish-red for Gut Health
+            } else if (datasetLabel === "Last Yr") {
+              color = "#9CA3AF"; // Gray for Last Year
+            }
+            return {
+              borderColor: color,
+              backgroundColor: color,
+              borderWidth: 0,
+              borderRadius: 5,
+            };
+          },
+        },
+      },
+      datalabels: { display: false },
     },
     scales: {
       x: {
@@ -140,7 +194,7 @@ const PremiumYear = () => {
           },
         },
         grid: {
-          display: true,
+          display: false,
           color: "rgba(0, 0, 0, 0.05)", // Faint grid lines
         },
       },
@@ -172,6 +226,7 @@ const PremiumYear = () => {
     plugins: {
       legend: { display: false },
       tooltip: { enabled: false },
+      datalabels: { display: false },
     },
     scales: {
       x: {
@@ -181,7 +236,10 @@ const PremiumYear = () => {
         },
         ticks: {
           font: { weight: "600" },
-          color: "#111827",
+          color: (context) => {
+            const colors = ["#22C55E", "#3B82F6", "#D97706", "#6B7280"]; // Green, Blue, Orange-brown, Dark gray
+            return colors[context.index] || "#111827";
+          },
         },
       },
       y: {
@@ -193,9 +251,9 @@ const PremiumYear = () => {
             const map = {
               1: "Loose",
               2: "Rare",
-              3: "",
-              4: "Ideal",
-              5: "Hard",
+              3: "Best",
+              4: "Hard",
+              5: "Ideal",
             };
             return map[value] || "";
           },
@@ -211,57 +269,88 @@ const PremiumYear = () => {
   const seasonLabels = ["Loose", "Rare", "Best", "Hard"];
 
   return (
-    <div className="p-2 mt-5">
+    <div className="pl-[15px] pr-[15px]">
       {/* Top 3 Gut-Sensitivity Foods Cards */}
-      <div className="w-full max-w-3xl p-1 rounded-2xl bg-[#FFFDF6] shadow-md">
+      <div className="w-full max-w-3xl p-4 rounded-[12px] bg-[#FEFAEF] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-5">
         {/* Title */}
-        <h2 className="mb-6 text-center text-lg text-primary">
+        <h2 className="mb-6 text-center text-lg font-bold text-primary">
           Top 3 Gut-Sensitivity Foods
         </h2>
 
-        <div className="grid gap-2 grid-cols-3">
+        <div className="grid gap-3 grid-cols-3">
           {foods.map((food) => (
-            <div key={food.rank} className={`rounded-2xl p-4 ${food.bg}`}>
-              <h3 className="text-sm  text-primary">
+            <div
+              key={food.rank}
+              className="rounded-[8px] p-4"
+              style={{ backgroundColor: food.bg }}
+            >
+              <h3 className="text-base text-primary mb-1 text-center">
                 {food.rank}. {food.name}
               </h3>
 
-              <div className="my-2 h-px bg-black/10" />
+              <div className="my-2 h-0.5 bg-white" />
 
-              <ul className="space-y-1 text-sm text-gray-700">
-                <li>
-                  <span className="font-medium">Sensit:</span> {food.sensit}
-                </li>
-                <li>
-                  <span className="font-medium">Main:</span> {food.main}
-                </li>
-                <li>
-                  <span className="font-medium">2nd:</span> {food.second}
-                </li>
-                <li>
-                  <span className="font-medium">Type:</span> {food.type}
-                </li>
-              </ul>
+              <div className="space-y-1 text-xs text-primary mt-2 text-center">
+                <p>Sensit: {food.sensit}</p>
+                <p>Main: {food.main}</p>
+                <p>2nd: {food.second}</p>
+                <p>Type: {food.type}</p>
+              </div>
             </div>
           ))}
         </div>
       </div>
 
       {/* Overall Gut Reaction Chart */}
-      <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-md mt-5">
+      <div className="w-full max-w-2xl rounded-[12px] bg-white p-6 shadow-md mb-[15px]">
         {/* Title */}
-        <div className="text-center text-lg mb-4 text-primary">
+        <div className="text-center text-base mb-4 text-primary">
           Overall Gut Reaction
         </div>
 
         {/* Ideal Range Indicator */}
-        <div className="mb-3 rounded-md bg-gray-100 px-3 py-2 text-sm text-gray-700">
+        <div className="mb-[15px] rounded-[8px] bg-gray-100 px-3 py-2 text-sm text-primary">
           Ideal Range
         </div>
 
         {/* Chart Container with relative positioning for info icon */}
         <div className="relative h-64">
-          <Line data={overallData} options={overallOptions} />
+          <style>{`
+            div[id*="chartjs-tooltip"],
+            .chartjs-tooltip {
+              background: white !important;
+              border-radius: 8px !important;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+              padding: 12px !important;
+            }
+            .chartjs-tooltip .chartjs-tooltip-title {
+              color: #D38E5A !important;
+              font-size: 18px !important;
+              font-weight: bold !important;
+              margin-bottom: 8px !important;
+            }
+            .chartjs-tooltip .chartjs-tooltip-body {
+              color: #9ca3af !important;
+              font-size: 14px !important;
+            }
+            .chartjs-tooltip .chartjs-tooltip-body-list {
+              margin: 0 !important;
+              padding: 0 !important;
+            }
+            .chartjs-tooltip .chartjs-tooltip-body-list li {
+              display: flex !important;
+              align-items: center !important;
+              gap: 8px !important;
+              margin: 4px 0 !important;
+            }
+            .chartjs-tooltip .chartjs-tooltip-body-list li span {
+              display: inline-block !important;
+              width: 10px !important;
+              height: 10px !important;
+              border-radius: 50% !important;
+            }
+          `}</style>
+          <Line data={overallData} options={overallOptions} className="bg-[#F9FEFA] rounded-sm shadow-sm" />
 
           {/* Information Icon Overlay at x=4 (index 3) */}
           <div
@@ -272,20 +361,23 @@ const PremiumYear = () => {
               transform: "translate(-50%, -50%)",
             }}
           >
-            <div className="w-6 h-6 rounded-full bg-yellow-400 flex items-center justify-center shadow-sm">
+            <div className="w-6 h-6 rounded-full bg-yellow-400 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
               <Info className="w-4 h-4 text-yellow-800" />
             </div>
           </div>
         </div>
       </div>
 
+      <div className="text-xs text-custom-12 text-center">May–Aug 2025 | Swipe ← →</div>
+
       {/* Seasonal Stool Trend Chart */}
-      <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-md mt-5">
-        <div className="text-center text-lg mb-4" style={{ color: "#92400e" }}>
+      <div className="w-full max-w-2xl rounded-[8px] bg-septenary p-6 shadow-md mt-5">
+        <div className="text-center text-base mb-[31px] text-primary" >
           Seasonal Stool Trends
         </div>
 
-        <div className="relative h-50 mb-4">
+
+        <div className="relative h-50 bg-white rounded-[8px] border border-[#e6e6e6] p-2">
           {/* "Ideal" label on left */}
           {/* <div className="absolute left-2 top-1/2 transform -translate-y-1/2 -translate-x-full">
             <span className="text-sm text-gray-600 whitespace-nowrap">
@@ -296,6 +388,33 @@ const PremiumYear = () => {
           <Line data={seasonalData} options={seasonalOptions} />
         </div>
       </div>
+
+      {/* Analysis Card */}
+      <div className="w-full max-w-2xl rounded-[8px] bg-[#FEFAEF] p-6 shadow-[0_2px_4px_rgba(0,0,0,0.08)] mt-5">
+        {/* Header with Icon and Title */}
+        <div className="flex items-center gap-3 mb-4">
+          {/* Stethoscope Icon - Person with stethoscope */}
+          <FaUserDoctor className="text-[#f2751d] w-[18px] h-[28px]" />
+          <h3 className="text-lg text-primary">Analysis Explanation</h3>
+        </div>
+
+        {/* Content Sections */}
+        <div className="space-y-3 text-secondary text-sm mb-[12px]">
+          <div>
+            <span className="">Food Tips: </span>
+            <span>Use plant milk, lactase, mind timing</span>
+          </div>
+          <div>
+            <span className="text-primary">Seasonal: </span>
+            <span>Winter GI index lower, likely from low water and cold.</span>
+          </div>
+          <div>
+            <span className="text-primary">Action: </span>
+            <span>More water in winter, keep routines in autumn</span>
+          </div>
+        </div>
+      </div>
+      <div className="text-center text-xs text-custom-12 mt-[12px] mb-[58px]">Based on past diet & bowel data, for reference only</div>
     </div>
   );
 };

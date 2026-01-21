@@ -243,7 +243,7 @@ const Year = () => {
     <div className="p-6">
       {/* Annual Trend of Food */}
       <div className="text-primary text-x2 mb-3">Annual Trend of Food</div>
-      <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-md">
+      <div className="w-full max-w-sm rounded-[8px] bg-white p-5 shadow-md">
         <h2 className="mb-2 text-sm font-medium text-primary">
           Intake Ratio (%)
         </h2>
@@ -254,7 +254,7 @@ const Year = () => {
       </div>
 
       {/* Next Month's Goals */}
-      <div className="w-full max-w-sm rounded-2xl bg-[#EFF6FF] p-5 shadow-md space-y-3 mt-5">
+      <div className="w-full max-w-sm rounded-[8px] bg-[#EFF6FF] p-5 shadow-md space-y-3 mt-5">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h2 className="text-sm text-primary">Next Month’s Goals</h2>
@@ -283,7 +283,7 @@ const Year = () => {
       </div>
 
       {/* Key Transition */}
-      <div className="w-full max-w-sm rounded-2xl bg-white p-4 shadow-md space-y-3 mt-5">
+      <div className="w-full max-w-sm rounded-[8px] bg-white p-4 shadow-md space-y-3 mt-5">
         {/* Title */}
         <h2 className="text-sm text-primary">Key Transition</h2>
 
@@ -311,7 +311,7 @@ const Year = () => {
 
       {/* Sensitive Foods */}
       <div className="text-primary text-x2 mb-3 mt-5">Top Sensitivie Foods</div>
-      <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-md space-y-4">
+      <div className="w-full max-w-sm rounded-[8px] bg-white p-5 shadow-md space-y-4">
         {/* Header */}
         <div>
           <h2 className="text-sm text-primary">About Sensitive Foods</h2>
@@ -346,9 +346,9 @@ const Year = () => {
 
       {/* Diet & Bowel */}
       <div className="text-primary text-x2 mb-3 mt-5">Diet & Bowel</div>
-      <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-md space-y-4">
+      <div className="w-full max-w-sm rounded-[8px] bg-white p-5 shadow-md space-y-4">
         {/* Header */}
-        <div className="rounded-xl bg-blue-50 p-3 text-sm">
+        <div className="rounded-[8px] bg-blue-50 p-3 text-sm">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2 text-primary">
               <Info className="h-4 w-4 text-blue-500" />

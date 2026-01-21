@@ -116,7 +116,7 @@ const Week = () => {
   return (
     <div className="p-6">
       <div className="text-x2 mb-3 mt-3 text-primary">Water and Urine Analysis</div>
-      <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-md space-y-4">
+      <div className="w-full max-w-sm rounded-[8px] bg-white p-5 shadow-md space-y-4">
         {/* Chart */}
         <div className="h-48">
           <Line data={data} options={options} />
@@ -157,7 +157,7 @@ const Week = () => {
               <span className="text-right">71%</span>
             </div>
             {/* Weekly Insights */}
-            <div className="rounded-xl bg-yellow-50 p-4 text-sm text-gray-700">
+            <div className="rounded-[8px] bg-yellow-50 p-4 text-sm text-gray-700">
               <p className="font-medium mb-1">Weekly Insights</p>
               <p>
                 2 drop days, linked to high salt/sugar diet. Drink +20% water

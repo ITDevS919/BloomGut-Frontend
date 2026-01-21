@@ -136,9 +136,9 @@ const UrineRecord = () => {
           aria-label="back"
           onClick={() => window.history.back()}
         >
-          <ChevronLeft className="text-primary text-xl leading-none" />
+          <ChevronLeft className="text-primary text-[40px] leading-none" />
         </button>
-        <h2 className="text-xl font-semibold">Urine Record</h2>
+        <h2 className="text-lg font-['Noto_Sans_TC', sans-serif]">Urine Record</h2>
       </div>
 
       {/* date and view trend button */}
@@ -277,7 +277,7 @@ const UrineRecord = () => {
       <div className="text-gray-400 flex text-center justify-center italic">
         For reference only. Consult a physician if needed.
       </div>
-      <button className="w-10/12 mx-auto flex items-center justify-center text-white text-lg font-medium rounded-2xl bg-[#C69C6D] py-3 shadow-sm mt-5">
+      <button className="w-10/12 mx-auto flex items-center justify-center text-white text-lg font-medium rounded-[8px] bg-[#C69C6D] py-3 shadow-[0_4px_12px_rgba(0,0,0,0.08)] mt-5">
         Save
       </button>
     </div>

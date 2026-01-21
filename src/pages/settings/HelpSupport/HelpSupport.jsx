@@ -60,21 +60,21 @@ const HelpSupport = () => {
 
   const navigate = useNavigate();
   return (
-    <div className="bg-ivory min-h-full p-6 text-secondary">
-      <div className="flex items-center gap-4 mb-6">
+    <div className="bg-ivory min-h-full p-6 text-primary font-['Noto_Sans_TC', sans-serif]">
+      <div className="flex items-center gap-4 mb-[59px]">
         <button
           type="button"
           className="text-primary text-xl leading-none"
           aria-label="back"
           onClick={() => window.history.back()}
         >
-          <ChevronLeft className="text-primary text-xl leading-none" />
+          <ChevronLeft className="text-primary text-[40px] leading-none" />
         </button>
-        <h2 className="text-xl font-semibold">Help & Support</h2>
+        <h2 className="text-lg font-['Noto_Sans_TC', sans-serif]">Help & Support</h2>
       </div>
 
-      <div className="max-w-sm">
-        <h3 className="text-lg text-primary mb-4">Frequently Asked</h3>
+      <div className="">
+        <h3 className="text-lg font-bold text-primary mb-[20px]">Frequently Asked</h3>
 
         <style>{`
           .faq-item{background:#fff;border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 6px 12px rgba(0,0,0,0.06);border:1px solid rgba(0,0,0,0.04)}
@@ -84,9 +84,9 @@ const HelpSupport = () => {
           .contact-cta{background:#C69C6D;color:#fff;padding:8px 22px;border-radius:8px;display:inline-block;margin-top:12px;box-shadow:0 6px 0 rgba(0,0,0,0.06)}
         `}</style>
 
-        <div className="flex flex-col gap-3">
+        <div className="mb-[37px]">
           {faqs.map((q, i) => (
-            <div key={q} className="faq-card">
+            <div key={q} className="bg-white rounded-[8px] border border-[#d3d3d3] mb-[8px]">
               <style>{`
                 .faq-card{background:transparent}
                 .faq-card .card-inner{background:#fff;border-radius:10px;box-shadow:0 6px 12px rgba(0,0,0,0.04);overflow:hidden;border:1px solid rgba(0,0,0,0.04)}
@@ -106,13 +106,13 @@ const HelpSupport = () => {
                   onClick={() => setOpenIndex(openIndex === i ? null : i)}
                   aria-expanded={openIndex === i}
                 >
-                  <span className="faq-title text-primary">{q}</span>
-                  <ChevronDown className={`chev transition-transform ${openIndex === i ? 'rotate-180' : ''}`} />
+                  <span className="text-sm text-primary">{q}</span>
+                  <ChevronDown className={`text-primary w-[16px] h-[16px] transition-transform ${openIndex === i ? 'rotate-180' : ''}`} />
                 </button>
 
                 {openIndex === i && (
-                  <div className="faq-body">
-                    <ul className="faq-list text-primary">
+                  <div className="px-6">
+                    <ul className="faq-list text-primary text-sm">
                       {answers[i] && answers[i].map((a, idx) => (
                         <li key={idx}>{a}</li>
                       ))}
@@ -125,11 +125,11 @@ const HelpSupport = () => {
         </div>
 
         <div className="contact-box text-primary">
-          <div className="text-sm mb-1">Need more help?</div>
-          <div className="text-xs">Our customer service is here to assist you</div>
+          <div className="text-sm mb-[8px]">Need more help?</div>
+          <div className="text-xs mb-[29px]">Our customer service is here to assist you</div>
           <button
             type="button"
-            className="px-6 py-2 rounded-lg bg-[#C69C6D] text-white shadow-sm w-1/2 text-center flex items-center justify-center mx-auto mt-3"
+            className="px-6 py-2 rounded-lg bg-[#C69C6D] text-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] w-[169px] text-center flex items-center justify-center mx-auto mt-3"
             onClick={() => navigate("/settings/about/contact-us")}
           >
             Contact Us

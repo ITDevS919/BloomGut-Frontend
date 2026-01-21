@@ -68,7 +68,7 @@ const Week = () => {
   };
   return (
     <div className="p-6">
-      <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-md space-y-4">
+      <div className="w-full max-w-sm rounded-[8px] bg-white p-5 shadow-md space-y-4">
         {/* Header */}
         <div>
           <h2 className="text-sm text-primary">
@@ -94,7 +94,7 @@ const Week = () => {
         </div>
 
         {/* High Risk */}
-        <div className="rounded-xl bg-red-50 p-4 text-sm">
+        <div className="rounded-[8px] bg-red-50 p-4 text-sm">
           <p className="font-medium mb-1 text-primary">High-Risk Period</p>
           <p className="text-secondary">
             Shortened: High-fat dinner links to constipation (70%). Reduce
@@ -103,7 +103,7 @@ const Week = () => {
         </div>
 
         {/* Overall Trend */}
-        <div className="rounded-xl bg-green-50 p-4 text-sm space-y-1">
+        <div className="rounded-[8px] bg-green-50 p-4 text-sm space-y-1">
           <p className="font-medium text-primary">Overall Trend</p>
           <p className="text-secondary">
             • Fiber breakfast → smooth stools (75%)

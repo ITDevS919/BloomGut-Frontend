@@ -44,7 +44,7 @@ const Week = () => {
             onClick={() => setActive(tab)}
             className={
               active === tab
-                ? "rounded-2xl bg-white px-3 py-1.5 font-medium shadow text-gray-800"
+                ? "rounded-[8px] bg-white px-3 py-1.5 font-medium shadow text-gray-800"
                 : "text-gray-500 hover:text-gray-700"
             }
           >
@@ -55,7 +55,7 @@ const Week = () => {
 
       <div className="w-full space-y-4 p-6">
         {/* Donut card */}
-        <div className="rounded-2xl bg-white p-5 shadow-md">
+        <div className="rounded-[8px] bg-white p-5 shadow-md">
           <div className="relative mx-auto h-44 w-44">
             <Doughnut data={data} options={options} />
 
@@ -86,7 +86,7 @@ const Week = () => {
         </div>
 
         {/* Analysis & Advice */}
-        <div className="bg-white rounded-xl shadow-md p-6">
+        <div className="bg-white rounded-[8px] shadow-md p-6">
           <div className="space-y-3">
             <h3 className="text-sm text-primary">Analysis & Advice</h3>
 
@@ -121,7 +121,7 @@ function LegendDot({ color, label }) {
 
 function StatCard({ title, value }) {
   return (
-    <div className="rounded-xl bg-white p-3 text-center shadow-sm">
+    <div className="rounded-[8px] bg-white p-3 text-center shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
       <p className="text-xs text-gray-500">{title}</p>
       <p className="mt-1 text-sm font-semibold text-orange-500">{value}</p>
     </div>
@@ -130,7 +130,7 @@ function StatCard({ title, value }) {
 
 function AdviceCard({ icon, title, desc, bg }) {
   return (
-    <div className={`rounded-xl p-4 ${bg}`}>
+    <div className={`rounded-[8px] p-4 ${bg}`}>
       <div className="flex items-center gap-2 text-sm font-medium text-gray-800">
         {icon}
         {title}

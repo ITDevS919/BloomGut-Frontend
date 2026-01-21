@@ -89,7 +89,7 @@ const Week = () => {
 
       <div className="p-6">
         <div className="text-primary text-x2 mb-3">Weekly Diet Analysis</div>
-        <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-md space-y-4">
+        <div className="w-full max-w-sm rounded-[8px] bg-white p-5 shadow-md space-y-4">
           {/* Header */}
           <div className="flex justify-between items-center text-sm">
             <span className="text-gray-700">March 10 – March 16</span>
@@ -109,7 +109,7 @@ const Week = () => {
           {/* Diet Analysis */}
           {showAnalysis && (
             <>
-              <div className="rounded-xl bg-blue-50 p-4 text-sm space-y-2">
+              <div className="rounded-[8px] bg-blue-50 p-4 text-sm space-y-2">
                 <p className="font-medium text-primary">Diet Analysis</p>
 
                 <AnalysisRow warn text="Fat +33%" />
@@ -120,7 +120,7 @@ const Week = () => {
               </div>
 
               {/* Recommended */}
-              <div className="rounded-xl bg-green-50 p-4 text-sm space-y-1">
+              <div className="rounded-[8px] bg-green-50 p-4 text-sm space-y-1">
                 <p className="font-medium text-primary">Recommended</p>
                 <p className="text-secondary">
                   Increase: Fruits, veggies, grains, legumes

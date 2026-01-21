@@ -93,7 +93,7 @@ const SetupUsername = () => {
     <div className="flex items-center justify-center h-full">
       <form
         onSubmit={handleSubmit}
-        className="bg-white w-full max-w-sm p-6 rounded-xl shadow-md flex flex-col gap-4"
+        className="bg-white w-full max-w-sm p-6 rounded-md shadow-md flex flex-col gap-4"
       >
         <h1 className="text-lg font-semibold text-center">
           Fill in missing fields

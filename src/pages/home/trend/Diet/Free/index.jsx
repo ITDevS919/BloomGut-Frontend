@@ -246,7 +246,7 @@ const Free = () => {
   return (
     <div className="p-6">
       {/* Score Card */}
-      <div className="bg-white rounded-xl p-4 shadow-sm mb-5">
+      <div className="bg-white rounded-[8px] p-4 shadow-[0_4px_12px_rgba(0,0,0,0.08)] mb-5">
         <div className="flex items-center justify-between">
           <div>
             <div className="text-2xl font-bold text-[#B5A6D2]">82</div>
@@ -278,7 +278,7 @@ const Free = () => {
       <div className="text-primary text-x2 mb-3 mt-8">
         Food Type Distribution
       </div>
-      <div className="bg-ivory rounded-xl p-4 shadow-sm">
+      <div className="bg-ivory rounded-[8px] p-4 shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
         <div className="flex items-end justify-between gap-3">
           {dietData.map((item, index) => {
             const Icon = item.icon;
@@ -324,7 +324,7 @@ const Free = () => {
       </div>
 
       <div className="text-primary text-x2 mb-3 mt-8">Diet & Bowel Trends</div>
-      <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-md space-y-4">
+      <div className="w-full max-w-sm rounded-[8px] bg-white p-5 shadow-md space-y-4">
         {/* Date pills */}
         <div className="flex gap-2 overflow-x-auto">
           {dates.map((d) => (
@@ -358,7 +358,7 @@ const Free = () => {
         </div>
       </div>
 
-      <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-md space-y-4 mt-8">
+      <div className="w-full max-w-sm rounded-[8px] bg-white p-5 shadow-md space-y-4 mt-8">
         {/* Date pills */}
         <div className="flex gap-2 overflow-x-auto">
           {dates.map((d) => (

@@ -105,7 +105,7 @@ const Month = () => {
     <>
       <Free />
       <div className="p-6">
-        <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-md space-y-5">
+        <div className="w-full max-w-md rounded-[8px] bg-white p-5 shadow-md space-y-5">
           {/* Header */}
           <h2 className="text-lg text-primary">Urine Trend Analysis</h2>
 
@@ -165,7 +165,7 @@ const Month = () => {
       {showAnalysis && (
         <>
           <div className="p-6">
-            <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-md space-y-5">
+            <div className="w-full max-w-sm rounded-[8px] bg-white p-5 shadow-md space-y-5">
               {/* Header */}
               <div className="flex items-center gap-2">
                 <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
@@ -182,7 +182,7 @@ const Month = () => {
                   Monthly Notes
                 </h3>
 
-                <div className="rounded-xl bg-blue-50 p-4 text-sm text-secondary">
+                <div className="rounded-[8px] bg-blue-50 p-4 text-sm text-secondary">
                   <ul className="list-disc space-y-2 pl-4">
                     <li>5/1–5/7: volume normal.</li>
                     <li>5/8–5/12: urine drop, likely low intake.</li>
@@ -224,7 +224,7 @@ const Month = () => {
                   Personalized Suggestions
                 </h3>
 
-                <div className="rounded-xl bg-green-50 p-4 text-sm text-gray-700">
+                <div className="rounded-[8px] bg-green-50 p-4 text-sm text-gray-700">
                   <ul className="list-disc space-y-2 pl-4">
                     <li>Daily target: 1800–2400 ml</li>
                     <li>Drink 300 ml after waking and before meals.</li>
@@ -251,7 +251,7 @@ function LegendDot({ color, label }) {
 
 function StatCard({ icon, title, value, sub }) {
   return (
-    <div className="rounded-xl bg-white shadow-sm p-3 space-y-1">
+    <div className="rounded-[8px] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] p-3 space-y-1">
       <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
         {icon}
         {title}

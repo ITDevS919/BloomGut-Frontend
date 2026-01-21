@@ -123,7 +123,7 @@ const Month = () => {
 
   return (
     <div className="p-6">
-      <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-md space-y-4">
+      <div className="w-full max-w-sm rounded-[8px] bg-white p-5 shadow-md space-y-4">
         {/* Tabs */}
         <div className="flex gap-3 items-center justify-center">
           <Tab active={mode === "line"} onClick={() => setMode("line")}>
@@ -214,7 +214,7 @@ const Month = () => {
             </div>
 
             {/* Personal Tip */}
-            <div className="rounded-xl bg-blue-50 p-4 text-sm text-gray-700">
+            <div className="rounded-[8px] bg-blue-50 p-4 text-sm text-gray-700">
               <p className="font-medium text-blue-600 mb-1">Personal Tip</p>
               <p>
                 Before <span className="font-medium">9 AM</span>, drink at least
@@ -262,7 +262,7 @@ function Stat({ title, value, accent }) {
   };
 
   return (
-    <div className={`rounded-xl border-l-4 ${map[accent]} bg-white shadow-sm p-3`}>
+    <div className={`rounded-[8px] border-l-4 ${map[accent]} bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] p-3`}>
       <p className="text-xs text-primary">{title}</p>
       <p className="text-sm   text-secondary">{value}</p>
     </div>

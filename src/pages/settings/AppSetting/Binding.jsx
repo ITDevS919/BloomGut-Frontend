@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { ChevronLeft } from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
+import { FaApple, FaFacebook, FaLine, FaSquareTwitter, FaTwitter, FaXTwitter } from "react-icons/fa6";
+import { FaTwitterSquare } from "react-icons/fa";
 
 const initialServices = [
   { id: "google", name: "Google", bound: false, subtitle: "Bound: user@gmail.com" },
@@ -20,55 +23,55 @@ const Binding = () => {
   const availableServices = services.filter((s) => s.bound);
 
   const renderIcon = (id) => {
-    const base = "w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm";
+    const base = "w-[24px] h-[24px] flex items-center justify-center rounded-full font-bold text-sm ml-3";
     switch (id) {
       case "google":
-        return <div className={`${base} bg-red-500`}>G</div>;
+        return <FcGoogle className={`${base}`} />;
       case "facebook":
-        return <div className={`${base} bg-blue-600`}>f</div>;
+        return <FaFacebook className={`${base}`} color="#365999" />
       case "line":
-        return <div className={`${base} bg-green-500`}>L</div>;
+        return <FaLine className={`${base} text-white bg-[#3fb96e]`} />;
       case "twitter":
-        return <div className={`${base} bg-sky-500`}>t</div>;
+        return <FaSquareTwitter className={`${base} text-white bg-[#1da1f2]`} />;
       case "apple":
-        return <div className={`${base} bg-gray-700`}></div>;
+        return <FaApple className={`${base} text-whitebg-gray-700`} />;
       default:
         return <div className={`${base} bg-gray-400`}>?</div>;
     }
   };
 
   return (
-    <div className="bg-ivory min-h-full p-6 text-secondary">
-      <div className="flex items-center gap-4 mb-6">
+    <div className="bg-ivory min-h-full p-6 text-primary font-['Roboto', sans-serif]">
+      <div className="flex items-center gap-4 mb-[43px]">
         <button
           type="button"
           className="text-primary text-xl leading-none"
           aria-label="back"
           onClick={() => window.history.back()}
         >
-          <ChevronLeft className="text-primary text-xl leading-none" />
+          <ChevronLeft className="text-primary text-[40px] leading-none" />
         </button>
-        <h2 className="text-xl font-semibold">Binding</h2>
+        <h2 className="text-lg">Binding</h2>
       </div>
 
-      <div className="mt-15">
-        <div className="bg-white rounded-xl p-4 mb-6 shadow-sm">
-          Binding third-party services allows you to log in with these accounts and enjoy convenient cross-account features.
+      <div className="">
+        <div className="bg-white rounded-[8px] px-4 py-3 mb-6 shadow-[0_4px_12px_rgba(0,0,0,0.08)] text-sm text-secondary mb-[17px]">
+          Binding third-party services allows you to log in with these accounts and enjoy convenient cross-platform services.
         </div>
 
-        <h3 className="text-sm font-semibold text-primary mb-3">Bound Services</h3>
-        <div className="space-y-3 mb-6">
+        <h3 className="text-sm font-bold text-primary mb-[11px]">Bound Services</h3>
+        <div className="space-y-3 mb-[17px]">
           {boundServices.map((s) => (
-            <div key={s.id} className="bg-white rounded-xl p-3 flex items-center justify-between shadow-sm">
+            <div key={s.id} className="bg-white rounded-[8px] px-4 py-3 flex items-center justify-between shadow-[0_4px_12px_rgba(0,0,0,0.08)] mb-[20px]">
               <div className="flex items-center gap-3">
                 {renderIcon(s.id)}
                 <div>
-                  <div className="font-medium text-primary">{s.name}</div>
-                  <div className="text-xs text-gray-500">{s.subtitle}</div>
+                  <div className="text-sm text-primary">{s.name}</div>
+                  <div className="text-xs text-custom-12">{s.subtitle}</div>
                 </div>
               </div>
               <button
-                className="px-4 py-2 rounded-lg shadow-sm bg-white text-primary"
+                className="px-4 py-2 border border-[#ccc] text-sm rounded-[8px] shadow-sm bg-white text-primary"
                 onClick={() => toggle(s.id)}
               >
                 Connect
@@ -77,19 +80,19 @@ const Binding = () => {
           ))}
         </div>
 
-        <h3 className="text-sm font-semibold text-primary mb-3">Available Services</h3>
+        <h3 className="text-sm font-bold text-primary mb-[13px]">Available Services</h3>
         <div className="space-y-3">
           {availableServices.map((s) => (
-            <div key={s.id} className="bg-white rounded-xl p-3 flex items-center justify-between shadow-sm">
+            <div key={s.id} className="bg-white rounded-[8px] px-4 py-3 flex items-center justify-between shadow-[0_4px_12px_rgba(0,0,0,0.08)] mb-[20px]">
               <div className="flex items-center gap-3">
                 {renderIcon(s.id)}
                 <div>
-                  <div className="font-medium text-primary">{s.name}</div>
-                  <div className="text-xs text-gray-500">{s.subtitle}</div>
+                  <div className="text-sm text-primary">{s.name}</div>
+                  <div className="text-xs text-custom-12">{s.subtitle}</div>
                 </div>
               </div>
               <button
-                className="px-4 py-2 rounded-md bg-[#C69C6D] text-white shadow-sm"
+                className="px-4 py-2 rounded-[8px] shadow-sm bg-[#C69C6D] text-white text-sm"
                 onClick={() => toggle(s.id)}
               >
                 Disconnect

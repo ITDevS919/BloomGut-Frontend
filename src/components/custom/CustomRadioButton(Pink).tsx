@@ -24,7 +24,7 @@ export const CustomRadioButtonPink = ({
   return (
     <label
       onClick={() => onSelect(option.id)}
-      className={`flex items-center justify-between rounded-xl px-5 py-4 cursor-pointer border shadow-sm
+      className={`flex items-center justify-between rounded-[8px] px-5 py-4 cursor-pointer border shadow-[0_4px_12px_rgba(0,0,0,0.08)]
         ${
           isSelected
             ? "bg-pink-50 border-[#6A1B9A]"

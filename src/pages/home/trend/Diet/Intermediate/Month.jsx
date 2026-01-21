@@ -52,7 +52,7 @@ const Month = () => {
       <Free />
       <div className="p-6">
         <div className="text-primary text-x2 mb-3">Monthly Diet Category</div>
-        <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-md space-y-4">
+        <div className="w-full max-w-sm rounded-[8px] bg-white p-5 shadow-md space-y-4">
           {/* Donut */}
           <div className="h-48 flex justify-center items-center">
             <Doughnut data={data} options={options} />
@@ -78,7 +78,7 @@ const Month = () => {
           </div>
 
           {/* Highlight */}
-          <div className="rounded-xl bg-yellow-50 p-4 text-sm text-gray-700">
+          <div className="rounded-[8px] bg-yellow-50 p-4 text-sm text-gray-700">
             <div className="flex items-center gap-2 font-medium mb-1">
               <AlertTriangle className="h-4 w-4" />
               <span className="text-primary">Dietary Advice Highlights</span>
@@ -109,7 +109,7 @@ const Month = () => {
               </Advice>
 
               {/* Overall */}
-              <div className="rounded-xl bg-green-50 p-4 text-sm">
+              <div className="rounded-[8px] bg-green-50 p-4 text-sm">
                 <p className="text-primary mb-1">Overall Suggestions</p>
                 <p className="text-secondary">
                   Diet mostly balanced; reduce fat, eat more fruits/veggies for
@@ -138,7 +138,7 @@ function Row({ color, label, value }) {
 
 function Advice({ title, children, color }) {
   return (
-    <div className={`rounded-xl p-4 text-sm ${color}`}>
+    <div className={`rounded-[8px] p-4 text-sm ${color}`}>
       <p className="text-primary mb-1">{title}</p>
       <p className="text-secondary">{children}</p>
     </div>

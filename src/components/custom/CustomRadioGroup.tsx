@@ -65,7 +65,7 @@ export const CustomRadioItem = React.forwardRef<
 
         {/* TEXT */}
         <div className="flex flex-col items-center justify-center text-center">
-          <span className="text-sm font-medium text-primary">{label}</span>
+          <span className="text-sm text-secondary">{label}</span>
 
           {description && (
             <span className="text-xs text-muted-foreground">{description}</span>

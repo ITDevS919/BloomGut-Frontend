@@ -2,35 +2,34 @@ import {
   ChevronLeft,
   ChevronRight,
   User,
-  Link,
-  Lock,
-  Shield,
   Plus,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { FaShieldAlt } from "react-icons/fa";
+import { MdFolderShared } from "react-icons/md";
+import { FaLink, FaLock } from "react-icons/fa6";
 
 const Account = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const accountItems = [
     {
-      icon: <User />,
+      icon: <MdFolderShared size={24} className="text-[#705D56]" />,
       label: "Personal Info",
       onclick: () => navigate("/setting/account/profile"),
     },
     {
-      icon: <FaShieldAlt />,
+      icon: <FaShieldAlt size={20} className="text-[#705D56]" />,
       label: "Account Security",
       onclick: () => navigate("/setting/account/security"),
     },
     {
-      icon: <Lock />,
+      icon: <FaLock size={20} className="text-[#705D56]" />,
       label: "Password",
       onclick: () => navigate("/setting/account/password"),
     },
     {
-      icon: <Link />,
+      icon: <FaLink size={20} className="text-[#705D56]" />,
       label: "Service Binding",
       onclick: () => navigate("/setting/account/binding"),
     },
@@ -38,27 +37,27 @@ const Account = () => {
 
   const auth = useSelector((state) => state.auth);
   return (
-    <div className="bg-ivory min-h-full p-6 text-secondary">
-      <div className="flex items-center gap-4 mb-30">
+    <div className="bg-ivory min-h-full p-6 text-primary">
+      <div className="flex items-center gap-4 mb-[84px]">
         <button
           type="button"
           className="text-primary text-xl leading-none"
           aria-label="back"
           onClick={() => window.history.back()}
         >
-          <ChevronLeft className="text-primary text-xl leading-none" />
+          <ChevronLeft className="text-primary text-xl leading-none" width="40px" height="40px" />
         </button>
-        <h2 className="text-xl font-semibold">Account</h2>
+        <h2 className="text-lg font-['Noto_Sans_TC', sans-serif]">Account</h2>
       </div>
 
       {/* User card */}
-      <div className="bg-white rounded-xl p-4 mb-4 shadow-sm flex items-center justify-between mb-6">
+      <div className="bg-white flex items-center justify-between shadow-[0_4px_12px_rgba(0,0,0,0.08)] p-[14px] mb-[16px] rounded-[8px]">
         <div className="flex items-center gap-4">
           {auth?.user?.imageUrl ? (
             <img
               src={auth.user.imageUrl}
               alt={auth.user.username || "avatar"}
-              className="w-12 h-12 rounded-full object-cover"
+              className="w-[50px] h-[50px] border-[#e5e7eb] rounded-full object-cover"
             />
           ) : (
             <div className="w-12 h-12 rounded-full bg-[#f6f1ec] flex items-center justify-center text-primary">
@@ -67,44 +66,44 @@ const Account = () => {
           )}
 
           <div>
-            <div className="text-sm font-medium text-primary">
+            <div className="text-sm text-primary">
               {auth?.user?.username || auth?.user?.firstName || "Username"}
             </div>
-            <a className="text-xs text-primary underline block">
+            <a className="text-sm text-primary underline block">
               {auth?.user?.primaryEmailAddress ||
                 auth?.user?.emailAddresses?.[0] ||
                 "user@example.com"}
             </a>
-            <div className="text-xs text-gray-500">Account Level: Standard</div>
+            <div className="text-xs text-secondary">Account Level: Standard</div>
           </div>
         </div>
 
         <button
           type="button"
           onClick={() => console.log("add")}
-          className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm"
+          className="rounded-full bg-secondary flex items-center justify-center"
           aria-label="add"
         >
-          <Plus className="text-primary" />
+          <Plus className="text-white text-[12px]" width="24px" height="24px"/>
         </button>
       </div>
 
       <div className="space-y-4">
         <section>
-          <div className="bg-transparent rounded-md overflow-hidden">
+          <div className="overflow-hidden">
             {accountItems.map((item, index) => (
               <button
                 key={index}
                 onClick={item.onclick}
-                className="w-full flex items-center justify-between gap-4 px-4 py-3 bg-white rounded-xl mb-3 shadow-sm hover:shadow-md text-left"
+                className="w-full flex items-center justify-between gap-4 p-[14px] rounded-[8px] shadow-[0_4px_12px_rgba(0,0,0,0.08)] mb-[20px] text-left bg-white"
               >
                 <div className="flex items-center gap-4">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-lg">
-                    <div className="w-5 h-5">{item.icon}</div>
+                  <div className="flex items-center justify-center w-[24px] h-[24px] text-primary">
+                    {item.icon}
                   </div>
-                  <span className="text-base text-primary">{item.label}</span>
+                  <span className="text-sm text-primary">{item.label}</span>
                 </div>
-                <ChevronRight className="text-gray-400" />
+                <ChevronRight className="text-secondary" width="10px" height="16px"/>
               </button>
             ))}
           </div>

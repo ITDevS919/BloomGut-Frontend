@@ -1,130 +1,191 @@
-import Chart from "react-apexcharts";
+import { useState } from "react";
 
 const PremiumWeek = () => {
-  const series = [
-    {
-      name: "Milk",
-      data: [
-        { x: "Abd Pain", y: 90 },
-        { x: "Diarrh", y: 70 },
-        { x: "Constip", y: 30 },
-        { x: "Bloat", y: 10 },
-      ],
-    },
-    {
-      name: "Bread",
-      data: [
-        { x: "Abd Pain", y: 20 },
-        { x: "Diarrh", y: 80 },
-        { x: "Constip", y: 40 },
-        { x: "Bloat", y: 30 },
-      ],
-    },
-    {
-      name: "Peanuts",
-      data: [
-        { x: "Abd Pain", y: 50 },
-        { x: "Diarrh", y: 20 },
-        { x: "Constip", y: 90 },
-        { x: "Bloat", y: 70 },
-      ],
-    },
-    {
-      name: "Eggs",
-      data: [
-        { x: "Abd Pain", y: 30 },
-        { x: "Diarrh", y: 40 },
-        { x: "Constip", y: 20 },
-        { x: "Bloat", y: 80 },
-      ],
-    },
-    {
-      name: "Seafood",
-      data: [
-        { x: "Abd Pain", y: 80 },
-        { x: "Diarrh", y: 60 },
-        { x: "Constip", y: 50 },
-        { x: "Bloat", y: 40 },
-      ],
-    },
-    {
-      name: "Beans",
-      data: [
-        { x: "Abd Pain", y: 40 },
-        { x: "Diarrh", y: 30 },
-        { x: "Constip", y: 60 },
-        { x: "Bloat", y: 50 },
-      ],
-    },
-    {
-      name: "Nuts",
-      data: [
-        { x: "Abd Pain", y: 60 },
-        { x: "Diarrh", y: 50 },
-        { x: "Constip", y: 30 },
-        { x: "Bloat", y: 20 },
-      ],
-    },
-  ];
-  const options = {
-    chart: {
-      type: "heatmap",
-      toolbar: { show: false },
-    },
-    dataLabels: {
-      enabled: true,
-      formatter: (val) => `${val}%`,
-      style: {
-        fontSize: "11px",
-        colors: ["#333"],
-      },
-    },
-    plotOptions: {
-      heatmap: {
-        radius: 6,
-        colorScale: {
-          ranges: [
-            { from: 0, to: 30, color: "#CFF3D7" }, // low
-            { from: 31, to: 60, color: "#FFF1B8" }, // mid
-            { from: 61, to: 100, color: "#FFC2B5" }, // high
-          ],
-        },
-      },
-    },
-    xaxis: {
-      labels: {
-        style: { fontSize: "12px" },
-      },
-    },
-    yaxis: {
-      labels: {
-        style: { fontSize: "12px" },
-      },
-    },
-    tooltip: { enabled: false },
-    grid: {
-      padding: { right: 20 },
-    },
+  const [tooltip, setTooltip] = useState(null); // { food, status, percentage, note, tip, x, y }
+
+  // Function to get background color based on percentage
+  const getCellColor = (percentage) => {
+    if (percentage <= 30) return "#CFF3D7"; // Green - Low
+    if (percentage <= 60) return "#FFF1B8"; // Yellow - Medium
+    return "#FFC2B5"; // Pink/Red - High
   };
 
+  const foodData = [
+    { food: "Milk", abdPain: 90, diarrh: 70, constip: 30, bloat: 10 },
+    { food: "Bread", abdPain: 20, diarrh: 80, constip: 40, bloat: 30 },
+    { food: "Peanuts", abdPain: 50, diarrh: 20, constip: 90, bloat: 70 },
+    { food: "Eggs", abdPain: 30, diarrh: 40, constip: 20, bloat: 80 },
+    { food: "Seafood", abdPain: 80, diarrh: 60, constip: 50, bloat: 40 },
+    { food: "Beans", abdPain: 40, diarrh: 30, constip: 60, bloat: 50 },
+    { food: "Nuts", abdPain: 60, diarrh: 50, constip: 30, bloat: 20 },
+  ];
+
+  // Tooltip data for each food/symptom combination
+  const getTooltipData = (food, symptom, percentage) => {
+    const tooltipMap = {
+      "Milk": {
+        "Abd Pain": { note: "Often after milk intake.", tip: "Avoid empty stomach, try lactase, or use alternatives." },
+        "Diarrh": { note: "Common with lactose intolerance.", tip: "Consider lactose-free options or reduce intake." },
+        "Constip": { note: "Rare but possible.", tip: "Increase water intake with milk consumption." },
+        "Bloat": { note: "Minimal impact.", tip: "Usually well-tolerated in small amounts." },
+      },
+      "Bread": {
+        "Abd Pain": { note: "Low sensitivity.", tip: "Generally well-tolerated." },
+        "Diarrh": { note: "High sensitivity observed.", tip: "Try gluten-free alternatives or reduce portion size." },
+        "Constip": { note: "Moderate sensitivity.", tip: "Increase fiber intake and hydration." },
+        "Bloat": { note: "Moderate sensitivity.", tip: "Consider whole grain options." },
+      },
+      "Peanuts": {
+        "Abd Pain": { note: "Moderate sensitivity.", tip: "Monitor portion sizes." },
+        "Diarrh": { note: "Low sensitivity.", tip: "Generally safe in moderation." },
+        "Constip": { note: "High sensitivity observed.", tip: "Reduce intake or avoid if severe." },
+        "Bloat": { note: "High sensitivity.", tip: "Try roasted or avoid if persistent." },
+      },
+      "Eggs": {
+        "Abd Pain": { note: "Low sensitivity.", tip: "Usually well-tolerated." },
+        "Diarrh": { note: "Moderate sensitivity.", tip: "Cook thoroughly and monitor portions." },
+        "Constip": { note: "Low sensitivity.", tip: "Generally safe." },
+        "Bloat": { note: "High sensitivity.", tip: "Reduce intake or try egg whites only." },
+      },
+      "Seafood": {
+        "Abd Pain": { note: "High sensitivity.", tip: "Ensure freshness and proper cooking." },
+        "Diarrh": { note: "Moderate sensitivity.", tip: "Start with small portions." },
+        "Constip": { note: "Moderate sensitivity.", tip: "Increase water intake." },
+        "Bloat": { note: "Moderate sensitivity.", tip: "Monitor portion sizes." },
+      },
+      "Beans": {
+        "Abd Pain": { note: "Moderate sensitivity.", tip: "Soak before cooking to reduce gas." },
+        "Diarrh": { note: "Low sensitivity.", tip: "Generally well-tolerated when cooked properly." },
+        "Constip": { note: "Moderate sensitivity.", tip: "Increase water intake with beans." },
+        "Bloat": { note: "Moderate sensitivity.", tip: "Soak and cook thoroughly." },
+      },
+      "Nuts": {
+        "Abd Pain": { note: "Moderate sensitivity.", tip: "Monitor portion sizes." },
+        "Diarrh": { note: "Moderate sensitivity.", tip: "Try different types of nuts." },
+        "Constip": { note: "Low sensitivity.", tip: "Generally safe in moderation." },
+        "Bloat": { note: "Low sensitivity.", tip: "Usually well-tolerated." },
+      },
+    };
+
+    return tooltipMap[food]?.[symptom] || { note: "No additional notes.", tip: "Monitor your symptoms." };
+  };
+
+  const handleCellHover = (e, food, symptom, percentage) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const tooltipData = getTooltipData(food, symptom, percentage);
+    setTooltip({
+      food,
+      status: symptom,
+      percentage,
+      ...tooltipData,
+      x: rect.left + rect.width / 2,
+      y: rect.top,
+    });
+  };
+
+  const handleCellLeave = () => {
+    setTooltip(null);
+  };
+
+  const symptoms = ["Abd Pain", "Diarrh", "Constip", "Bloat"];
+
   return (
-    <div className="p-4">
-      <div className="text-x2 font-medium mb-3 mt-3 text-primary">
+    <div className="pl-[15px] pr-[15px] mb-[93px] relative">
+      <div className="text-base pl-[15px] font-medium mb-[11px] text-primary">
         Food vs Symptoms
       </div>
-      <div className="w-full max-w-2xl rounded-2xl bg-white shadow-md">
-        <Chart options={options} series={series} type="heatmap" height={340} />
+      <div className="w-full max-w-2xl rounded-[8px] bg-white p-4 shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
+        {/* Table */}
+        <div className="overflow-x-auto bg-quinary rounded-[8px]">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr>
+                <th className="text-center  text-sm font-bold text-primary pb-2 px-2">Food</th>
+                <th className="text-center text-sm font-bold text-primary pb-2 px-2">Abd Pain</th>
+                <th className="text-center text-sm font-bold text-primary pb-2 px-2">Diarrh</th>
+                <th className="text-center text-sm font-bold text-primary pb-2 px-2">Constip</th>
+                <th className="text-center text-sm font-bold text-primary pb-2 px-2">Bloat</th>
+              </tr>
+            </thead>
+            <tbody>
+              {foodData.map((row, index) => (
+                <tr key={index} className="border-t border-gray-200">
+                  <td className="text-center text-sm text-primary py-2 px-2">{row.food}</td>
+                  <td
+                    className="text-center text-sm py-2 px-2 cursor-pointer"
+                    style={{ backgroundColor: getCellColor(row.abdPain) }}
+                    onMouseEnter={(e) => handleCellHover(e, row.food, "Abd Pain", row.abdPain)}
+                    onMouseLeave={handleCellLeave}
+                  >
+                    {row.abdPain}%
+                  </td>
+                  <td
+                    className="text-center text-sm py-2 px-2 cursor-pointer"
+                    style={{ backgroundColor: getCellColor(row.diarrh) }}
+                    onMouseEnter={(e) => handleCellHover(e, row.food, "Diarrh", row.diarrh)}
+                    onMouseLeave={handleCellLeave}
+                  >
+                    {row.diarrh}%
+                  </td>
+                  <td
+                    className="text-center text-sm py-2 px-2 cursor-pointer"
+                    style={{ backgroundColor: getCellColor(row.constip) }}
+                    onMouseEnter={(e) => handleCellHover(e, row.food, "Constip", row.constip)}
+                    onMouseLeave={handleCellLeave}
+                  >
+                    {row.constip}%
+                  </td>
+                  <td
+                    className="text-center text-sm py-2 px-2 cursor-pointer"
+                    style={{ backgroundColor: getCellColor(row.bloat) }}
+                    onMouseEnter={(e) => handleCellHover(e, row.food, "Bloat", row.bloat)}
+                    onMouseLeave={handleCellLeave}
+                  >
+                    {row.bloat}%
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
         {/* Sensitivity legend */}
-        <div className="mt-2 rounded-xl bg-[#FFFDF6] p-4">
-          <p className="text-xs text-gray-500 mb-2">Sensit</p>
+        <div className="mt-[19px] rounded-[8px] bg-[#FFFDF6] p-4 shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-xs text-gray-500 whitespace-nowrap">Sensit</span>
+            <div className="h-5 flex-1 rounded-full bg-gradient-to-r from-green-300 via-yellow-200 to-red-300" />
+          </div>
           <div className="flex items-center gap-3">
-            <span className="text-xs text-gray-500">Low</span>
-            <div className="h-3 flex-1 rounded-full bg-gradient-to-r from-green-300 via-yellow-200 to-red-300" />
-            <span className="text-xs text-gray-500">High</span>
+            <span className="text-xs text-gray-500 whitespace-nowrap ml-[50px]">Low</span>
+            <div className="flex-1" />
+            <span className="text-xs text-gray-500 whitespace-nowrap">High</span>
           </div>
         </div>
       </div>
+
+      {/* Tooltip */}
+      {tooltip && (
+        <div
+          className="fixed z-50 bg-white rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.15)] p-5 max-w-xs"
+          style={{
+            left: `${tooltip.x}px`,
+            top: `${tooltip.y}px`,
+            transform: 'translate(-50%, -100%)',
+            marginTop: '-8px',
+          }}
+          onMouseEnter={() => setTooltip(tooltip)}
+          onMouseLeave={handleCellLeave}
+        >
+          <h3 className="text-lg font-bold text-primary mb-4">Details</h3>
+          <div className="space-y-2 text-sm text-gray-600">
+            <p>Food: {tooltip.food}</p>
+            <p>Status: {tooltip.status}</p>
+            <p>Sensit: {tooltip.percentage}%</p>
+            <p className="text-gray-500 text-xs mt-4">Note: {tooltip.note}</p>
+            <p className="text-gray-500 text-xs">Tip: {tooltip.tip}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

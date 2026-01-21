@@ -108,7 +108,7 @@ const Month = () => {
   };
   return (
     <div className="p-6">
-      <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-md">
+      <div className="w-full max-w-md rounded-[8px] bg-white p-5 shadow-md">
       {/* Header */}
       <h2 className="text-center text-base text-primary">
         Weekly Intake Analysis

@@ -4,6 +4,7 @@ import { Search, Mic } from "lucide-react";
 import { CustomCheckbox } from "@/components/custom/CustomCheckbox";
 import CustomHeading from "@/components/custom/CustomHeading";
 import { CustomButton } from "@/components/custom/CustomButton";
+import { MdHttps } from "react-icons/md";
 
 const DietRecord = (props) => {
   const [searchValue, setSearchValue] = useState("");
@@ -24,22 +25,22 @@ const DietRecord = (props) => {
   };
 
   return (
-    <div className="bg-ivory min-h-full p-6 text-secondary flex flex-col">
-      <div className="flex items-center gap-4 mb-6">
+    <div className="bg-ivory min-h-full p-6 text-primary flex flex-col">
+      <div className="flex items-center gap-4 mb-[27px]">
         <button
           type="button"
           className="text-primary text-xl leading-none"
           aria-label="back"
           onClick={() => window.history.back()}
         >
-          <ChevronLeft className="text-primary text-xl leading-none" />
+          <ChevronLeft className="text-primary text-[40px] leading-none" />
         </button>
-        <h2 className="text-xl font-semibold">Diet Record</h2>
+        <h2 className="text-lg font-['Noto_Sans_TC', sans-serif]">Diet Record</h2>
       </div>
 
       {/* Search Bar */}
-      <div className="mb-6 flex justify-center">
-        <div className="relative flex items-center bg-white rounded-xl shadow-md overflow-hidden w-full max-w-md">
+      <div className="flex justify-center">
+        <div className="relative flex items-center bg-white rounded-full shadow-md overflow-hidden w-full max-w-md mb-5">
           {/* Magnifying Glass Icon */}
           <div className="pl-4 pr-3 flex items-center">
             <Search className="w-5 h-5" style={{ color: "#a78bfa" }} />
@@ -54,7 +55,7 @@ const DietRecord = (props) => {
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             placeholder="Enter food (e.g., chicken rice)"
-            className="flex-1 px-4 py-4 text-sm outline-none placeholder:text-gray-400 text-gray-700 bg-transparent"
+            className="flex-1 px-4 py-4 text-sm outline-none placeholder:text-custom-12 text-gray-700 bg-transparent"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
@@ -76,46 +77,45 @@ const DietRecord = (props) => {
       </div>
 
       {!searchValue && (
-        <div className="text-secondary text-center text-xs">
-          You can enter a full sentence like: 'I had eggs and vegetables for
-          breakfast'
+        <div className="text-secondary text-center text-sm mb-[11px]">
+          💡 You can enter a full sentence like: 'I had     eggs and vegetables for breakfas
         </div>
       )}
-      <div className="text-gray-400 text-center text-xs">
+      <div className="text-custom-12 text-center text-xs mb-[46px]">
         Nutrition label generated automatically
       </div>
 
-      <div className="flex flex-col gap-4 text-primary  mb-3 mt-10">
+      <div className="flex flex-col gap-4 text-primary font-medium mb-3">
         Nutrition Label
       </div>
-      <div className="bg-white rounded-2xl shadow-sm p-6 text-gray-400">
+      <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.15)] p-6 text-custom-12 mb-[28px]">
         No data yet, record your first meal
       </div>
 
-      <div className="flex flex-col gap-4 text-primary  mb-3 mt-10">
+      <div className="flex flex-col gap-4 text-primary font-medium mb-3">
         Gut Impact Analysis
       </div>
-      <div className="bg-white rounded-2xl shadow-sm p-6 text-gray-400">
+      <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] p-6 text-custom-12 text-sm mb-[28px]">
         No records yet, start your log
         <div class="flex items-center space-x-4 text-xs text-gray-600 mt-3">
           <div class="flex items-center space-x-1">
-            <span class="w-3 h-3 rounded-sm bg-green-400"></span>
+            <span class="w-3 h-3 bg-green-400"></span>
             <span>Gut-Friendly</span>
           </div>
 
           <div class="flex items-center space-x-1">
-            <span class="w-3 h-3 rounded-sm bg-yellow-400"></span>
+            <span class="w-3 h-3 bg-yellow-400"></span>
             <span>Neutral</span>
           </div>
 
           <div class="flex items-center space-x-1">
-            <span class="w-3 h-3 rounded-sm bg-red-400"></span>
+            <span class="w-3 h-3 bg-red-400"></span>
             <span>May Irritate</span>
           </div>
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 text-primary  mb-3 mt-10">
+      <div className="flex flex-col gap-4 text-primary  mb-3 ">
         <CustomHeading label="Daily Progress" isRequired />
         <div className="flex flex-col gap-2">
           <CustomCheckbox label="Breakfast" />
@@ -124,21 +124,23 @@ const DietRecord = (props) => {
         </div>
       </div>
 
-      <div className="text-primary mt-5">
+      <div className="flex flex-col gap-4 text-primary font-medium mt-5">
         Gut Calendar View
       </div>
 
-      <div className="text-primary mt-5">
-        Gut Trends
-        <div className="flex justify-center bg-white rounded-2xl shadow-sm p-6 mt-3">
-          <div className="bg-gray-200 rounded-2xl h-12 w-56 text-center flex items-center justify-center">
+      <div className="mb-[40px] mt-[40px] text-sm text-custom-12">No records found</div>
+
+      <div className="text-primary mt-5 mb-[63px]">
+        <div className="font-medium">Gut Trends</div>
+        <div className="flex justify-center bg-white rounded-[27px] shadow-[0_4px_12px_rgba(0,0,0,0.08)] p-6 mt-3">
+          <div className="bg-gray-200 rounded-[24px] h-12 w-56 text-center flex items-center justify-center text-sm">
             Unlocks in 3 days &nbsp;&nbsp;&nbsp;&nbsp;
-            <LockKeyhole className="text-gray-600" />
+            <MdHttps className="text-[#7f7f7f] w-[24px] h-[24px]" />
           </div>
         </div>
       </div>
 
-      <button className="w-10/12 mx-auto flex items-center justify-center text-white text-lg font-medium rounded-2xl bg-[#C69C6D] py-3 shadow-sm mt-5">Save Record</button>
+      <button className="w-[242px] mx-auto flex items-center justify-center text-[#705d56] text-lg font-medium rounded-[8px] bg-[#e5e7eb] py-3 shadow-[0_4px_12px_rgba(0,0,0,0.08)] mt-5">Save Record</button>
     </div>
   );
 };

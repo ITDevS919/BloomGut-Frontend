@@ -8,11 +8,27 @@ const DateRangeSelectorBlue = (props) => {
   // Format date range based on view mode
   const formatDateRange = (date, mode) => {
     const months = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+
+    const weekMonths = [
       "Jan",
       "Feb",
       "Mar",
       "Apr",
       "May",
+      "Jun",
       "Jun",
       "Jul",
       "Aug",
@@ -32,7 +48,7 @@ const DateRangeSelectorBlue = (props) => {
       const endOfWeek = new Date(startOfWeek);
       endOfWeek.setDate(startOfWeek.getDate() + 6);
 
-      const month = months[startOfWeek.getMonth()];
+      const month = weekMonths[startOfWeek.getMonth()];
       const startDay = startOfWeek.getDate();
       const endDay = endOfWeek.getDate();
       const year = startOfWeek.getFullYear();
@@ -73,55 +89,57 @@ const DateRangeSelectorBlue = (props) => {
         {/* Previous Button */}
         <button
           onClick={handlePrevious}
-          className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors"
+          className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors bg-[#EDEDEF]"
           aria-label="Previous"
         >
           <ChevronLeft className="w-5 h-5 text-gray-600" />
         </button>
 
         {/* Date Display */}
-        <div className="text-base font-medium text-gray-800 min-w-[180px] text-center">
+        <div className="text-base font-medium text-primary min-w-[180px] text-center">
           {formatDateRange(currentDate, viewMode)}
         </div>
 
         {/* Next Button */}
         <button
           onClick={handleNext}
-          className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors"
+          className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors bg-[#EDEDEF]"
           aria-label="Next"
         >
           <ChevronRight className="w-5 h-5 text-gray-600" />
         </button>
       </div>
 
-      {/* View Mode Toggle Buttons */}
-      <div className="flex gap-2 justify-center">
-        <button
-          onClick={() => {
-            setViewMode("week");
-            props.setViewMode("week");
-          }}
-          className={`px-6 py-2 rounded-full text-sm font-medium transition-colors ${
-            viewMode === "week"
-              ? "bg-[#79B6E2] text-gray-800" // Active: tan/brown background
-              : "bg-white text-gray-800" // Inactive: white background
-          }`}
-        >
-          Week
-        </button>
-        <button
-          onClick={() => {
-            setViewMode("month");
-            props.setViewMode("month");
-          }}
-          className={`px-6 py-2 rounded-full text-sm font-medium transition-colors ${
-            viewMode === "month"
-              ? "bg-[#79B6E2] text-gray-800" // Active: tan/brown background
-              : "bg-white text-gray-800" // Inactive: white background
-          }`}
-        >
-          Month
-        </button>
+      {/* View Mode Radio Buttons */}
+      <div className="flex gap-6 justify-center items-center">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="radio"
+            name="viewMode"
+            value="week"
+            checked={viewMode === "week"}
+            onChange={() => {
+              setViewMode("week");
+              props.setViewMode("week");
+            }}
+            className="w-4 h-4 appearance-none border-2 border-white outline-1 outline-gray-300 rounded-sm checked:bg-[#79B6E2] checked:border-white cursor-pointer"
+          />
+          <span className="text-sm text-primary">Week</span>
+        </label>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="radio"
+            name="viewMode"
+            value="month"
+            checked={viewMode === "month"}
+            onChange={() => {
+              setViewMode("month");
+              props.setViewMode("month");
+            }}
+            className="w-4 h-4 appearance-none border-2 border-white outline-1 outline-gray-300 rounded-sm checked:bg-[#79B6E2] checked:border-white cursor-pointer bg-white"
+          />
+          <span className="text-sm text-primary">Month</span>
+        </label>
       </div>
     </div>
   );

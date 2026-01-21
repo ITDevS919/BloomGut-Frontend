@@ -117,7 +117,7 @@ const Year = () => {
 
   return (
     <div className="p-6">
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-md">
+      <div className="w-full max-w-md rounded-[8px] bg-white p-6 shadow-md">
         {/* Header */}
         <h2 className="text-center text-lg text-primary">
           Annual Water Drinking

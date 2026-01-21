@@ -34,7 +34,7 @@ const Month = () => {
       </div>
       <div className="w-full max-w-md space-y-4">
         {/* Donut Card */}
-        <div className="relative rounded-2xl bg-white p-6 shadow-md">
+        <div className="relative rounded-[8px] bg-white p-6 shadow-md">
           <div className="relative mx-auto h-52 w-52">
             <Doughnut data={data} options={options} />
 
@@ -65,7 +65,7 @@ const Month = () => {
 
 function StatCard({ title, value, sub }) {
   return (
-    <div className="rounded-xl bg-white p-3 text-center shadow-sm">
+    <div className="rounded-[8px] bg-white p-3 text-center shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
       <p className="text-xs text-gray-500">{title}</p>
       <p className="mt-1 text-lg font-semibold text-blue-600">{value}</p>
       <p className="mt-1 text-xs text-gray-400">{sub}</p>

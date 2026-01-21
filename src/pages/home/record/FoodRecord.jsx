@@ -213,7 +213,7 @@ const FoodRecord = (props) => {
   }, []);
 
   return (
-    <div className="bg-ivory min-h-full p-6 text-secondary flex flex-col">
+    <div className="bg-ivory min-h-full p-6 text-primary flex flex-col">
       <div className="flex items-center gap-4 mb-6">
         <button
           type="button"
@@ -221,9 +221,9 @@ const FoodRecord = (props) => {
           aria-label="back"
           onClick={handleBack}
         >
-          <ChevronLeft className="text-primary text-xl leading-none" />
+          <ChevronLeft className="text-primary text-[40px] leading-none" />
         </button>
-        <h2 className="text-xl font-semibold">Food Record</h2>
+        <h2 className="text-lg font-['Noto_Sans_TC', sans-serif]">Food Record</h2>
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center mt-32">
@@ -294,7 +294,7 @@ const FoodRecord = (props) => {
             
             <button
               onClick={handleStop}
-              className="px-6 py-2 bg-gray-200 text-gray-700 rounded-2xl text-sm"
+              className="px-6 py-2 bg-gray-200 text-gray-700 rounded-[8px] text-sm"
             >
               Stop Recording
             </button>
@@ -366,7 +366,7 @@ const FoodRecord = (props) => {
             <p className="text-lg font-medium mb-6" style={{ color: '#5d4037' }}>Sorry. Voice Not</p>
             <button
               onClick={handleTryAgain}
-              className="px-8 py-3 border rounded-2xl bg-white font-medium mb-6 hover:opacity-90 transition-opacity"
+              className="px-8 py-3 border rounded-[8px] bg-white font-medium mb-6 hover:opacity-90 transition-opacity"
               style={{ 
                 borderColor: '#fca5a5',
                 color: '#ef4444'
@@ -420,7 +420,7 @@ const FoodRecord = (props) => {
             <p className="text-sm mb-4" style={{ color: '#705d56' }}>Voice input complete, press back</p>
             
             {transcript && (
-              <div className="mt-4 p-4 bg-white rounded-2xl shadow-sm max-w-md w-full">
+              <div className="mt-4 p-4 bg-white rounded-[8px] shadow-[0_4px_12px_rgba(0,0,0,0.08)] max-w-md w-full">
                 <p className="text-sm text-gray-500 mb-2">Your food record:</p>
                 <p className="text-base text-gray-700">{transcript}</p>
               </div>

@@ -108,7 +108,7 @@ const Year = () => {
 
   return (
     <div className="p-6">
-      <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-md">
+      <div className="w-full max-w-sm rounded-[8px] bg-white p-5 shadow-md">
         <div className="h-64">
           <Radar data={data} options={options} />
         </div>
@@ -125,7 +125,7 @@ const Year = () => {
       </div>
       <div className="grid grid-cols-2 gap-3 max-w-sm mt-3">
         {items.map((item) => (
-          <div key={item.title} className="rounded-xl bg-white p-2 shadow-sm">
+          <div key={item.title} className="rounded-[8px] bg-white p-2 shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
             <p className="mb-3 text-sm font-medium text-primary">
               {item.title}
             </p>

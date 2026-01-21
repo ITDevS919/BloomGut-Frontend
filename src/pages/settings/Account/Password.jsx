@@ -33,7 +33,8 @@ const Password = () => {
       setNewPasswordError("8–20 chars, letters + numbers required.");
       valid = false;
     }
-    if (newPassword !== confirmPassword) {
+    if ((newPassword !== confirmPassword) || (confirmPassword === "" && newPassword === "")) {
+      console.log(newPassword, confirmPassword);
       setConfirmPasswordError("Passwords do not match");
       valid = false;
     }
@@ -55,61 +56,66 @@ const Password = () => {
   };
 
   return (
-    <div style={container}>
-      <div style={header}>
+    <div className="bg-ivory min-h-full p-6 text-primary font-['Roboto', sans-serif]">
+      <div className="flex items-center gap-4 mb-[108px]">
         <button
           type="button"
+          className="text-primary text-xl leading-none"
           aria-label="back"
           onClick={() => window.history.back()}
-          style={{ background: "transparent", border: "none", padding: 0 }}
         >
-          <ChevronLeft className="text-primary text-xl leading-none" />
+          <ChevronLeft className="text-primary text-[40px] leading-none" />
         </button>
-        <h2 style={{ fontSize: 18, fontWeight: 700 }}>Password</h2>
+        <h2 className="text-lg">Password</h2>
       </div>
 
-      <form onSubmit={saveSettings} style={{ maxWidth: 420 }}>
-        <div className="mt-30">
-          <div className="text-primary text-lg font-semibold">Identity Verification</div>
-          <div className="text-gray-400 text-sm mt-2">Avoid unauthorized</div>
+      <form onSubmit={saveSettings}>
+        <div className="mb-[20px]">
+          <div className="text-primary text-base font-bold mb-[6px]">Identity Verification</div>
+          <div className="text-custom-12 text-xs mb-[6px]">Avoid unauthorized</div>
           <input
             type="password"
             placeholder="Enter current password"
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
-            style={{ ...input, border: currentPasswordError ? "1px solid #e36b6b" : input.border }}
+            className={`w-full bg-white rounded-[8px] px-4 py-3 placeholder-custom-12 text-sm ${currentPasswordError ? "border border-[#d32f2f]" : "border border-[#ccc]"}`}
+          // style={{ ...input, border: currentPasswordError ? "1px solid #e36b6b" : input.border }}
           />
-          {currentPasswordError && <div style={{ color: "#c33", marginTop: 6 }}>{currentPasswordError}</div>}
+          {currentPasswordError && <div className="text-sm text-[#d32f2f] mt-[9px] mb-[20px]">{currentPasswordError}</div>}
         </div>
 
-        <div className="text-pirmary text-lg font-semibolds mt-5">
-          <div style={sectionTitle}>Enter New Password</div>
+        <div className="text-primary text-base font-bold mb-[6px]">
+          Enter New Password
         </div>
 
-        <div>
+        <div className="mb-[20px]">
           <input
             type="password"
             placeholder="Enter new password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            style={{ ...input, border: newPasswordError ? "1px solid #e36b6b" : input.border }}
+            className={`w-full bg-white rounded-[8px] px-4 py-3 placeholder-custom-12 text-sm ${newPasswordError ? "border border-[#d32f2f]" : "border border-[#ccc]"}`}
+          // style={{ ...input, border: newPasswordError ? "1px solid #e36b6b" : input.border }}
           />
-          {/* {newPasswordError ? <div style={{ color: "#c33", marginTop: 6 }}>{newPasswordError}</div> : <div style={hint}>8–20 chars, letters + numbers required.</div>} */}
+          {newPasswordError && <div className="text-sm text-[#d32f2f] mt-[9px] mb-[20px]">{newPasswordError}</div>}
           <input
             type="password"
             placeholder="Re-enter new password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            style={{ ...input, border: confirmPasswordError ? "1px solid #e36b6b" : input.border }}
+            className={`w-full bg-white rounded-[8px] px-4 py-3 placeholder-custom-12 text-sm ${confirmPasswordError ? "border border-[#d32f2f]" : "border border-[#ccc]"}`}
+          // style={{ ...input, border: confirmPasswordError ? "1px solid #e36b6b" : input.border }}
           />
-          {confirmPasswordError && <div style={{ color: "#c33", marginTop: 6 }}>{confirmPasswordError}</div>}
+          {confirmPasswordError ? (
+            <div className="text-sm text-[#d32f2f] mt-[9px] mb-[20px]">{confirmPasswordError}</div>
+          ) : <p className="text-xs text-custom-12 mb-[70px]">Must include 8 characters, at least 1 number and 1 uppercase letter</p>}
         </div>
 
         {error && <div style={{ color: "#c33", marginTop: 12 }}>{error}</div>}
 
 
         <button
-          className="px-6 py-2 rounded-lg bg-[#C69C6D] text-white shadow-sm w-10/12 text-center flex items-center justify-center mx-auto mt-3"
+          className="py-3 rounded-[8px] bg-[#C69C6D] text-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] w-[242px] font-bold text-center flex items-center justify-center mx-auto mt-10"
         >
           Save Settings
         </button>

@@ -1,58 +1,90 @@
-import { ChevronLeft, Clock } from "lucide-react";
+import { ChevronLeft, Info } from "lucide-react";
 import { Crown } from "lucide-react";
+import { FaCrown } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const SubScription = () => {
   const expiry = "Sep 9, 2025";
+  const navigate = useNavigate();
 
   return (
-    <div className="bg-ivory min-h-full p-6 text-secondary">
-      <div className="flex items-center gap-4 mb-6">
+    <div className="bg-ivory min-h-full p-6 text-primary font-['Noto_Sans_TC', sans-serif]">
+      <div className="flex items-center gap-4 mb-[54px]">
         <button
           type="button"
           className="text-primary text-xl leading-none"
           aria-label="back"
           onClick={() => window.history.back()}
         >
-          <ChevronLeft className="text-primary text-xl leading-none" />
+          <ChevronLeft className="text-primary text-[40px] leading-none" />
         </button>
-        <h2 className="text-xl font-semibold">Subscription</h2>
+        <h2 className="text-lg font-['Noto_Sans_TC', sans-serif]">Subscription</h2>
       </div>
 
-      <div className="max-w-sm mx-auto text-center mt-15">
-        <div className="flex flex-col items-center mb-6">
-          <div className="p-3 rounded-full bg-amber-100 mb-3">
-            <Crown className="text-amber-500" />
-          </div>
-          <div className="text-lg">Subscription Successful</div>
-          <div className="text-sm">Mid-tier Member</div>
-          <div className="text-xs mt-3">
-            Access Week/Month charts, exclusive tips & graphs
-          </div>
+      <div className="max-w-sm mx-auto text-center mt-20">
+        {/* Crown Icon */}
+        <div className="flex justify-center mb-4">
+          <FaCrown className="w-12 h-12 text-[#e29c53]" />
         </div>
 
-        <div className="flex flex-col gap-3 items-center">
-          <button className="bg-white rounded-xl px-4 py-3 shadow-md border border-gray-100 text-sm text-primary-muted w-48">
+        {/* Title */}
+        <h3 className="text-lg text-primary">
+          Subscription Successful
+        </h3>
+
+        {/* Member Tier */}
+        <p className="text-lg text-primary mb-5">Mid-tier Member</p>
+
+        {/* Description */}
+        <p className="text-sm text-secondary">
+          Access Week/Month charts,
+        </p>
+        <p className="text-sm text-secondary mb-[50px]">
+          exclusive tips & graphs
+        </p>
+
+
+        {/* Action Buttons */}
+        <div className="flex flex-col gap-3 mb-[51px]">
+          <button
+            onClick={() => navigate("/trend-analysis")}
+            className="w-[159px] px-3 py-2 mx-auto bg-ivory rounded-md shadow-sm text-sm text-secondary flex items-center justify-center mb-[31px]"
+          >
             Go to Trend Analysis
           </button>
 
-          <button className="bg-white rounded-xl px-4 py-3 shadow-md border border-gray-100 text-sm text-primary-muted w-48">
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="w-[159px] px-3 py-2 mx-auto bg-white rounded-md shadow-sm text-sm text-secondary flex items-center justify-center"
+          >
             Return to Home
           </button>
         </div>
 
-        <div className="flex items-center gap-2 text-sm text-primary-muted mt-5">
-          <Clock className="w-4 h-4 text-primary-muted" />
-          <div>Membership expires: <span className="font-medium">{expiry}</span></div>
+        {/* Membership Expiry Info */}
+        <div className="flex items-center gap-2 text-primary mb-[57px] justify-start px-10 text-xs">
+          <Info className="w-3 h-3 text-primary" />
+          <span>Membership expires: <span className="">{expiry}</span></span>
         </div>
 
-        <div className="mt-6 text-center">
-          <button className="w-48 bg-white text-gray-300 rounded-xl py-3 shadow-none border border-gray-100 cursor-not-allowed mx-auto" disabled>
+        {/* Renew Subscription */}
+        <div className="mb-[33px]">
+          <button
+            disabled
+            className="w-[209px] px-3 py-2 mx-auto bg-white rounded-md shadow-sm text-smflex items-center justify-center mb-[31px] text-[#ececec]"
+          >
             Renew Subscription
           </button>
-          <div className="text-xs text-gray-400 mt-2">Renew within 7 days before expiry</div>
+          <p className="text-xs text-custom-12 500 mt-2 italic">Renew within 7 days before expiry</p>
         </div>
 
-        <button className="mt-6 text-sm text-amber-700 underline mx-auto">Check Subscription Status</button>
+        {/* Check Subscription Status Link */}
+        <button
+          onClick={() => navigate("/setting/plan")}
+          className="text-sm text-custom-12 underline mx-auto block mb-[94"
+        >
+          Check Subscription Status
+        </button>
       </div>
     </div>
   );

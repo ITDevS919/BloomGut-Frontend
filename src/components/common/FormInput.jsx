@@ -20,8 +20,8 @@ const FormInput = ({
         {...register(name, rules)}
       />
       {error && displayError && (
-        <p className="text-red-600 text-xs text-left w-full mt-1">
-          {error.message}
+        <p className="text-text-danger text-xs text-center w-full">
+          "{error.message}"
         </p>
       )}
     </div>

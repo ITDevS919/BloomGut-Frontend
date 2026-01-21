@@ -124,6 +124,7 @@ const SegmentedControl: React.FC<Props> = ({
               background: "linear-gradient(90deg,#FFB74D,#FFB74D)",
               transition: "width 160ms",
             }}
+            className="shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
           />
 
           <button

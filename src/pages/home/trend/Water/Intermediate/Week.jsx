@@ -102,9 +102,9 @@ const Week = () => {
       <div className="text-xl font-medium mb-3 text-primary">
         Water Drinking Time
       </div>
-      <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-md">
+      <div className="w-full max-w-md rounded-[8px] bg-white p-5 shadow-md">
         {/* Info Block */}
-        <div className="mb-4 rounded-xl bg-blue-50 px-4 py-3 text-sm text-gray-600">
+        <div className="mb-4 rounded-[8px] bg-blue-50 px-4 py-3 text-sm text-gray-600">
           Chart shows intake by time period to check balance. Concentrated
           drinking may cause constipation or night urination.
         </div>
@@ -115,7 +115,7 @@ const Week = () => {
         </div>
 
         {/* Alert and Tip Section */}
-        <div className="mt-5 space-y-3 rounded-xl bg-yellow-50 p-4">
+        <div className="mt-5 space-y-3 rounded-[8px] bg-yellow-50 p-4">
           {/* Period with Rate */}
           <div className="flex items-center gap-2 text-sm text-gray-700">
             <span className="h-3 w-3 rounded-full bg-yellow-400" />
@@ -155,7 +155,7 @@ const Week = () => {
 
 function StatCard({ title, value, sub }) {
   return (
-    <div className="rounded-xl bg-gray-50 p-3 text-center">
+    <div className="rounded-[8px] bg-gray-50 p-3 text-center">
       <p className="text-xs text-gray-500 mb-1">{title}</p>
       <p className="text-lg font-bold text-blue-600 mb-1">{value}</p>
       <p className="text-xs text-blue-500">{sub}</p>

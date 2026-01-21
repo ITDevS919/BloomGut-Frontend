@@ -1,5 +1,6 @@
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Pencil } from "lucide-react";
 import React, { useState, useRef, useEffect } from "react";
+import { FaPencilAlt } from "react-icons/fa";
 import { useSelector } from "react-redux";
 
 const Profile = () => {
@@ -38,7 +39,7 @@ const Profile = () => {
     },
     back: { fontSize: 20, cursor: "pointer" },
     title: { fontSize: 20, fontWeight: 600 },
-    avatarWrap: { display: "flex", justifyContent: "center", marginBottom: 18 },
+    avatarWrap: { display: "flex", justifyContent: "center" },
     avatar: {
       width: 112,
       height: 112,
@@ -52,21 +53,21 @@ const Profile = () => {
     },
     editBtn: {
       position: "absolute",
-      right: -6,
-      bottom: -6,
-      width: 36,
-      height: 36,
+      right: 5,
+      bottom: 5,
+      width: 30,
+      height: 30,
       borderRadius: "50%",
-      background: "#6b4d43",
+      background: "#5d4037",
       color: "white",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      boxShadow: "0 3px 6px rgba(0,0,0,0.12)",
+      boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
       cursor: "pointer",
     },
     form: { display: "flex", flexDirection: "column", gap: 16 },
-    label: { display: "block", fontSize: 15, marginBottom: 6 },
+    label: { display: "block", fontSize: 16, color: "#705d56", marginBottom: "8px" },
     required: { color: "#c33", marginRight: 6 },
     input: {
       width: "100%",
@@ -106,282 +107,312 @@ const Profile = () => {
     };
   }, [avatarUrl]);
   return (
-    <div className="bg-ivory min-h-full p-6 text-secondary">
-      <div className="flex items-center gap-4 mb-5">
-        <button
-          type="button"
-          className="text-primary text-xl leading-none"
-          aria-label="back"
-          onClick={() => window.history.back()}
-        >
-          <ChevronLeft className="text-primary text-xl leading-none" />
-        </button>
-        <h2 className="text-xl font-semibold">Profile Settings</h2>
-      </div>
+    <>
+      <style>{`
+        input[type="radio"][name="gender"] {
+          appearance: none;
+          width: 16px;
+          height: 16px;
+          border: 2px solid #d1d5db;
+          border-radius: 50%;
+          background: white;
+          cursor: pointer;
+          position: relative;
+        }
+        input[type="radio"][name="gender"]:checked {
+          border-color: #C69C6D;
+        }
+        input[type="radio"][name="gender"]:checked::after {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: #C69C6D;
+        }
+      `}</style>
+      <div className="bg-ivory min-h-full p-6 text-primary">
+        <div className="flex items-center gap-4 mb-[66px]">
+          <button
+            type="button"
+            className="text-primary text-xl leading-none"
+            aria-label="back"
+            onClick={() => window.history.back()}
+          >
+            <ChevronLeft className="text-primary text-[40px] leading-none" />
+          </button>
+          <h2 className="text-lg font-['Roboto', sans-serif]">Profile Settings</h2>
+        </div>
 
-      <div style={styles.avatarWrap}>
-        <div style={styles.avatar}>
-          <div style={{ fontSize: 36, color: "#6b4d43" }}>
-            <img
-              src={avatarUrl || auth?.user?.imageUrl}
-              className="rounded-full"
+        <div style={styles.avatarWrap} className="mb-[43px]">
+          <div style={styles.avatar}>
+            <div style={{ fontSize: 36, color: "#6b4d43" }}>
+              <img
+                src={avatarUrl || auth?.user?.imageUrl}
+                className="rounded-full"
+                width="100px"
+                height="100px"
+              />
+            </div>
+            <div
+              style={styles.editBtn}
+              title="Edit avatar"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowAvatarMenu((s) => !s);
+              }}
+            >
+              <FaPencilAlt className="text-white text-[12px] leading-none" />
+            </div>
+
+            {showAvatarMenu && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "120%",
+                  right: -6,
+                  background: "white",
+                  boxShadow: "0 6px 18px rgba(0,0,0,0.12)",
+                  borderRadius: 8,
+                  overflow: "hidden",
+                  minWidth: 180,
+                  zIndex: 80,
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => {
+                  /* reuse select flow */ setShowAvatarMenu(false);
+                    fileInputRef.current &&
+                      fileInputRef.current.removeAttribute("capture");
+                    fileInputRef.current && fileInputRef.current.click();
+                  }}
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    textAlign: "left",
+                    padding: 12,
+                    border: "none",
+                    background: "white",
+                    cursor: "pointer",
+                  }}
+                >
+                  Change Avatar
+                </button>
+                <button
+                  onClick={() => {
+                    setShowAvatarMenu(false);
+                    if (fileInputRef.current) {
+                      fileInputRef.current.setAttribute("capture", "environment");
+                      fileInputRef.current.click();
+                    }
+                  }}
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    textAlign: "left",
+                    padding: 12,
+                    border: "none",
+                    background: "white",
+                    cursor: "pointer",
+                  }}
+                >
+                  Take Photo
+                </button>
+                <button
+                  onClick={() => {
+                    setShowAvatarMenu(false);
+                    fileInputRef.current &&
+                      fileInputRef.current.removeAttribute("capture");
+                    fileInputRef.current && fileInputRef.current.click();
+                  }}
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    textAlign: "left",
+                    padding: 12,
+                    border: "none",
+                    background: "white",
+                    cursor: "pointer",
+                  }}
+                >
+                  Select Image
+                </button>
+                <button
+                  onClick={() => {
+                    if (!confirm("Delete current avatar?")) return;
+                  /* placeholder */ console.log("Delete avatar");
+                    setAvatarUrl("");
+                    setShowAvatarMenu(false);
+                  }}
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    textAlign: "left",
+                    padding: 12,
+                    border: "none",
+                    background: "white",
+                    cursor: "pointer",
+                    color: "#c33",
+                  }}
+                >
+                  Delete Current Avatar
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <form style={styles.form} onSubmit={submit}>
+          <div className="mb-[20px]">
+            <label style={styles.label}>
+              <span style={styles.required}>*</span>Username or{" "}
+              <small style={{ color: "#9b9b9b" }}>Nickname</small>
+            </label>
+            <input
+              className="w-full text-sm placeholder-custom-12 bg-white px-4 py-3 rounded-[8px] border border-[#ccc]"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Nickname"
             />
           </div>
-          <div
-            style={styles.editBtn}
-            title="Edit avatar"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowAvatarMenu((s) => !s);
-            }}
-          >
-            ✏️
+
+          <div className="mb-[20px]">
+            <label style={styles.label}>
+              <span style={styles.required}>*</span>Email:{" "}
+              <small style={{ color: "#9b9b9b" }}>
+                Please enter your email address
+              </small>
+            </label>
+            <input
+              className="w-full text-sm placeholder-custom-12 bg-white px-4 py-3 rounded-[8px] border border-[#ccc]"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+            />
           </div>
 
-          {showAvatarMenu && (
-            <div
-              style={{
-                position: "absolute",
-                top: "120%",
-                right: -6,
-                background: "white",
-                boxShadow: "0 6px 18px rgba(0,0,0,0.12)",
-                borderRadius: 8,
-                overflow: "hidden",
-                minWidth: 180,
-                zIndex: 80,
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                onClick={() => {
-                  /* reuse select flow */ setShowAvatarMenu(false);
-                  fileInputRef.current &&
-                    fileInputRef.current.removeAttribute("capture");
-                  fileInputRef.current && fileInputRef.current.click();
-                }}
-                style={{
-                  display: "block",
-                  width: "100%",
-                  textAlign: "left",
-                  padding: 12,
-                  border: "none",
-                  background: "white",
-                  cursor: "pointer",
-                }}
-              >
-                Change Avatar
-              </button>
-              <button
-                onClick={() => {
-                  setShowAvatarMenu(false);
-                  if (fileInputRef.current) {
-                    fileInputRef.current.setAttribute("capture", "environment");
-                    fileInputRef.current.click();
-                  }
-                }}
-                style={{
-                  display: "block",
-                  width: "100%",
-                  textAlign: "left",
-                  padding: 12,
-                  border: "none",
-                  background: "white",
-                  cursor: "pointer",
-                }}
-              >
-                Take Photo
-              </button>
-              <button
-                onClick={() => {
-                  setShowAvatarMenu(false);
-                  fileInputRef.current &&
-                    fileInputRef.current.removeAttribute("capture");
-                  fileInputRef.current && fileInputRef.current.click();
-                }}
-                style={{
-                  display: "block",
-                  width: "100%",
-                  textAlign: "left",
-                  padding: 12,
-                  border: "none",
-                  background: "white",
-                  cursor: "pointer",
-                }}
-              >
-                Select Image
-              </button>
-              <button
-                onClick={() => {
-                  if (!confirm("Delete current avatar?")) return;
-                  /* placeholder */ console.log("Delete avatar");
-                  setAvatarUrl("");
-                  setShowAvatarMenu(false);
-                }}
-                style={{
-                  display: "block",
-                  width: "100%",
-                  textAlign: "left",
-                  padding: 12,
-                  border: "none",
-                  background: "white",
-                  cursor: "pointer",
-                  color: "#c33",
-                }}
-              >
-                Delete Current Avatar
-              </button>
+          <div className="mb-[20px]">
+            <label style={styles.label}>
+              <span style={styles.required}>*</span>Gender:
+            </label>
+            <div className="flex gap-6 items-center">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="gender"
+                  value="male"
+                  checked={gender === "male"}
+                  onChange={(e) => setGender(e.target.value)}
+                />
+                <span className="text-base text-secondary">Male</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="gender"
+                  value="female"
+                  checked={gender === "female"}
+                  onChange={(e) => setGender(e.target.value)}
+                />
+                <span className="text-base text-secondary">Female</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="gender"
+                  value="other"
+                  checked={gender === "other"}
+                  onChange={(e) => setGender(e.target.value)}
+                />
+                <span className="text-base text-secondary">Other</span>
+              </label>
             </div>
-          )}
-        </div>
+          </div>
+
+          <div className="mb-[20px]">
+            <label style={styles.label}>
+              <span style={styles.required}>*</span>Birthday:
+            </label>
+            <div style={styles.birthdayRow}>
+              <select
+                className="w-[133px] bg-white text-secondary text-sm rounded-[8px] border border-[#ccc] px-4 py-3"
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
+              >
+                {years.map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+              <div className="text-sm text-secondary">Year</div>
+              <select
+                className="w-[120px] bg-white text-secondary text-sm rounded-[8px] border border-[#ccc] px-4 py-3"
+                value={month}
+                onChange={(e) => setMonth(e.target.value)}
+              >
+                {months.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </select>
+              <div className="text-sm text-secondary">Month</div>
+            </div>
+          </div>
+
+          <div className="mb-[20px]">
+            <label style={styles.label}>
+              <span style={styles.required}>*</span>Height (cm):
+            </label>
+            <input
+              className="w-full text-sm placeholder-custom-12 bg-white px-4 py-3 rounded-[8px] border border-[#ccc]"
+              value={height}
+              onChange={(e) => setHeight(e.target.value)}
+              placeholder="e.g. 170"
+            />
+          </div>
+
+          <div className="mb-[20px]">
+            <label className="text-base text-secondary">
+              <span style={styles.required}>*</span>Weight (kg):
+            </label>
+            <input
+              className="w-full text-sm placeholder-custom-12 bg-white px-4 py-3 rounded-[8px] border border-[#ccc] mt-[10px]"
+              value={weight}
+              onChange={(e) => setWeight(e.target.value)}
+              placeholder="e.g. 60"
+            />
+          </div>
+
+          <button
+            className="py-3 rounded-[8px] bg-[#C69C6D] text-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] w-10/12 text-center flex items-center justify-center mx-auto mt-3"
+          >
+            Save Settings
+          </button>
+        </form>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: "none" }}
+          onChange={(e) => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            const url = URL.createObjectURL(file);
+            if (avatarUrl && avatarUrl.startsWith("blob:"))
+              URL.revokeObjectURL(avatarUrl);
+            setAvatarUrl(url);
+            // TODO: upload `file` to server here
+          }}
+        />
       </div>
-
-      <form style={styles.form} onSubmit={submit}>
-        <div>
-          <label style={styles.label}>
-            <span style={styles.required}>*</span>Username or{" "}
-            <small style={{ color: "#9b9b9b" }}>Nickname</small>
-          </label>
-          <input
-            style={styles.input}
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Nickname"
-          />
-        </div>
-
-        <div>
-          <label style={styles.label}>
-            <span style={styles.required}>*</span>Email:{" "}
-            <small style={{ color: "#9b9b9b" }}>
-              Please enter your email address
-            </small>
-          </label>
-          <input
-            style={styles.input}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-          />
-        </div>
-
-        <div>
-          <label style={styles.label}>
-            <span style={styles.required}>*</span>Gender:
-          </label>
-          <div style={styles.radios}>
-            <label>
-              <input
-                type="radio"
-                name="gender"
-                value="male"
-                checked={gender === "male"}
-                onChange={(e) => setGender(e.target.value)}
-              />{" "}
-              <span style={{ marginLeft: 6 }}>Male</span>
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="gender"
-                value="female"
-                checked={gender === "female"}
-                onChange={(e) => setGender(e.target.value)}
-              />{" "}
-              <span style={{ marginLeft: 6 }}>Female</span>
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="gender"
-                value="other"
-                checked={gender === "other"}
-                onChange={(e) => setGender(e.target.value)}
-              />{" "}
-              <span style={{ marginLeft: 6 }}>Other</span>
-            </label>
-          </div>
-        </div>
-
-        <div>
-          <label style={styles.label}>
-            <span style={styles.required}>*</span>Birthday:
-          </label>
-          <div style={styles.birthdayRow}>
-            <select
-              style={{ ...styles.select, flex: 1 }}
-              value={year}
-              onChange={(e) => setYear(e.target.value)}
-            >
-              {years.map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </select>
-            <div style={{ fontSize: 14, color: "#6b4d43" }}>Year</div>
-            <select
-              style={{ ...styles.select, width: 110 }}
-              value={month}
-              onChange={(e) => setMonth(e.target.value)}
-            >
-              {months.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
-            <div style={{ fontSize: 14, color: "#6b4d43" }}>Month</div>
-          </div>
-        </div>
-
-        <div>
-          <label style={styles.label}>
-            <span style={styles.required}>*</span>Height (cm):
-          </label>
-          <input
-            style={styles.input}
-            value={height}
-            onChange={(e) => setHeight(e.target.value)}
-            placeholder="e.g. 170"
-          />
-        </div>
-
-        <div>
-          <label style={styles.label}>
-            <span style={styles.required}>*</span>Weight (kg):
-          </label>
-          <input
-            style={styles.input}
-            value={weight}
-            onChange={(e) => setWeight(e.target.value)}
-            placeholder="e.g. 60"
-          />
-        </div>
-
-        <button
-          className="px-6 py-2 rounded-2xl bg-[#C69C6D] text-white shadow-sm w-10/12 text-center flex items-center justify-center mx-auto mt-3"
-        >
-          Save Settings
-        </button>
-      </form>
-
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        style={{ display: "none" }}
-        onChange={(e) => {
-          const file = e.target.files && e.target.files[0];
-          if (!file) return;
-          const url = URL.createObjectURL(file);
-          if (avatarUrl && avatarUrl.startsWith("blob:"))
-            URL.revokeObjectURL(avatarUrl);
-          setAvatarUrl(url);
-          // TODO: upload `file` to server here
-        }}
-      />
-    </div>
+    </>
   );
 };
 

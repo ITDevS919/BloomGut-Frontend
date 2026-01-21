@@ -37,9 +37,9 @@ const WaterRecord = () => {
           aria-label="back"
           onClick={() => window.history.back()}
         >
-          <ChevronLeft className="text-primary text-xl leading-none" />
+          <ChevronLeft className="text-primary text-[40px] leading-none" />
         </button>
-        <h2 className="text-xl font-semibold">Water Record</h2>
+        <h2 className="text-lg font-['Noto_Sans_TC', sans-serif]">Water Record</h2>
       </div>
 
       {/* date and view trend button */}
@@ -79,7 +79,7 @@ const WaterRecord = () => {
         {/* Recently Used */}
         <div className="flex items-center justify-between text-sm mt-5">
           <span className="font-medium">Recently Used</span>
-          <button className="shadow-sm border-gray-400 rounded-2xl border px-3 py-1 text-xs">
+          <button className="shadow-[0_4px_12px_rgba(0,0,0,0.08)] border-gray-400 rounded-[8px] border px-3 py-1 text-xs">
             Custom Amount
           </button>
         </div>
@@ -105,7 +105,7 @@ const WaterRecord = () => {
 
         <button
           type="button"
-          className="w-10/12 mx-auto flex items-center justify-center text-white text-lg font-medium rounded-2xl bg-[#C69C6D] py-3 shadow-sm mt-5"
+          className="w-10/12 mx-auto flex items-center justify-center text-white text-lg font-medium rounded-[8px] bg-[#C69C6D] py-3 shadow-[0_4px_12px_rgba(0,0,0,0.08)] mt-5"
           onClick={() => alert(`Saved language: ${selected}`)}
         >
           Save
@@ -117,7 +117,7 @@ const WaterRecord = () => {
 
 function QuickItem({ icon, label, value, active }) {
   return (
-    <div className="rounded-xl border p-3 text-center text-xs shadow-sm border-gray-400">
+    <div className="rounded-[8px] border p-3 text-center text-xs shadow-[0_4px_12px_rgba(0,0,0,0.08)] border-gray-400">
       <div className="text-xl">{icon}</div>
       <p className="mt-1 font-medium">{label}</p>
       <p className="text-gray-500">{value}</p>
@@ -146,7 +146,7 @@ function CommonCollapse() {
   };
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden mt-3">
+    <div className="rounded-[8px] border border-gray-200 bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] overflow-hidden mt-3">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -211,7 +211,7 @@ function SpecialCollapse() {
   };
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden mt-3">
+    <div className="rounded-[8px] border border-gray-200 bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] overflow-hidden mt-3">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}

@@ -1,13 +1,18 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-const DateRangeSelectorBlueUpdate = (props) => {
+const DateRangeSelectorLightPurpleUpdate = (props) => {
   const [viewMode, setViewMode] = useState("week"); // "week", "month", or "year"
   const [currentDate, setCurrentDate] = useState(new Date());
 
   // Format date range based on view mode
   const formatDateRange = (date, mode) => {
     const months = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December",
+    ];
+
+    const weekMonths = [
       "Jan", "Feb", "Mar", "Apr", "May", "Jun",
       "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
     ];
@@ -22,7 +27,7 @@ const DateRangeSelectorBlueUpdate = (props) => {
       const endOfWeek = new Date(startOfWeek);
       endOfWeek.setDate(startOfWeek.getDate() + 6);
 
-      const month = months[startOfWeek.getMonth()];
+      const month = weekMonths[startOfWeek.getMonth()];
       const startDay = startOfWeek.getDate();
       const endDay = endOfWeek.getDate();
       const year = startOfWeek.getFullYear();
@@ -75,64 +80,74 @@ const DateRangeSelectorBlueUpdate = (props) => {
       {/* View Mode Toggle Buttons - Top Row */}
       <div className="flex gap-2 justify-center mb-4">
         <button
-          onClick={() => {handleViewModeChange("week"); props.setViewMode("week")}}
-          className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${
-            viewMode === "week"
-              ? "bg-[#B5A6D2] text-gray-800" // Active: light brown/beige background
-              : "bg-white text-gray-800" // Inactive: white background
-          }`}
+          onClick={() => { handleViewModeChange("week"); props.setViewMode("week") }}
+          className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${viewMode === "week"
+              ? "bg-[#B5A6D2] text-primary" // Active: light brown/beige background
+              : "bg-white text-gray-400" // Inactive: white background
+            }`}
         >
           Week
         </button>
         <button
-          onClick={() => {handleViewModeChange("month"); props.setViewMode("month")}}
-          className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${
-            viewMode === "month"
-              ? "bg-[#B5A6D2] text-gray-800" // Active: light brown/beige background
-              : "bg-white text-gray-800" // Inactive: white background
-          }`}
+          onClick={() => { handleViewModeChange("month"); props.setViewMode("month") }}
+          className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${viewMode === "month"
+              ? "bg-[#B5A6D2] text-primary" // Active: light brown/beige background
+              : "bg-white text-gray-400" // Inactive: white background
+            }`}
         >
           Month
         </button>
         <button
-          onClick={() => {handleViewModeChange("year"); props.setViewMode("year")}}
-          className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${
-            viewMode === "year"
-              ? "bg-[#B5A6D2] text-gray-800" // Active: light brown/beige background
-              : "bg-white text-gray-800" // Inactive: white background
-          }`}
+          onClick={() => { handleViewModeChange("year"); props.setViewMode("year") }}
+          className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${viewMode === "year"
+              ? "bg-[#B5A6D2] text-primary" // Active: light brown/beige background
+              : "bg-white text-gray-400" // Inactive: white background
+            }`}
         >
           Year
         </button>
       </div>
 
       {/* Date Navigation - Bottom Row */}
-      <div className="flex items-center justify-center gap-4">
+      <div className="flex items-center justify-center p-6">
         {/* Previous Button */}
-        <button
-          onClick={handlePrevious}
-          className="w-8 h-8 rounded-l flex items-center justify-center hover:bg-gray-300 transition-colors"
-          aria-label="Previous"
-        >
-          <ChevronLeft className="w-5 h-5 text-gray-600" />
-        </button>
+        {viewMode === "year" ? (
+          <div className="rounded-lg bg-[#EFEBE5] p-4 w-full">
+            <div className="text-left">
+              <div className="text-base font-medium text-secondary mb-1">
+                {currentDate.getFullYear()} Health Analysis
+              </div>
+              <div className="text-sm text-primary">
+                Annual Bowel & Food Report
+              </div>
+            </div>
+          </div>
+        ) : (
+          <><button
+            onClick={handlePrevious}
+            className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors bg-[#EDEDEF]"
+            aria-label="Previous"
+          >
+            <ChevronLeft className="w-5 h-5 text-gray-600" />
+          </button>
 
-        {/* Date Display */}
-        <div className="text-base font-medium text-gray-800 min-w-[180px] text-center">
-          {formatDateRange(currentDate, viewMode)}
-        </div>
+            {/* Date Display */}
+            <div className="text-base font-medium text-primary min-w-[180px] text-center">
+              {formatDateRange(currentDate, viewMode)}
+            </div>
 
-        {/* Next Button */}
-        <button
-          onClick={handleNext}
-          className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-300 transition-colors"
-          aria-label="Next"
-        >
-          <ChevronRight className="w-5 h-5 text-gray-600" />
-        </button>
+            {/* Next Button */}
+            <button
+              onClick={handleNext}
+              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors bg-[#EDEDEF]"
+              aria-label="Next"
+            >
+              <ChevronRight className="w-5 h-5 text-gray-600" />
+            </button>
+          </>)}
       </div>
     </div>
   );
 };
 
-export default DateRangeSelectorBlueUpdate;
+export default DateRangeSelectorLightPurpleUpdate;

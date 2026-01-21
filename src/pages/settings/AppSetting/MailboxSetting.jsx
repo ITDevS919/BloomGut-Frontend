@@ -30,59 +30,59 @@ const MailboxSetting = () => {
   };
 
   return (
-    <div className="bg-ivory min-h-full p-6 text-secondary">
-      <div className="flex items-center gap-4 mb-6">
+    <div className="bg-ivory min-h-full p-6 text-primary">
+      <div className="flex items-center gap-4 mb-[80px]">
         <button
           type="button"
-          className="text-primary text-xl leading-none"
+          className="text-primary text-[40px] "
           aria-label="back"
           onClick={() => window.history.back()}
         >
-          <ChevronLeft className="text-primary text-xl leading-none" />
+          <ChevronLeft className="text-primary text-[40px] " />
         </button>
-        <h2 className="text-xl font-semibold">Mailbox Settings</h2>
+        <h2 className="text-lg font-['Noto_Sans_TC', sans-serif]">Mailbox Settings</h2>
       </div>
 
-      <div className="mt-25">
-        <label className="block text-sm text-gray-700 mb-2">
+      <div className="font-['Roboto', sans-serif]">
+        <label className="block text-base text-primary mb-2">
           Current Mailbox Status
         </label>
-        <div className="bg-gray-200 rounded-xl p-3 text-sm mb-4 flex items-center justify-between text-gray-700">
+        <div className="bg-[#e0e0e0] rounded-[8px] text-sm p-[12px] mb-[20px] flex items-center justify-between text-secondary">
           <div>Verified Email: {maskEmail(auth.user.primaryEmailAddress)}</div>
           <EyeOff className="text-gray-500" size={18} />
         </div>
 
-        <label className="block text-sm text-gray-700 mb-2">Verify Email</label>
+        <label className="block text-base text-primary mb-2">Verify Email</label>
         <input
           type="email"
           value={verifyEmail}
           onChange={(e) => setVerifyEmail(e.target.value)}
           placeholder="Enter email address to verify"
-          className="w-full border border-gray-200 rounded-2xl px-4 py-3 mb-4 bg-white placeholder-gray-400"
+          className="w-full text-sm border border-[#ccc] rounded-[8px] px-4 py-3 mb-[20px] bg-white placeholder-custom-12"
         />
 
-        <label className="block text-sm text-gray-700 mb-2">Enter Code</label>
+        <label className="block text-base text-primary mb-2">Enter Code</label>
         <div className="flex items-center gap-3 mb-1">
           <input
             type="text"
             value={code}
             onChange={(e) => setCode(e.target.value)}
             placeholder="Enter verification code"
-            className="flex-1 border border-gray-200 rounded-2xl px-4 py-3 bg-white placeholder-gray-400"
+            className="w-[225px] text-sm border border-[#ccc] rounded-[8px] px-4 py-3 mb-[3px] bg-white placeholder-custom-12"
           />
           <button
             type="button"
             onClick={handleSendCode}
-            className="w-28 text-xs px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-600"
+            className="w-[137px] h-[42px] text-sm px-2 py-3 rounded-lg border border-[#705D57] bg-white text-primary shadow-sm"
           >
             {sendTimer > 0 ? `Send in ${sendTimer}s` : "Send Code"}
           </button>
         </div>
-        <div className="text-xs text-gray-400 mb-4">
+        <div className="text-xs text-custom-12 mb-[20px]">
           *Please enter the received code to
         </div>
 
-        <label className="block text-sm text-gray-700 mb-2">
+        <label className="block text-sm text-primary mb-2">
           Verify New Email
         </label>
         <input
@@ -93,17 +93,17 @@ const MailboxSetting = () => {
             if (error) setError("");
           }}
           placeholder="Enter new email"
-          className={`w-full border ${error ? "border-red-300" : "border-gray-200"} rounded-2xl px-4 py-3 mb-2 bg-white placeholder-gray-400`}
+          className={`w-full text-sm border ${error ? "border-red-300" : "border-gray-200"} rounded-[8px] px-4 py-3 mb-2 bg-white placeholder-gray-400`}
         />
         {error ? (
-          <div className="text-sm text-red-600 mb-4">{error}</div>
+          <div className="text-xs text-[#d32f2f] mb-[44px]">{error}</div>
         ) : (
-          <div className="h-4 mb-4" />
+          <div className="h-4 mb-[44px]" />
         )}
 
         <button
           type="button"
-          className={`w-full text-white py-3 rounded-2xl ${error ? "bg-[#c69b6d] shadow-md" : "bg-[#C69C6D] shadow-sm"}`}
+          className={`w-[242px] mx-auto flex items-center justify-center text-white text-base py-3 rounded-[8px]  bg-[#C69C6D] shadow-sm`}
           onClick={() => {
             // simple validation: require code, otherwise show specific message; otherwise simulate verification failure
             if (!code) {

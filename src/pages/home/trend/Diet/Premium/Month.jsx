@@ -46,7 +46,7 @@ const Month = () => {
   return (
     <div className="p-6">
       <div className="text-primary text-x2 mb-3">Nutritional Dashboard</div>
-      <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-md space-y-4">
+      <div className="w-full max-w-sm rounded-[8px] bg-white p-5 shadow-md space-y-4">
         <h2 className="text-sm text-primary">Monthly Overview</h2>
 
         {/* Chart */}
@@ -64,7 +64,7 @@ const Month = () => {
         </div>
 
         {/* Focus */}
-        <div className="rounded-xl bg-yellow-50 p-4 text-sm">
+        <div className="rounded-[8px] bg-yellow-50 p-4 text-sm">
           <div className="flex items-center justify-between mb-1">
             <span className="font-medium">Focus</span>
             <span className="rounded-full bg-yellow-300 px-2 py-0.5 text-xs">
@@ -149,7 +149,7 @@ function Collapse({ title, showAchievement = false, showSummary = false }) {
   ];
 
   return (
-    <div className="rounded-xl border border-gray-200 overflow-hidden">
+    <div className="rounded-[8px] border border-gray-200 overflow-hidden">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between p-3 text-sm"
@@ -169,7 +169,7 @@ function Collapse({ title, showAchievement = false, showSummary = false }) {
             {achievementData.map((item) => (
               <div
                 key={item.label}
-                className="bg-white rounded-2xl p-3 shadow-sm border border-gray-100"
+                className="bg-white rounded-[8px] p-3 shadow-[0_4px_12px_rgba(0,0,0,0.08)] border border-gray-100"
               >
                 {/* Header with label and percentage badge */}
                 <div className="flex items-center justify-between mb-2">
@@ -207,7 +207,7 @@ function Collapse({ title, showAchievement = false, showSummary = false }) {
         <div className="p-4 pt-0 space-y-3">
           {/* Monthly Nutrition Summary Card */}
           <div
-            className="rounded-xl p-4"
+            className="rounded-[8px] p-4"
             style={{ backgroundColor: "#FCE4EC" }} // Light pink
           >
             <h3 className="text-base text-primary mb-2">
@@ -222,7 +222,7 @@ function Collapse({ title, showAchievement = false, showSummary = false }) {
 
           {/* Next Month's Goals Card */}
           <div
-            className="rounded-xl p-4"
+            className="rounded-[8px] p-4"
             style={{ backgroundColor: "#E8F5E9" }} // Light green
           >
             <h3 className="text-base text-primary mb-2">Next Month's Goals</h3>

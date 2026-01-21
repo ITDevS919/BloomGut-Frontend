@@ -1,5 +1,5 @@
-import { HiIdentification } from "react-icons/hi2";
-import { FaBell } from "react-icons/fa";
+import { HiChatBubbleLeft, HiIdentification } from "react-icons/hi2";
+import { FaBell, FaSignOutAlt } from "react-icons/fa";
 import { FaSlidersH } from "react-icons/fa";
 import { FaCrown } from "react-icons/fa";
 import { FaShieldAlt } from "react-icons/fa";
@@ -8,6 +8,8 @@ import { LogOut, ChevronLeft } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@clerk/clerk-react";
+import { MdChat } from "react-icons/md";
+import { FaComment, FaComments, FaIdCard } from "react-icons/fa6";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -19,7 +21,7 @@ const Settings = () => {
   const { signOut } = useAuth(); // Assuming useAuth is defined elsewhere
   const account = [
     {
-      icon: <HiIdentification />,
+      icon: <FaIdCard />,
       label: "Account",
       onclick: () => navigate("/setting/account"),
     },
@@ -47,7 +49,7 @@ const Settings = () => {
       onclick: () => navigate("/setting/privacy-policy"),
     },
     {
-      icon: <IoChatbubbles />,
+      icon: <FaComments />,
       label: "About Us",
       onclick: () => navigate("/setting/about-us"),
     },
@@ -57,38 +59,38 @@ const Settings = () => {
       onclick: () => navigate("/setting/help-support"),
     },
     {
-      icon: <LogOut />,
+      icon: <FaSignOutAlt />,
       label: "Log out",
       onclick: () => openLogoutModal(),
     },
   ];
   return (
-    <div className="bg-ivory min-h-full p-6 text-secondary">
-      <div className="flex items-center gap-4 mb-10">
+    <div className="bg-ivory min-h-full p-6 text-primary">
+      <div className="flex items-center gap-4 mb-[43px]">
         <button
           type="button"
           className="text-primary text-xl leading-none"
           aria-label="back"
           onClick={() => window.history.back()}
         >
-          <ChevronLeft className="text-primary text-xl leading-none" />
+          <ChevronLeft className="text-primary text-xl leading-none" width="40px" height="40px" />
         </button>
-        <h2 className="text-xl font-semibold">Settings</h2>
+        <h2 className="text-lg font-['Noto_Sans_TC', sans-serif]">Settings</h2>
       </div>
 
-      <div className="space-y-4">
-        <section>
-          <h2 className="font-normal mb-2 pl-3 text-lg">Account</h2>
-          <div className="bg-transparent rounded-md overflow-hidden">
+      <div className="space-y-4 text-primary font-['Noto_Sans_TC', sans-serif]">
+        <section className="mb-[24px]">
+          <h2 className="text-[18px] mb-[20px] pl-3">Account</h2>
+          <div className="bg-transparent rounded-[8px] overflow-hidden">
             {account.map((item, index) => (
               <button
                 key={index}
                 onClick={item.onclick}
-                className={`w-full flex items-center justify-between gap-4 px-3 py-3 rounded-md mb-2 hover:bg-gray-50 text-left`}
+                className={`w-full flex items-center justify-between gap-4 px-3 py-3 rounded-[8px] mb-[22px] text-left`}
               >
                 <div className="flex items-center gap-3" onClick={item.onclick}>
-                  <div className="text-primary text-lg">{item.icon}</div>
-                  <span className="text-base text-primary">{item.label}</span>
+                  <div className="text-secondary" width="21px" height="28px">{item.icon}</div>
+                  <span className="text-secondary text-[16px]">{item.label}</span>
                 </div>
               </button>
             ))}
@@ -96,21 +98,20 @@ const Settings = () => {
         </section>
 
         <section>
-          <h3 className="font-normal mb-2 pl-3 text-lg">Privacy & Support</h3>
-          <div className="bg-transparent rounded-md overflow-hidden">
+          <h3 className="text-[18px] mb-[28px] pl-3">Privacy & Support</h3>
+          <div className="bg-transparent rounded-[8px] overflow-hidden">
             {privacyAndSupport.map((item, index) => (
               <button
                 key={index}
                 onClick={item.onclick}
-                className={`w-full flex items-center justify-between gap-4 px-3 py-3 rounded-md mb-2 hover:bg-gray-50 text-left ${
-                  item.label.toLowerCase().includes("logout")
-                    ? "text-red-500"
-                    : ""
-                }`}
+                className={`w-full flex items-center justify-between gap-4 px-3 py-3 rounded-[8px] mb-[22px] text-left ${item.label.toLowerCase().includes("logout")
+                  ? "text-red-500"
+                  : ""
+                  }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="text-primary text-lg">{item.icon}</div>
-                  <span className="text-base text-primary">{item.label}</span>
+                  <div className="text-secondary" width="21px" height="28px">{item.icon}</div>
+                  <span className="text-secondary text-[16px]">{item.label}</span>
                 </div>
               </button>
             ))}
@@ -136,47 +137,38 @@ const Settings = () => {
             aria-modal="true"
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: "white",
-              padding: 18,
-              borderRadius: 10,
-              width: 320,
-              boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
+              background: "#fffffb",
+              paddingLeft: "46px",
+              paddingRight: "46px",
+              width: "288px",
+              height: "162px",
+              paddingTop: "16px",
+              paddingBottom: "22px",
               textAlign: "center",
             }}
+            className="rounded-[8px] shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
           >
-            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 10 }}>
+            <div className="text-primary text-[18px] mb-[18px]">
               Log out?
             </div>
-            <div style={{ fontSize: 13, color: "#8b7a73", marginBottom: 16 }}>
-              You'll need to sign in again
-            </div>
-            <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+            <div style={{ display: "flex", justifyContent: "center" }} className="gap-[16px] mb-[18px]">
               <button
                 type="button"
                 onClick={closeLogoutModal}
-                style={{
-                  padding: "8px 12px",
-                  borderRadius: 8,
-                  border: "1px solid #e6e0dc",
-                  background: "white",
-                  color: "#c33",
-                }}
+                className="shadow-[0_2px_6px_#afafaf] rounded-[8px] text-[#d32f2f] w-[64px] h-[38px] text-[14px] font-['Roboto', sans-serif]"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={() => signOut()}
-                style={{
-                  padding: "8px 12px",
-                  borderRadius: 8,
-                  border: "none",
-                  background: "#e9c29a",
-                  color: "#4b332d",
-                }}
+                className="shadow-[0_2px_6px_#afafaf] rounded-[8px] text-primary w-[64px] h-[38px] text-[14px] font-['Roboto', sans-serif] border-secondary border-[1px]"
               >
                 Confirm
               </button>
+            </div>
+            <div className="text-[12px] text-[#929292]">
+              You'll need to sign in again
             </div>
           </div>
         </div>

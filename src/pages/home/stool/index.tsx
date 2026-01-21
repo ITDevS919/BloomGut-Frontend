@@ -120,7 +120,7 @@ const StoolPage = () => {
   const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 font-['Noto_Sans_TC', sans-serif]">
       <div className="pt-4 px-3">
         <CustomButton
           icon={IoIosArrowBack}
@@ -133,10 +133,10 @@ const StoolPage = () => {
 
       <div className="flex justify-between px-6">
         <div>
-          <p className="text-xl text-primary font-bold font-base">
+          <p className="text-[20px] text-primary font-bold font-base">
             {days[new Date().getDay()]}
           </p>
-          <p className="text-base text-primary">
+          <p className="text-[20px] text-primary">
             {months[new Date().getMonth()]} {new Date().getDate()}
           </p>
         </div>
@@ -152,7 +152,7 @@ const StoolPage = () => {
               ? selectedStool
               : Type1
           }
-          className="w-27 h-24.5 object-cover border border-custom-20 rounded-full shadow-sm"
+          className="w-27 h-24.5 object-cover border border-custom-20 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
           alt="Logo"
         />
       </div>
@@ -162,13 +162,13 @@ const StoolPage = () => {
         <span className="text-secondary font-rubik text-xs">
           Bristol Stool Scale
         </span>
-        <div className="grid grid-cols-7 gap-5 mt-3">
+        <div className="grid grid-cols-7 gap-5 mb-[39px]">
           {stoolImages?.map((i, index) => {
             return (
               <div className="flex flex-col gap-3 items-center" key={index}>
                 <img
                   src={i?.image}
-                  className="w-10 h-9.5 object-cover rounded-full shadow-sm"
+                  className="w-10 h-9.5 object-cover rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
                   alt={i?.label}
                   onClick={() => i?.onclick()}
                 />
@@ -181,9 +181,9 @@ const StoolPage = () => {
         </div>
       </div>
 
-      <div className="px-5.5 flex flex-col gap-5">
-        <CustomHeading label="Color" isRequired />
-        <div className="flex justify-between items-center py-1">
+      <div className="px-5.5 flex flex-col mb-[39px]">
+        <CustomHeading label="Color" isRequired className="mb-[8px]"/>
+        <div className="flex justify-between items-center">
           {colorOptions?.map((color, index) => {
             return (
               <div
@@ -197,16 +197,16 @@ const StoolPage = () => {
         </div>
       </div>
 
-      <div className="px-5.5 flex flex-col gap-5">
-        <CustomHeading label="Amount" isRequired />
+      <div className="px-5.5 flex flex-col mb-[37px]">
+        <CustomHeading label="Amount" isRequired className="mb-[11px]"/>
         <SegmentedControl
           labels={["Small", "Medium", "Large"]}
           onChange={(value) => console.log("Selected amount:", value)}
         />
       </div>
 
-      <div className="px-5.5 flex flex-col gap-5">
-        <CustomHeading label="Time" isRequired />
+      <div className="px-5.5 flex flex-col mb-[37px]">
+        <CustomHeading label="Time" isRequired className="mb-[9px]"/>
         <CustomRadioGroup
           value={timeValue}
           onValueChange={setTimeValue}
@@ -219,15 +219,15 @@ const StoolPage = () => {
                 value={time.value}
                 label={time.label}
                 variant="card"
-                className="px-4.5 py-3 w-fit"
+                className="px-4.5 py-3 w-fit text-secondary text-sm"
               />
             );
           })}
         </CustomRadioGroup>
       </div>
 
-      <div className="px-6 flex flex-col gap-5">
-        <CustomHeading label="Frequency" isRequired />
+      <div className="px-6 flex flex-col mb-[29px]">
+        <CustomHeading label="Frequency" isRequired className="mb-2"/>
         <CustomRadioGroup
           value={frequencyValue}
           onValueChange={setFrequencyValue}
@@ -247,8 +247,8 @@ const StoolPage = () => {
         </CustomRadioGroup>
       </div>
 
-      <div className="px-6.5 flex flex-col gap-5">
-        <CustomHeading label="Time of Day" isRequired />
+      <div className="px-6.5 flex flex-col mb-[30px]">
+        <CustomHeading label="Time of Day" isRequired className="mb-[20px]"/>
         <div className="flex gap-4">
           {timeOfTheDayOptions?.map((time, i) => {
             return (
@@ -258,9 +258,9 @@ const StoolPage = () => {
         </div>
       </div>
 
-      <div className="px-6.5 flex flex-col gap-2">
-        <CustomHeading label="Symptom Log" isRequired />
-        <span className="text-custom-12 text-xs">
+      <div className="px-6.5 flex flex-col mb-[34px]">
+        <CustomHeading label="Symptom Log" isRequired className="mb-[5px]"/>
+        <span className="text-custom-12 text-xs mb-[31px]">
           Select symptoms today (Multiple)
         </span>
         <div className="flex gap-4 flex-wrap">
@@ -276,16 +276,17 @@ const StoolPage = () => {
         </div>
       </div>
 
-      <div className="px-6.5 flex flex-col gap-2">
+      <div className="px-6.5 flex flex-col">
         <CustomHeading
           label="Additional Status"
           isRequired
           requiredText="Required, Select ≥ 1"
+          className="mb-[6px]"
         />
-        <span className="text-custom-12 text-xs">Record observed status</span>
+        <span className="text-custom-12 text-xs mb-[20px]">Record observed status</span>
       </div>
 
-      <div className="px-6.5 flex flex-col gap-4">
+      <div className="px-6.5 flex flex-col gap-[20px] mb-[49px]">
         <AccordionItem
           title="Mucus Condition"
           options={[
@@ -317,7 +318,7 @@ const StoolPage = () => {
         <button
           onClick={handleSaveRecord}
           aria-label="Save Record"
-          className="w-10/12 mx-auto flex items-center justify-center text-white text-lg font-medium rounded-2xl bg-[#C69C6D] py-3 shadow-sm"
+          className="w-[242px] mx-auto flex items-center justify-center text-white text-base rounded-[8px] bg-[#C69C6D] py-3 shadow-[-2_2px_0px_rgba(0,0,0,0.25)] border border-custom-8"
         >
           Save Record
         </button>

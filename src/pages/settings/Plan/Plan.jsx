@@ -1,5 +1,7 @@
-import { ChevronLeft, Check, Crown, Star } from "lucide-react";
+import { ChevronLeft, Check, Crown, Star, CrownIcon } from "lucide-react";
 import { useState } from "react";
+import { FaCrown } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const Plan = () => {
   const [currentPlan, setCurrentPlan] = useState(0); // 0 = FREE, 1 = STANDARD, 2 = PRO
@@ -46,70 +48,72 @@ const Plan = () => {
     },
   ];
 
+  const navigate = useNavigate();
+
   return (
     <>
-      <div className="bg-ivory min-h-full p-6 text-secondary">
+      <div className="bg-ivory min-h-full p-6 text-primary font-['Noto_Sans_TC', sans-serif]">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-4 mb-[51px]">
           <button
             type="button"
             className="text-primary text-xl leading-none"
             aria-label="back"
             onClick={() => window.history.back()}
           >
-            <ChevronLeft className="text-primary text-xl leading-none" />
+            <ChevronLeft className="text-primary text-[40px] leading-none" />
           </button>
-          <h2 className="text-xl font-semibold">Plan</h2>
+          <h2 className="text-lg font-['Noto_Sans_TC', sans-serif]">Plan</h2>
         </div>
 
         {/* Upgrade Plan Card */}
-        <div className="max-w-sm mx-auto mb-6">
+        <div className="max-w-sm mx-auto">
           <div className="p-8 text-center">
             {/* Crown Icon */}
-            <div className="flex justify-center mb-4">
-              <Crown className="w-12 h-12 text-[#f59e0b]" />
+            <div className="flex justify-center mb-[11px]">
+              <FaCrown className="w-[59px] h-[48px] text-[#e29c53]" />
             </div>
 
             {/* Title */}
-            <h3 className="text-xl text-primary mb-2">
+            <h3 className="text-lg text-primary mb-[11px]">
               Upgrade Plan
             </h3>
 
             {/* Subtitle */}
-            <p className="text-sm text-secondary">
+            <p className="text-sm text-secondary mb-[73px]">
               Unlock full health analysis & tracking
             </p>
           </div>
         </div>
 
         {/* Plan Card */}
-        <div className="max-w-sm mx-auto p-4">
+        <div className="">
           {currentPlan === 0 ? (
             // FREE Plan Card
-            <div className="bg-white rounded-xl shadow-sm p-6 relative">
+            <div className="bg-white rounded-[8px] shadow-md p-6 relative w-[287px] mx-auto mb-[38px]">
               {/* FREE Label - Top Right */}
               <div className="absolute top-4 right-4">
-                <span className="text-sm font-medium text-primary uppercase">
+                <span className="text-base text-primary uppercase">
                   {plans[currentPlan].name}
                 </span>
               </div>
 
               {/* Price */}
-              <div className="text-center mt-8 mb-2">
-                <div className="text-4xl font-bold text-primary mb-1">
+              <div className="text-center mt-[43px] mb-[50px]">
+                <div className="text-[32px] text-primary mb-[20px]">
                   {plans[currentPlan].price}
                 </div>
-                <div className="text-sm text-primary">
+                <div className="text-xs text-primary">
                   {plans[currentPlan].subtitle}
                 </div>
               </div>
 
               {/* Features List */}
-              <div className="mt-8 space-y-3">
+              <div className=" mb-[208px]">
                 {plans[currentPlan].features.map((feature, index) => (
-                  <div key={index} className="flex items-start gap-3">
-                    <Check className="w-5 h-5 text-[#f59e0b] shrink-0 mt-0.5" />
-                    <span className="text-sm text-primary">{feature}</span>
+                  <div key={index} className="flex items-start gap-3 mt-[29px]">
+                    <Check className="w-5 h-5 text-custom-5 shrink-0 mt-0.5" />
+                    <span className="text-sm text-secondary">{feature}</span>
                   </div>
                 ))}
               </div>
@@ -117,17 +121,17 @@ const Plan = () => {
               {/* Use Button */}
               <button
                 type="button"
-                className="w-1/2 flex justify-center items-center mx-auto mt-8 py-2 rounded-lg border border-gray-300 bg-white text-primary font-medium text-sm shadow-sm hover:bg-gray-50 transition-colors"
+                className="w-[176px] flex justify-center items-center mx-auto py-[10px] rounded-[8px] border border-custom-16 bg-white text-primary text-sm shadow-sm mb-[52px]"
               >
                 Use
               </button>
             </div>
           ) : currentPlan === 1 ? (
             // STANDARD Plan Card
-            <div className="bg-white rounded-xl shadow-sm p-6 relative border border-orange-200">
+            <div className="bg-white rounded-[8px] shadow-md p-6 relative w-[287px] mx-auto border-2 border-[#fbb667]">
               {/* Hot Badge - Top Right Corner */}
               {plans[currentPlan].hasHotBadge && (
-                <div className="absolute top-1 right-2">
+                <div className="absolute top-0 right-0">
                   <span className="bg-[#FBB667] text-white text-xs font-medium px-3 py-1 rounded-full">
                     Hot
                   </span>
@@ -135,8 +139,8 @@ const Plan = () => {
               )}
 
               {/* STANDARD Title with Star - Below Hot Badge */}
-              <div className="flex items-center justify-end gap-2 mb-4">
-                <span className="text-lg font-medium text-primary uppercase">
+              <div className="flex items-center justify-end gap-2 mb-[33px]">
+                <span className="text-base font-medium text-primary uppercase">
                   {plans[currentPlan].name}
                 </span>
                 {plans[currentPlan].hasStar && (
@@ -149,19 +153,16 @@ const Plan = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedPricing("month")}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedPricing === "month"
-                      ? "bg-white border border-gray-300 text-primary shadow-sm"
-                      : "text-primary"
-                    }`}
+                  className="text-sm text-secondary rounded-[8px] px-4 py-2 shadow-md"
                 >
                   {plans[currentPlan].price} / Month
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedPricing("quarter")}
-                  className={`text-sm font-medium transition-colors ${selectedPricing === "quarter"
-                      ? "text-primary"
-                      : "text-primary"
+                  className={`text-sm transition-colors ${selectedPricing === "quarter"
+                    ? "text-secondary"
+                    : "text-secondary"
                     }`}
                 >
                   {plans[currentPlan].priceQuarter} / Quarter
@@ -169,14 +170,14 @@ const Plan = () => {
               </div>
 
               {/* Subtitle */}
-              <div className="text-sm text-primary mb-6 mt-5">
+              <div className="text-sm flex items-center justify-center text-primary mb-[68px] mt-5">
                 {plans[currentPlan].subtitle}
               </div>
 
               {/* Features List */}
-              <div className="space-y-3 mb-6">
+              <div className="space-y-3 mb-[88px]">
                 {plans[currentPlan].features.map((feature, index) => (
-                  <div key={index} className="flex items-start gap-3 mt-5">
+                  <div key={index} className="flex items-start gap-3 mb-[52px]">
                     <Check className="w-5 h-5 text-[#fbbf24] shrink-0 mt-0.5" />
                     <span className="text-sm text-primary">{feature}</span>
                   </div>
@@ -186,14 +187,15 @@ const Plan = () => {
               {/* Subscribe Button */}
               <button
                 type="button"
-                className="w-1/2 flex items-center justify-center mx-auto py-3 rounded-lg text-[#705D56] font-medium text-sm hover:opacity-90 transition-opacity bg-[#FBB667] shadow-sm"
+                className="w-[183px] flex items-center justify-center mx-auto py-2 rounded-lg text-secondary text-sm bg-[#FBB667] shadow-sm mb-[52px]"
+                onClick={() => navigate("/setting/upgrade-plan/subscription")}
               >
                 Subscribe
               </button>
             </div>
           ) : (
             // PRO Plan Card
-            <div className="bg-white rounded-xl shadow-sm p-6 relative">
+            <div className="bg-white rounded-[8px] shadow-md p-6 relative w-[287px] mx-auto">
               {/* PRO Label - Top Right */}
               <div className="absolute top-4 right-4">
                 <span className="text-sm font-medium text-primary uppercase">
@@ -202,13 +204,13 @@ const Plan = () => {
               </div>
 
               {/* Pricing Options */}
-              <div className="flex items-center justify-center gap-3 mb-2 mt-8">
+              <div className="flex items-center justify-center gap-3 mb-[26px] mt-[36px]">
                 <button
                   type="button"
                   onClick={() => setSelectedProPricing("6mo")}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedProPricing === "6mo"
-                      ? "bg-white border-gray-300 text-primary shadow-sm"
-                      : "text-primary"
+                  className={`text-sm rounded-[8px] px-4 py-2 shadow-sm ${selectedProPricing === "6mo"
+                    ? "bg-white border-gray-300 text-primary shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+                    : "text-secondary"
                     }`}
                 >
                   {plans[currentPlan].price} / 6 mo
@@ -216,9 +218,9 @@ const Plan = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedProPricing("year")}
-                  className={`text-sm font-medium transition-colors ${selectedProPricing === "year"
-                      ? "text-primary"
-                      : "text-primary"
+                  className={`text-sm transition-colors ${selectedProPricing === "year"
+                    ? "text-secondary"
+                    : "text-secondary"
                     }`}
                 >
                   {plans[currentPlan].priceYear} / Year
@@ -226,14 +228,14 @@ const Plan = () => {
               </div>
 
               {/* Subtitle */}
-              <div className="text-sm text-primary mb-6 mt-5">
+              <div className="text-sm text-primary mb-10 flex items-center justify-center">
                 {plans[currentPlan].subtitle}
               </div>
 
               {/* Features List */}
-              <div className="space-y-3 mb-6">
+              <div className="space-y-3 mb-[43px]">
                 {plans[currentPlan].features.map((feature, index) => (
-                  <div key={index} className="flex items-start gap-3 mt-5">
+                  <div key={index} className="flex items-start gap-3 mb-[43px]">
                     <Check className="w-5 h-5 text-[#f59e0b] shrink-0 mt-0.5" />
                     <span className="text-sm text-primary">{feature}</span>
                   </div>
@@ -243,7 +245,7 @@ const Plan = () => {
               {/* Subscribe Button */}
               <button
                 type="button"
-                className="w-1/2 flex items-center justify-center mx-auto py-3 rounded-lg text-[#705D56] font-medium text-sm hover:opacity-90 transition-opacity bg-white shadow-sm"
+                className="w-[172px] flex items-center justify-center mx-auto py-2 rounded-lg text-secondary text-sm bg-white shadow-sm mb-[52px]"
               >
                 Subscribe
               </button>
@@ -270,7 +272,7 @@ const Plan = () => {
 
           {/* Footer Text */}
           <div className="text-center mt-6 text-xs text-gray-400">
-          Selecting indicates agreement to [Terms of Service] and [Privacy Policy]
+            Selecting indicates agreement to [Terms of Service] and [Privacy Policy]
           </div>
         </div>
       </div>

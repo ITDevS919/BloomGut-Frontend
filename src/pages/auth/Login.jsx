@@ -172,7 +172,7 @@ const Login = () => {
               type="button"
               variant="outline"
               onClick={() => oauthSignIn("google")}
-              className="flex items-center text-primary-muted h-auto rounded-2xl"
+              className="flex items-center text-primary-muted h-auto rounded-md"
             >
               <span className="flex justify-center">
                 <FcGoogle className="size-6" size={24} />
@@ -194,7 +194,7 @@ const Login = () => {
               type="button"
               variant="outline"
               onClick={() => oauthSignIn("facebook")}
-              className="flex items-center text-primary-muted h-auto rounded-2xl"
+              className="flex items-center text-primary-muted h-auto rounded-md"
             >
               <span className="flex justify-center">
                 <FaFacebook className="size-6" size={24} color="#365999" />
@@ -205,7 +205,7 @@ const Login = () => {
               type="button"
               variant="outline"
               onClick={() => oauthSignIn("apple")}
-              className="flex items-center text-primary-muted h-auto rounded-2xl"
+              className="flex items-center text-primary-muted h-auto rounded-md"
             >
               <span className="flex justify-center">
                 <FaApple className="size-6" size={24} />
@@ -215,7 +215,7 @@ const Login = () => {
           </div>
 
           <div className="w-[60%] mx-auto mt-3">
-            <Button type="submit" className="w-full rounded-2xl shadow-sm">
+            <Button type="submit" className="w-full rounded-md shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
               {loading ? "Logging in..." : "Login"}
             </Button>
             <div className="mt-3">

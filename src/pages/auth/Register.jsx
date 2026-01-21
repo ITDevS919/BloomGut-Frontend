@@ -88,9 +88,9 @@ const Register = () => {
             aria-label="back"
             onClick={() => window.history.back()}
           >
-            <ChevronLeft className="text-primary text-xl leading-none" />
+            <ChevronLeft className="text-primary text-[40px] leading-none" />
           </button>
-          <h2 className="text-xl font-semibold">Create Account</h2>
+          <h2 className="text-lg font-['Noto_Sans_TC', sans-serif]">Create Account</h2>
         </div>
 
         <form

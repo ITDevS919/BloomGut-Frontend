@@ -129,7 +129,7 @@ const CircleStat = ({ value, label, color }) => {
 const Free = () => {
   return (
     <div className="p-6">
-      <div className="bg-white rounded-xl p-4 shadow-sm">
+      <div className="bg-white rounded-[8px] p-4 shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
         <div className="flex items-center justify-between">
           <div>
             <div className="text-2xl font-bold text-[#4682B4]">78</div>
@@ -161,14 +161,14 @@ const Free = () => {
       <div className="text-x2 mt-5 mb-3 text-primary">
         Daily Types(ml)
       </div>
-      <div className="bg-white rounded-2xl shadow p-6">
+      <div className="bg-white rounded-[8px] shadow p-6">
         <Bar data={data} options={options} plugins={[goalLine]} />
       </div>
 
       <div className="text-x2 mt-5 mb-3 text-primary">
         Daily Intake Rate
       </div>
-      <div className="bg-white rounded-2xl shadow p-6 flex gap-8 justify-center">
+      <div className="bg-white rounded-[8px] shadow p-6 flex gap-8 justify-center">
         <CircleStat value={80} label="Avg" color="#1d4ed8" />
         <CircleStat value={100} label="Max" color="#1d4ed8" />
         <CircleStat value={65} label="Min" color="#7dd3fc" />

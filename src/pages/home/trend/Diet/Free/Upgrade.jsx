@@ -3,7 +3,7 @@ import { LockKeyhole } from "lucide-react";
 const Upgrade = () => {
   return (
     <>
-      <div className="bg-[#E8F5EF] rounded-xl p-5 text-center shadow-sm mt-5">
+      <div className="bg-[#E8F5EF] rounded-[8px] p-5 text-center shadow-[0_4px_12px_rgba(0,0,0,0.08)] mt-5">
         <div className="text-sm text-left text-gray-500 mb-2">
           In-depth Analysis
         </div>
@@ -19,9 +19,13 @@ const Upgrade = () => {
         <button className="bg-[#28B070] text-white px-6 py-2 rounded-full shadow-md">
           Upgrade Now
         </button>
-        <div className="flex justify-between text-xs text-secondary mt-4">
-          <div>Free</div>
-          <div>Premium Exclusive</div>
+        <div className="flex justify-between text-xs mt-4">
+          <div className="text-secondary">Free</div>
+          <div>
+            <span style={{ color: '#D38E5A' }}>Premium</span>
+            {' '}
+            <span style={{ color: '#8E8E8E' }}>Exclusive</span>
+          </div>
         </div>
       </div>
     </>
