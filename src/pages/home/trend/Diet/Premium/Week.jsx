@@ -67,14 +67,14 @@ const Week = () => {
     },
   };
   return (
-    <div className="p-6">
-      <div className="w-full max-w-sm rounded-[8px] bg-white p-5 shadow-md space-y-4">
+    <div className="pl-[15px] pr-[15px] mt-[33px]">
+      <div className="w-full rounded-[20px] bg-white p-5 shadow-[2px_0_10px_rgba(0,0,0,0.15)] space-y-4">
         {/* Header */}
         <div>
-          <h2 className="text-sm text-primary">
+          <h2 className="text-base mt-5 text-primary">
             Meal–Bowel Correlation
           </h2>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-custom-12">
             Shows strength of meal–bowel correlations. Larger, darker points =
             stronger.
           </p>
@@ -94,8 +94,8 @@ const Week = () => {
         </div>
 
         {/* High Risk */}
-        <div className="rounded-[8px] bg-red-50 p-4 text-sm">
-          <p className="font-medium mb-1 text-primary">High-Risk Period</p>
+        <div className="rounded-[12px] bg-[#fef2f2] p-4 text-sm border-2 border-[#ededef]">
+          <p className="font-medium mb-[10px] text-primary">High-Risk Period</p>
           <p className="text-secondary">
             Shortened: High-fat dinner links to constipation (70%). Reduce
             fried/red meat; use steaming/boiling.
@@ -103,16 +103,16 @@ const Week = () => {
         </div>
 
         {/* Overall Trend */}
-        <div className="rounded-[8px] bg-green-50 p-4 text-sm space-y-1">
-          <p className="font-medium text-primary">Overall Trend</p>
+        <div className="rounded-[12px] bg-[#f0fdf4] p-4 text-sm space-y-1 border-2 border-[#ededef]">
+          <p className="font-medium mb-[10px] text-primary">Overall Trend</p>
           <p className="text-secondary">
-            • Fiber breakfast → smooth stools (75%)
+            Fiber breakfast → smooth stools (75%)
           </p>
-          <p className="text-secondary">• Sugary dinner → bloating (60%)</p>
-          <p className="text-secondary">• Lunch → mild bowel impact</p>
+          <p className="text-secondary">Sugary dinner → bloating (60%)</p>
+          <p className="text-secondary">Lunch → mild bowel impact</p>
         </div>
       </div>
-      <div className="flex justify-center items-center text-gray-400 italic text-sm mt-3 text-center">
+      <div className="flex justify-center items-center text-custom-12 italic text-sm mt-3 text-center p-4">
         This analysis is based on recent behavior and health indicators, for
         reference only
       </div>
@@ -122,9 +122,9 @@ const Week = () => {
 
 function Legend({ color, label }) {
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1 mb-[28px]">
       <span className={`h-2.5 w-2.5 rounded-full ${color}`} />
-      <span>{label}</span>
+      <span className="text-custom-12">{label}</span>
     </div>
   );
 }

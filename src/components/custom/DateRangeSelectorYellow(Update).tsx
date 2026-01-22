@@ -78,7 +78,7 @@ const DateRangeSelectorYellowUpdate = (props) => {
   return (
     <div className="bg-ivory">
       {/* View Mode Toggle Buttons - Top Row */}
-      <div className="flex gap-15 justify-center mb-4">
+      <div className="flex gap-10 justify-center mb-4">
         <button
           onClick={() => { handleViewModeChange("week"); props.setViewMode("week") }}
           className={`px-6 py-1 rounded-lg text-lg transition-colors ${viewMode === "week"

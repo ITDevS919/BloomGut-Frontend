@@ -32,22 +32,21 @@ const Month = () => {
       legend: { display: false },
       tooltip: { enabled: false },
       datalabels: {
-        display: false,
+        display: true,
         color: "#FFFFFF",
         font: {
           weight: "600",
           size: 10,
         },
-        formatter: (v) => (v > 0 && v < 100 ? `${v}%` : ""),
       },
     },
   };
 
   return (
-    <div className="p-6">
-      <div className="text-primary text-x2 mb-3">Nutritional Dashboard</div>
-      <div className="w-full max-w-sm rounded-[8px] bg-white p-5 shadow-md space-y-4">
-        <h2 className="text-sm text-primary">Monthly Overview</h2>
+    <div className="pl-[15px] pr-[15px] mt-[33px]">
+      <div className="text-primary  font-medium text-base pl-[15px] mb-3">Nutritional Dashboard</div>
+      <div className="w-full rounded-[20px] bg-white p-5 shadow-[2px_0_10px_rgba(0,0,0,0.15)] space-y-4">
+        <h2 className="text-base mt-1 text-secondary">Monthly Overview</h2>
 
         {/* Chart */}
         <div className="flex justify-center">
@@ -64,14 +63,14 @@ const Month = () => {
         </div>
 
         {/* Focus */}
-        <div className="rounded-[8px] bg-yellow-50 p-4 text-sm">
+        <div className="rounded-[8px] bg-[#fefce8] p-4 text-sm border border-[#e5e7eb]">
           <div className="flex items-center justify-between mb-1">
-            <span className="font-medium">Focus</span>
-            <span className="rounded-full bg-yellow-300 px-2 py-0.5 text-xs">
+            <span className="font-medium text-primary text-base">Focus</span>
+            <span className="rounded-full bg-[#fef08a] px-2 py-0.5 text-xs text-secondary">
               1 Deficiency
             </span>
           </div>
-          <p className="text-gray-700">Low calcium, adjust diet</p>
+          <p className="text-secondary">Low calcium, adjust diet</p>
         </div>
 
         {/* Collapsibles */}
@@ -79,7 +78,7 @@ const Month = () => {
         <Collapse title="Summary & Advice" showSummary={true} />
       </div>
 
-      <div className="flex justify-center items-center text-gray-400 italic text-sm mt-3 text-center">
+      <div className="flex justify-center p-4 items-center text-gray-400 italic text-sm mt-3 text-center">
         This analysis is based on recent behavior and health indicators, for
         reference only
       </div>
@@ -149,12 +148,12 @@ function Collapse({ title, showAchievement = false, showSummary = false }) {
   ];
 
   return (
-    <div className="rounded-[8px] border border-gray-200 overflow-hidden">
+    <div className="rounded-[7px] border-2 border-[#e5e7eb] overflow-hidden">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between p-3 text-sm"
       >
-        <span className="text-primary">{title}</span>
+        <span className="text-primary text-base">{title}</span>
         <ChevronDown
           className="h-4 w-4 text-gray-400 transition-transform"
           style={{
@@ -169,18 +168,18 @@ function Collapse({ title, showAchievement = false, showSummary = false }) {
             {achievementData.map((item) => (
               <div
                 key={item.label}
-                className="bg-white rounded-[8px] p-3 shadow-[0_4px_12px_rgba(0,0,0,0.08)] border border-gray-100"
+                className="bg-white rounded-[7px] p-3 shadow-[0_4px_12px_rgba(0,0,0,0.08)] border border-gray-100"
               >
                 {/* Header with label and percentage badge */}
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-primary">
+                  <span className="text-sm text-secondary">
                     {item.label}
                   </span>
                   <span
-                    className="text-xs px-2 py-0.5 rounded"
+                    className="text-xs px-2 py-0.5 rounded-full"
                     style={{
                       backgroundColor: item.badgeBg,
-                      color: item.badgeText,
+                      color: "#705d56",
                     }}
                   >
                     {item.percentage}%

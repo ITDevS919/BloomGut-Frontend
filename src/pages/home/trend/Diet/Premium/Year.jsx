@@ -240,11 +240,11 @@ const Year = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="pl-[15px] pr-[15px] mt-[15px]">
       {/* Annual Trend of Food */}
-      <div className="text-primary text-x2 mb-3">Annual Trend of Food</div>
-      <div className="w-full max-w-sm rounded-[8px] bg-white p-5 shadow-md">
-        <h2 className="mb-2 text-sm font-medium text-primary">
+      <div className="text-primary  font-medium text-base pl-[15px] mb-3">Annual Trend of Food</div>
+      <div className="w-full rounded-[20px] bg-white p-5 shadow-[2px_0_10px_rgba(0,0,0,0.15)]">
+        <h2 className="mb-[10px] text-base text-secondary">
           Intake Ratio (%)
         </h2>
 
@@ -254,17 +254,17 @@ const Year = () => {
       </div>
 
       {/* Next Month's Goals */}
-      <div className="w-full max-w-sm rounded-[8px] bg-[#EFF6FF] p-5 shadow-md space-y-3 mt-5">
+      <div className="w-full rounded-[12px] bg-[#EFF6FF] border border-[#e5e7eb] p-5 shadow-[0_2px_4px_rgba(0,0,0,0.08)] space-y-3 mt-5">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h2 className="text-sm text-primary">Next Month’s Goals</h2>
+          <h2 className="text-base font-medium text-primary">Next Month’s Goals</h2>
           <button className="text-xs text-blue-500 hover:underline">
             View Analysis
           </button>
         </div>
 
         {/* Goals */}
-        <ul className="space-y-2 text-sm text-secondary">
+        <ul className="space-y-2 text-base text-secondary">
           <li className="flex items-start gap-2">
             <span className="mt-1 h-1.5 w-1.5 rounded-full bg-secondary" />
             <span>Fiber ↑ in H1, slight ↓ in H2</span>
@@ -283,7 +283,7 @@ const Year = () => {
       </div>
 
       {/* Key Transition */}
-      <div className="w-full max-w-sm rounded-[8px] bg-white p-4 shadow-md space-y-3 mt-5">
+      <div className="w-full rounded-[12px] bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.08)] space-y-3 mt-5 border border-[#d3d3d3]">
         {/* Title */}
         <h2 className="text-sm text-primary">Key Transition</h2>
 
@@ -293,8 +293,8 @@ const Year = () => {
           <div className="flex items-start gap-2">
             <span className="mt-1 h-2.5 w-2.5 rounded-full bg-green-500" />
             <div>
-              <p className="text-gray-800">April–June</p>
-              <p className="text-gray-600">Fiber ↑</p>
+              <p className="text-secondary text-sm">April–June</p>
+              <p className="text-secondary text-sm">Fiber ↑</p>
             </div>
           </div>
 
@@ -302,20 +302,20 @@ const Year = () => {
           <div className="flex items-start gap-2">
             <span className="mt-1 h-2.5 w-2.5 rounded-full bg-yellow-400" />
             <div>
-              <p className="text-gray-800">Oct–Dec</p>
-              <p className="text-gray-600">Fat &amp; Sugar ↑</p>
+              <p className="text-secondary text-sm">Oct–Dec</p>
+              <p className="text-secondary text-sm">Fat &amp; Sugar ↑</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Sensitive Foods */}
-      <div className="text-primary text-x2 mb-3 mt-5">Top Sensitivie Foods</div>
-      <div className="w-full max-w-sm rounded-[8px] bg-white p-5 shadow-md space-y-4">
+      <div className="text-primary text-base font-medium pl-[15px] mb-3 mt-5">Top Sensitivie Foods</div>
+      <div className="w-full max-w-sm rounded-[20px] bg-white p-5 shadow-md space-y-4">
         {/* Header */}
         <div>
-          <h2 className="text-sm text-primary">About Sensitive Foods</h2>
-          <p className="text-xs text-secondary">
+          <h2 className="text-base mb-5 text-secondary">About Sensitive Foods</h2>
+          <p className="text-sm text-custom-12">
             Sensitive foods link to constipation/bloating. Based on early diet &
             bowel records, showing top 5 foods. Click bars for advice.
           </p>
@@ -335,8 +335,8 @@ const Year = () => {
 
         {/* Findings */}
         <div className="space-y-2 text-sm text-secondary">
-          <p className="font-medium">Overall Findings</p>
-          <ul className="list-disc pl-4 space-y-1 text-secondary">
+          <p className="font-medium text-primary text-base">Overall Findings</p>
+          <ul className="list-disc pl-4 space-y-1 text-secondary text-sm">
             <li>Gluten (bread) → constipation</li>
             <li>Dairy & caffeine → bloating</li>
             <li>Sugar & fried foods → gut harm</li>
@@ -345,20 +345,19 @@ const Year = () => {
       </div>
 
       {/* Diet & Bowel */}
-      <div className="text-primary text-x2 mb-3 mt-5">Diet & Bowel</div>
-      <div className="w-full max-w-sm rounded-[8px] bg-white p-5 shadow-md space-y-4">
+      <div className="text-primary text-base font-medium pl-[15px] mb-3 mt-5">Diet & Bowel</div>
+      <div className="w-full rounded-[20px] bg-white p-5 shadow-[2px_0_10px_rgba(0,0,0,0.15)] space-y-4">
         {/* Header */}
-        <div className="rounded-[8px] bg-blue-50 p-3 text-sm">
-          <div className="flex items-center justify-between mb-1">
+        <div className="rounded-[12px] bg-[#EFF6FF] p-4 text-sm border border-[#e5e7eb]">
+          <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2 text-primary">
-              <Info className="h-4 w-4 text-blue-500" />
               Diet and Bowel Movement
             </div>
             <button className="text-xs text-blue-500 hover:underline">
               View Analysis
             </button>
           </div>
-          <p className="text-xs text-secondary">
+          <p className="text-xs text-custom-12">
             This radar chart shows how diet types affect bowel quality. Click
             each category for details.
           </p>
@@ -371,8 +370,8 @@ const Year = () => {
 
         {/* Legend */}
         <div className="flex justify-center gap-6 text-xs">
-          <DietBowelLegend color="bg-blue-500" label="Diet Intensity" />
-          <DietBowelLegend color="bg-red-500" label="Bowel Quality" />
+          <DietBowelLegend color="bg-blue-500" txtcolor="text-blue-500" label="Diet Intensity" />
+          <DietBowelLegend color="bg-red-500" txtcolor="text-red-500" label="Bowel Quality" />
         </div>
 
         {/* Status */}
@@ -384,8 +383,9 @@ const Year = () => {
 
         {/* Findings */}
         <div className="text-sm space-y-2">
-          <p className="text-primary">Annual Correlation</p>
-          <ul className="list-disc pl-4 space-y-1 text-secondary">
+          <p className="text-primary text-base mb-2">Annual Correlation</p>
+          <p className="text-secondary text-xs mb-4">Based on your annual diet and bowel data analysis, the most significant findings are as follows:</p>
+          <ul className="list-disc pl-4 space-y-1 text-secondary text-sm">
             <li>Fiber & grains → strong positive</li>
             <li>Fat & processed → strong negative</li>
             <li>
@@ -395,7 +395,7 @@ const Year = () => {
         </div>
       </div>
 
-      <div className="flex justify-center items-center text-secondary italic text-sm mt-3 text-center">
+      <div className="flex justify-center items-center text-custom-12 p-4 italic text-sm mt-3 text-center">
         This analysis is based on recent behavior and health indicators, for
         reference only
       </div>
@@ -405,18 +405,18 @@ const Year = () => {
 
 function SensitiveFoodLegend({ color, label }) {
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1 text-custom-12 mb-[33px]">
       <span className={`h-2.5 w-2.5 rounded-full ${color}`} />
       <span>{label}</span>
     </div>
   );
 }
 
-function DietBowelLegend({ color, label }) {
+function DietBowelLegend({ color, txtcolor, label }) {
   return (
     <div className="flex items-center gap-1">
       <span className={`h-2.5 w-2.5 rounded-full ${color}`} />
-      <span>{label}</span>
+      <span className={`${txtcolor}`}>{label}</span>
     </div>
   );
 }

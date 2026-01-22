@@ -87,14 +87,14 @@ const Week = () => {
     <>
       <Free />
 
-      <div className="p-6">
-        <div className="text-primary text-x2 mb-3">Weekly Diet Analysis</div>
-        <div className="w-full max-w-sm rounded-[8px] bg-white p-5 shadow-md space-y-4">
+      <div className="pl-[15px] pr-[15spx]">
+        <div className="text-primary text-base pl-[15px] mb-3">Weekly Diet Analysis</div>
+        <div className="w-full max-w-sm rounded-[20px] bg-white p-5 shadow-md space-y-4">
           {/* Header */}
           <div className="flex justify-between items-center text-sm">
-            <span className="text-gray-700">March 10 – March 16</span>
+            <span className="text-primary text-sm">March 10 – March 16</span>
             <button
-              className="text-blue-500 hover:underline"
+              className="text-blue-500"
               onClick={() => setShowAnalysis(!showAnalysis)}
             >
               {showAnalysis ? "Hide Analysis" : "View Analysis"}
@@ -109,7 +109,7 @@ const Week = () => {
           {/* Diet Analysis */}
           {showAnalysis && (
             <>
-              <div className="rounded-[8px] bg-blue-50 p-4 text-sm space-y-2">
+              <div className="rounded-[8px] bg-blue-50 p-4 text-sm space-y-2 shadow-[2px_0_10px_rgba(3,3,3,0.1)]">
                 <p className="font-medium text-primary">Diet Analysis</p>
 
                 <AnalysisRow warn text="Fat +33%" />
@@ -134,7 +134,7 @@ const Week = () => {
           )}
         </div>
 
-        <div className="flex justify-center items-center text-gray-400 italic text-sm mt-3 text-center">
+        <div className="flex justify-center items-center text-gray-400 italic text-sm mt-3 text-center p-4">
           This analysis is based on recent behavior and health indicators, for
           reference only
         </div>

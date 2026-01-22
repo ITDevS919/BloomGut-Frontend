@@ -16,6 +16,7 @@ import FruitsVegImage from "@/assets/Images/diet-types/Fruits.png";
 import DairyImage from "@/assets/Images/diet-types/Dairy.png";
 import OtherImage from "@/assets/Images/diet-types/Others.png";
 import { MdRamenDining } from "react-icons/md";
+import { FaPoo } from "react-icons/fa6";
 
 ChartJS.register(
   BarElement,
@@ -27,7 +28,7 @@ ChartJS.register(
 
 const Free = () => {
   const [selectedDate, setSelectedDate] = useState("3/16");
-  
+
   // Dietary breakdown data
   const dailyTypeValues = [35, 25, 20, 10, 5];
   const dailyTypeLabels = [
@@ -197,7 +198,7 @@ const Free = () => {
         display: false,
       },
       x: {
-        grid: { 
+        grid: {
           display: true,
           color: (context) => {
             return context.index === chartDates.length - 1 ? "#E5E7EB" : "transparent";
@@ -287,7 +288,7 @@ const Free = () => {
         display: false,
       },
       x: {
-        grid: { 
+        grid: {
           display: true,
           color: (context) => {
             return context.index === dates.length - 1 ? "#E5E7EB" : "transparent";
@@ -333,7 +334,7 @@ const Free = () => {
         </div>
       </div>
 
-      {/* Food Type Distribution */}
+      {/* Daily Type Distribution */}
       <div className="text-base mb-3 font-medium pl-[15px] text-primary">Daily Types</div>
       <div className="bg-white rounded-[20px] p-6 shadow-[2px_0_10px_rgba(3,3,3,0.1)] mb-[34px]">
         <div className="flex items-end justify-between gap-2">
@@ -378,7 +379,7 @@ const Free = () => {
         </div>
       </div>
 
-
+      {/* Diet Trends */}
       <div className="text-primary text-base font-medium pl-[15px] mb-[14px] mt-9">Diet & Bowel Trends</div>
       <div className="w-full rounded-[27px] bg-white shadow-[0_2px_4px_rgba(0,0,0,0.08)] space-y-4">
         {/* Date pills */}
@@ -387,11 +388,10 @@ const Free = () => {
             <button
               key={d}
               onClick={() => setSelectedDate(d)}
-              className={`px-2 py-1 rounded-full text-xs ${
-                selectedDate === d
-                  ? "bg-[#b5a6d2] text-white"
-                  : "bg-[#f4f4f4] text-[#705d57]"
-              }`}
+              className={`px-2 py-1 rounded-full text-xs ${selectedDate === d
+                ? "bg-[#b5a6d2] text-white"
+                : "bg-[#f4f4f4] text-[#705d57]"
+                }`}
             >
               {d}
             </button>
@@ -399,8 +399,8 @@ const Free = () => {
         </div>
 
         {/* Title */}
-        <div className="flex items-center gap-2 pl-[10px]">
-          <span className="text-lg"><MdRamenDining className="text-secondary"/></span>
+        <div className="flex items-center gap-2 pl-[20px]">
+          <span className="text-lg"><MdRamenDining className="text-secondary" /></span>
           <h2 className="text-sm font-medium text-secondary">Diet Trends</h2>
         </div>
 
@@ -427,6 +427,7 @@ const Free = () => {
         </div>
       </div>
 
+      {/* Bowel Trend */}
       <div className="w-full rounded-[27px] bg-white shadow-[0_2px_4px_rgba(0,0,0,0.08)] space-y-4 mt-8">
         {/* Date pills */}
         <div className="flex gap-2 overflow-x-auto items-center justify-center pt-[23px]">
@@ -434,11 +435,10 @@ const Free = () => {
             <button
               key={d}
               onClick={() => setSelectedDate(d)}
-              className={`px-2 py-1 rounded-full text-xs ${
-                selectedDate === d
-                  ? "bg-[#b5a6d2] text-white"
-                  : "bg-[#f4f4f4] text-[#705d57]"
-              }`}
+              className={`px-2 py-1 rounded-full text-xs ${selectedDate === d
+                ? "bg-[#b5a6d2] text-white"
+                : "bg-[#f4f4f4] text-[#705d57]"
+                }`}
             >
               {d}
             </button>
@@ -446,13 +446,13 @@ const Free = () => {
         </div>
 
         {/* Title */}
-        <div className="flex items-center gap-2 pl-[10px]">
-          <span className="text-xl">💩</span>
+        <div className="flex items-center gap-2 pl-[20px]">
+          <span className="text-xl"><FaPoo className="text-secondary" /></span>
           <h2 className="text-sm font-medium text-secondary">Bowel Trend</h2>
         </div>
 
         {/* Chart with left labels */}
-        <div className="grid grid-cols-[30px_1fr] gap-2 h-48 relative pl-[10px] pr-[10px]">
+        <div className="h-48 grid grid-cols-[30px_1fr] gap-2 relative pl-[10px] pr-[10px]">
           {/* LEFT LABELS */}
           <div className="flex flex-col justify-between pb-6 pt-4 text-xs">
             <span className="text-teal-500">Freq</span>

@@ -122,7 +122,7 @@ const DateRangeSelectorLightPurple = (props) => {
               setViewMode("week");
               props.setViewMode("week");
             }}
-            className="w-4 h-4 appearance-none border-2 border-white outline-1 outline-gray-300 rounded-sm checked:bg-[#EDEDEF] checked:border-white cursor-pointer"
+            className="w-4 h-4 appearance-none border-2 border-white outline-1 outline-gray-300 rounded-sm checked:bg-[#B5A6D2] checked:border-white cursor-pointer"
           />
           <span className="text-sm text-primary">Week</span>
         </label>
@@ -136,7 +136,7 @@ const DateRangeSelectorLightPurple = (props) => {
               setViewMode("month");
               props.setViewMode("month");
             }}
-            className="w-4 h-4 appearance-none border-2 border-white outline-1 outline-gray-300 rounded-sm checked:bg-[#EDEDEF] checked:border-white cursor-pointer bg-white"
+            className="w-4 h-4 appearance-none border-2 border-white outline-1 outline-gray-300 rounded-sm checked:bg-[#B5A6D2] checked:border-white cursor-pointer bg-white"
           />
           <span className="text-sm text-primary">Month</span>
         </label>
