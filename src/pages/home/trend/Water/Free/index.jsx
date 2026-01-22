@@ -168,7 +168,7 @@ const Free = () => {
       <div className="text-base font-medium mb-[9px] text-primary">
         Daily Intake Rate
       </div>
-      <div className="bg-white rounded-[27px] shadow p-6 flex gap-8 justify-center">
+      <div className="bg-white rounded-[27px] shadow p-6 flex gap-8 justify-center mb-5">
         <CircleStat value={80} label="Avg" color="#1d4ed8" />
         <CircleStat value={100} label="Max" color="#1d4ed8" />
         <CircleStat value={65} label="Min" color="#7dd3fc" />

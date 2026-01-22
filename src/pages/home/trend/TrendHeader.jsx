@@ -13,7 +13,7 @@ const TrendHeader = (props) => {
 
   return (
     <div className="bg-ivory p-1 text-secondary font-['Noto_Sans_TC', sans-serif]">
-      <div className="flex items-center gap-4 mb-6 mt-[31px]">
+      <div className="flex items-center gap-4 mb-6 mt-[20px]">
         <button
           type="button"
           className="text-primary text-xl leading-none"
