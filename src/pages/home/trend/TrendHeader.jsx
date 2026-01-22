@@ -13,7 +13,7 @@ const TrendHeader = (props) => {
 
   return (
     <div className="bg-ivory p-1 text-secondary font-['Noto_Sans_TC', sans-serif]">
-      <div className="flex items-center gap-4 mb-6 mt-[20px]">
+      <div className="flex items-center gap-4 mb-6 mt-[31px]">
         <button
           type="button"
           className="text-primary text-xl leading-none"
@@ -22,7 +22,7 @@ const TrendHeader = (props) => {
         >
           <ChevronLeft className="text-primary text-[40px] leading-none" />
         </button>
-        <h2 className="text-lg font-bold text-primary">Health Trends</h2>
+        <h2 className="text-lg font-medium text-primary">Health Trends</h2>
       </div>
 
       <div className="flex justify-end mt-5">
@@ -31,7 +31,7 @@ const TrendHeader = (props) => {
         </button>
       </div>
 
-      <div className="mt-[60px] mb-[34px]">
+      <div className="mt-[60px]">
         {/* icons row */}
         <div className="flex items-center justify-between px-3 py-2">
           <div className="flex flex-col items-center text-sm text-gray-500">
@@ -43,14 +43,14 @@ const TrendHeader = (props) => {
           </div>
           <div className="flex flex-col items-center text-sm text-gray-500">
             <FaUtensils
-              className={`w-6 h-6 cursor-pointer ${selectedIcon === "utensils" ? "text-[#E29C53]" : "text-[#CFE4B8]"}`}
+              className={`w-6 h-6 cursor-pointer ${selectedIcon === "utensils" ? "text-[#6AA84F]" : "text-[#CFE4B8]"}`}
               onClick={() => { setSelectedIcon("utensils"); props.setTrendType(<Diet />) }}
             />
             <div className="mt-2 text-secondary">Diet Trend</div>
           </div>
           <div className="flex flex-col items-center text-sm text-gray-500">
             <FaGlassWhiskey
-              className={`w-6 h-6 cursor-pointer ${selectedIcon === "water" ? "text-[#E29C53]" : "text-[#D6EAF8]"}`}
+              className={`w-6 h-6 cursor-pointer ${selectedIcon === "water" ? "text-[#79b6e2]" : "text-[#D6EAF8]"}`}
               onClick={() => { setSelectedIcon("water"); props.setTrendType(<Water />) }}
             />
             <div className="mt-2 text-secondary">Water Trend</div>

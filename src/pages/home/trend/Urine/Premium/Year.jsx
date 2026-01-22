@@ -18,6 +18,9 @@ ChartJS.register(
 );
 import { Radar } from "react-chartjs-2";
 import { useState } from "react";
+import { Wheat, Beef, Salad, Milk, MoreHorizontal, UtensilsCrossed } from "lucide-react";
+import { IoRestaurant } from "react-icons/io5";
+import { FaUtensils } from "react-icons/fa6";
 
 const Year = () => {
   const [showAnalysis, setShowAnalysis] = useState(false);
@@ -107,55 +110,110 @@ const Year = () => {
   ];
 
   return (
-    <div className="p-6">
-      <div className="w-full max-w-sm rounded-[8px] bg-white p-5 shadow-md">
-        <div className="h-64">
-          <Radar data={data} options={options} />
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between mt-5">
-        <div className="text-x2 text-primary">
-          Foods Affecting Urine
+    <div className="pl-[15px] pr-[15px] mt-[20px]">
+      <div className="">
+        <div className="w-full rounded-[20px] bg-white p-5 shadow-md mb-[32px]">
+          <div className="h-64">
+            <Radar data={data} options={options} />
+          </div>
         </div>
 
-        <button className="text-sm text-blue-500 hover:underline">
-          View Analysis
-        </button>
-      </div>
-      <div className="grid grid-cols-2 gap-3 max-w-sm mt-3">
-        {items.map((item) => (
-          <div key={item.title} className="rounded-[8px] bg-white p-2 shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
-            <p className="mb-3 text-sm font-medium text-primary">
-              {item.title}
-            </p>
+        <div className="flex items-center justify-between mt-5">
+          <div className="text-base font-medium text-primary">
+            Foods Affecting Urine
+          </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <Badge
-                bg="bg-yellow-100"
-                text="text-yellow-700"
-                label={`Yellow ${item.yellow}%`}
-              />
-              <Badge
-                bg="bg-pink-100"
-                text="text-pink-600"
-                label={`Odor ${item.odor}%`}
-              />
+          <button className="text-sm text-blue-500" onClick={() => setShowAnalysis(!showAnalysis)}>
+            {showAnalysis ? "Hide Analysis" : "View Analysis"}
+          </button>
+        </div>
+        <div className="grid grid-cols-2 gap-3 max-w-sm mt-3">
+          {items.map((item) => (
+            <div key={item.title} className="rounded-[8px] bg-white p-2">
+              <p className="mb-3 text-sm font-medium text-primary">
+                {item.title}
+              </p>
+
+              <div className="grid grid-cols-2 gap-2">
+                <Badge
+                  bg="bg-[#FEF9C3]"
+                  label={`Yellow ${item.yellow}%`}
+                />
+                <Badge
+                  bg="bg-[#FEF2F2]"
+                  label={`Odor ${item.odor}%`}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {showAnalysis && (
+          <div>
+            {/* Fruits & Veg Impact */}
+            <div className="w-full max-w-sm rounded-[12px] p-5 bg-white mt-8 space-y-4">
+              {/* Header */}
+              <div className="flex items-center gap-2 mb-5">
+                <FaUtensils className="w-5 h-5 text-[#f59e0b]" />
+                <h2 className="text-sm font-medium text-primary">Fruits & Veg Impact</h2>
+              </div>
+
+              {/* Main Food Items */}
+              <div className="mb-5">
+                <p className="text-sm text-secondary mb-[9px]">Main Food Items</p>
+                <div className="flex flex-wrap gap-2">
+                  {["Banana", "Broccoli", "Tomato", "Apple"].map((item, index) => (
+                    <span
+                      key={index}
+                      className="px-3 py-1.5 rounded-full text-xs bg-[#f3f4f6] text-secondary"
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Dietary Ingredient Suggestions */}
+              <div className="rounded-[12px] bg-blue-50 p-4 mb-5">
+                <h3 className="text-sm font-medium text-primary mb-2">
+                  Dietary Ingredient Suggestions
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {["Leafy", "Sweet Potato", "Broccoli", "Apple"].map((item, index) => (
+                    <span
+                      key={index}
+                      className="px-3 py-1.5 rounded-full text-xs bg-white border border-[#d5fae3] text-[#60803d]"
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Frequency Adjustment */}
+              <div className="rounded-[12px] bg-green-50 p-4">
+                <h3 className="text-sm font-medium text-primary mb-[7px]">
+                  Frequency Adjustment
+                </h3>
+                <p className="text-xs text-secondary">
+                  3-5 servings/day of fruits & veg helps urine clarity & health
+                </p>
+              </div>
             </div>
           </div>
-        ))}
+        )}
+        <div className="text-custom-12 italic text-sm mt-5 mb-[33px] flex justify-center items-center">
+          For reference only. Consult a doctor if needed.
+        </div>
       </div>
-      <div className="text-gray-400 italic text-sm mt-3 flex justify-center items-center">
-        For reference only. Consult a doctor if needed.
-      </div>
-    </div>
+    </div >
   );
 };
 
 function Badge({ bg, text, label }) {
   return (
     <span
-      className={`rounded-full px-2 py-1 text-xs font-medium ${bg} ${text}`}
+      className={`rounded-full px-2 py-1 text-xs text-secondary font-['Roboto'] ${bg} ${text}`}
     >
       {label}
     </span>

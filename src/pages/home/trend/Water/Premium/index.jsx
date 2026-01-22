@@ -11,7 +11,7 @@ const Premium = () => {
   return (
     <>
       <DateRangeSelectorBlueUpdate setViewMode={setViewMode} />
-      <Free />
+      {/* <Free /> */}
       {viewMode === "week" && <Week />}
       {viewMode === "month" && <Month />}
       {viewMode === "year" && <Year />}

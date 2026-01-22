@@ -5,8 +5,8 @@ import Premium from "./Premium";
 const Urine = () => {
   return (
     <>
-      <Free />
-      {/* <Intermediate /> */}
+      {/* <Free /> */}
+      <Intermediate />
       {/* <Premium /> */}
     </>
   );

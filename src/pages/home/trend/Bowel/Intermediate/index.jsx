@@ -4,6 +4,8 @@ import { Doughnut, Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { useState } from "react";
 import Upgrade from "./Upgrade";
+import DateRangeSelectorYellowUpdate from "@/components/custom/DateRangeSelectorYellow(Update)";
+import DateRangeSelectorYellow from "@/components/custom/DateRangeSelectorYellow";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 

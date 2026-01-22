@@ -53,7 +53,7 @@ const DateRangeSelectorLightPurple = (props) => {
       const endDay = endOfWeek.getDate();
       const year = startOfWeek.getFullYear();
 
-      return `${month} ${startDay}-${endDay}, ${year}`;
+      return `${month} ${startDay}, ${year} - ${month} ${endDay}, ${year}`;
     } else {
       // Month view
       const month = months[date.getMonth()];
@@ -83,7 +83,7 @@ const DateRangeSelectorLightPurple = (props) => {
   };
 
   return (
-    <div className="bg-ivory p-4">
+    <div className="bg-ivory mb-[28px] mt-[31px]">
       {/* Date Range Selector */}
       <div className="flex items-center justify-center gap-4 mb-4">
         {/* Previous Button */}
@@ -96,7 +96,7 @@ const DateRangeSelectorLightPurple = (props) => {
         </button>
 
         {/* Date Display */}
-        <div className="text-base font-medium text-primary min-w-[180px] text-center">
+        <div className="text-base text-primary min-w-[180px] text-center">
           {formatDateRange(currentDate, viewMode)}
         </div>
 
@@ -122,7 +122,7 @@ const DateRangeSelectorLightPurple = (props) => {
               setViewMode("week");
               props.setViewMode("week");
             }}
-            className="w-4 h-4 appearance-none border-2 border-white outline-1 outline-gray-300 rounded-sm checked:bg-[#B5A6D2] checked:border-white cursor-pointer"
+            className="w-4 h-4 appearance-none border-2 border-white outline-1 outline-gray-300 rounded-sm checked:bg-[#EDEDEF] checked:border-white cursor-pointer"
           />
           <span className="text-sm text-primary">Week</span>
         </label>
@@ -136,7 +136,7 @@ const DateRangeSelectorLightPurple = (props) => {
               setViewMode("month");
               props.setViewMode("month");
             }}
-            className="w-4 h-4 appearance-none border-2 border-white outline-1 outline-gray-300 rounded-sm checked:bg-[#B5A6D2] checked:border-white cursor-pointer bg-white"
+            className="w-4 h-4 appearance-none border-2 border-white outline-1 outline-gray-300 rounded-sm checked:bg-[#EDEDEF] checked:border-white cursor-pointer bg-white"
           />
           <span className="text-sm text-primary">Month</span>
         </label>

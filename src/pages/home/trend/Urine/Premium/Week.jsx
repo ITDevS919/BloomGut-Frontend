@@ -114,9 +114,9 @@ const Week = () => {
     },
   };
   return (
-    <div className="p-6">
-      <div className="text-x2 mb-3 mt-3 text-primary">Water and Urine Analysis</div>
-      <div className="w-full max-w-sm rounded-[8px] bg-white p-5 shadow-md space-y-4">
+    <div className="pl-[15px] pr-[15px] mt-[38px]">
+      <div className="text-base font-medium pl-[15px] mb-[10px] text-primary">Water and Urine Analysis</div>
+      <div className="w-full rounded-[20px] bg-white p-5 shadow-md space-y-4">
         {/* Chart */}
         <div className="h-48">
           <Line data={data} options={options} />
@@ -130,7 +130,7 @@ const Week = () => {
           </div>
           <button
             onClick={() => setShowAnalysis(!showAnalysis)}
-            className="text-blue-500 text-xs hover:underline"
+            className="text-blue-500 text-xs"
           >
             {showAnalysis ? "Hide Analysis" : "View Analysis"}
           </button>
@@ -140,13 +140,13 @@ const Week = () => {
         {showAnalysis && (
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Info className="h-4 w-4 text-blue-500" />
-              <h3 className="text-sm font-medium text-gray-800">
+              <Info className="h-[24px] w-[24px] text-blue-500" />
+              <h3 className="text-base font-medium text-primary">
                 Monthly Summary
               </h3>
             </div>
 
-            <div className="grid grid-cols-2 gap-y-2 text-sm text-gray-700">
+            <div className="grid grid-cols-2 gap-y-2 text-sm text-secondary mb-[27px]">
               <span>Avg Intake:</span>
               <span className="text-right">2243 ml</span>
               <span>Clarity:</span>
@@ -157,9 +157,9 @@ const Week = () => {
               <span className="text-right">71%</span>
             </div>
             {/* Weekly Insights */}
-            <div className="rounded-[8px] bg-yellow-50 p-4 text-sm text-gray-700">
+            <div className="rounded-[14px] bg-[#fefce8] p-4 text-sm text-primary">
               <p className="font-medium mb-1">Weekly Insights</p>
-              <p>
+              <p className="text-secondary">
                 2 drop days, linked to high salt/sugar diet. Drink +20% water
                 and avoid caffeine.
               </p>
@@ -168,7 +168,7 @@ const Week = () => {
         )}
       </div>
 
-      <div className="flex justify-center items-center text-gray-400 italic text-sm mt-3">
+      <div className="flex justify-center items-center text-gray-400 italic text-sm mt-5 mb-[32px]">
         For reference only. Consult a doctor if needed.
       </div>
     </div>
@@ -179,7 +179,7 @@ function LegendDot({ color, label }) {
   return (
     <div className="flex items-center gap-1">
       <span className={`h-2 w-2 rounded-full ${color}`} />
-      <span>{label}</span>
+      <span className="text-xs font-['Aleo'] text-primary">{label}</span>
     </div>
   );
 }

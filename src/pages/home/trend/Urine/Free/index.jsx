@@ -116,7 +116,7 @@ const Free = () => {
         </div>
       </div>
 
-      <Upgrade />
+      {/* <Upgrade /> */}
     </div>
   );
 };

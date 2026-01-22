@@ -116,8 +116,8 @@ const Year = () => {
   };
 
   return (
-    <div className="p-6">
-      <div className="w-full max-w-md rounded-[8px] bg-white p-6 shadow-md">
+    <div className="pl-[15px] pr-[15px] ">
+      <div className="w-full  rounded-[8px] bg-white p-6 shadow-md">
         {/* Header */}
         <h2 className="text-center text-lg text-primary">
           Annual Water Drinking
@@ -139,7 +139,7 @@ const Year = () => {
         </div>
 
         {/* Footer */}
-        <p className="mt-4 text-center text-sm text-gray-400">
+        <p className="mt-4 text-center text-xs italic text-custom-12">
           Tap curve for monthly, icon for tips
         </p>
       </div>

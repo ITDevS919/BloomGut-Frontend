@@ -7,8 +7,15 @@ import {
 } from "chart.js";
 import { Bar, Line } from "react-chartjs-2";
 import ChartDataLabels from "chartjs-plugin-datalabels";
-import { Wheat, Beef, Salad, Milk, MoreHorizontal } from "lucide-react";
+import { Wheat, Beef, Salad, Milk, MoreHorizontal, UtensilsCrossed } from "lucide-react";
 import Upgrade from "./Upgrade";
+import { useState } from "react";
+import GrainsImage from "@/assets/Images/diet-types/Grains.png";
+import ProteinImage from "@/assets/Images/diet-types/Protein.png";
+import FruitsVegImage from "@/assets/Images/diet-types/Fruits.png";
+import DairyImage from "@/assets/Images/diet-types/Dairy.png";
+import OtherImage from "@/assets/Images/diet-types/Others.png";
+import { MdRamenDining } from "react-icons/md";
 
 ChartJS.register(
   BarElement,
@@ -19,44 +26,38 @@ ChartJS.register(
 );
 
 const Free = () => {
+  const [selectedDate, setSelectedDate] = useState("3/16");
+  
   // Dietary breakdown data
-  const dietData = [
+  const dailyTypeValues = [35, 25, 20, 10, 5];
+  const dailyTypeLabels = [
     {
-      label: "Grains",
-      percentage: 35,
-      color: "#D2B48C", // Tan/brown
-      icon: Wheat,
-      textColor: "#ffffff", // White text on dark bar
+      color: '#d0ab7f',
+      label: 'Grains'
     },
     {
-      label: "Protein",
-      percentage: 25,
-      color: "#C07A2D", // Orange-brown
-      icon: Beef,
-      textColor: "#ffffff", // White text
+      color: '#ce8540',
+      label: 'Protein'
     },
     {
-      label: "Fruits & Veg",
-      displayLabel: "Fruits & Veg", // Will be displayed with non-breaking space
-      percentage: 20,
-      color: "#7BCFA5", // Light green
-      icon: Salad,
-      textColor: "#ffffff", // White text
+      color: '#8cbf86',
+      label: 'Fruits & Veg'
     },
     {
-      label: "Dairy",
-      percentage: 10,
-      color: "#FFE4B5", // Light yellow
-      icon: Milk,
-      textColor: "#111827", // Dark text on light bar
+      color: '#edd169',
+      label: 'Dairy'
     },
     {
-      label: "Others",
-      percentage: 5,
-      color: "#E5E7EB", // Very light gray
-      icon: MoreHorizontal,
-      textColor: "#111827", // Dark text on light bar
-    },
+      color: '#94a3b8',
+      label: 'Other'
+    }
+  ];
+  const dailyTypeColors = [
+    "#d0ab7f", // green
+    "#ce8540", // tan
+    "#8cbf86", // yellow
+    "#edd169", // brown
+    "#94a3b8", // gray
   ];
 
   // Create chart options for each category
@@ -112,41 +113,66 @@ const Free = () => {
     ],
   });
 
-  const dates = ["3/11", "3/12", "3/13", "3/14", "3/15", "3/16"];
+  const dates = ["3/10", "3/11", "3/12", "3/13", "3/14", "3/15", "3/16"];
+  const chartDates = ["3/11", "3/12", "3/13", "3/14", "3/15", "3/16"];
   const dietTrendData = {
-    labels: dates,
+    labels: chartDates,
     datasets: [
       {
         label: "Fiber",
         data: [70, 68, 72, 69, 71, 73],
         borderColor: "#22C55E",
         backgroundColor: "#22C55E",
+        borderDash: [5, 5],
         tension: 0.4,
-        pointRadius: 4,
+        pointRadius: (context) => {
+          return context.dataIndex === chartDates.length - 1 ? 6 : 3;
+        },
+        pointBackgroundColor: "#22C55E",
+        pointBorderColor: "#22C55E",
+        pointBorderWidth: 2,
       },
       {
         label: "Protein",
         data: [60, 62, 63, 61, 64, 66],
         borderColor: "#3B82F6",
         backgroundColor: "#3B82F6",
+        borderDash: [5, 5],
         tension: 0.4,
-        pointRadius: 4,
+        pointRadius: (context) => {
+          return context.dataIndex === chartDates.length - 1 ? 6 : 3;
+        },
+        pointBackgroundColor: "#3B82F6",
+        pointBorderColor: "#3B82F6",
+        pointBorderWidth: 2,
       },
       {
         label: "Fat",
         data: [45, 46, 47, 46, 48, 49],
         borderColor: "#FACC15",
         backgroundColor: "#FACC15",
+        borderDash: [5, 5],
         tension: 0.4,
-        pointRadius: 4,
+        pointRadius: (context) => {
+          return context.dataIndex === chartDates.length - 1 ? 6 : 3;
+        },
+        pointBackgroundColor: "#FACC15",
+        pointBorderColor: "#FACC15",
+        pointBorderWidth: 2,
       },
       {
         label: "Sugar",
         data: [35, 38, 37, 39, 36, 40],
         borderColor: "#EF4444",
         backgroundColor: "#EF4444",
+        borderDash: [5, 5],
         tension: 0.4,
-        pointRadius: 4,
+        pointRadius: (context) => {
+          return context.dataIndex === chartDates.length - 1 ? 6 : 3;
+        },
+        pointBackgroundColor: "#EF4444",
+        pointBorderColor: "#EF4444",
+        pointBorderWidth: 2,
       },
     ],
   };
@@ -155,11 +181,7 @@ const Free = () => {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: "bottom",
-        labels: {
-          usePointStyle: true,
-          font: { size: 11 },
-        },
+        display: false,
       },
       datalabels: {
         display: false,
@@ -175,7 +197,15 @@ const Free = () => {
         display: false,
       },
       x: {
-        grid: { display: false },
+        grid: { 
+          display: true,
+          color: (context) => {
+            return context.index === chartDates.length - 1 ? "#E5E7EB" : "transparent";
+          },
+          lineWidth: (context) => {
+            return context.index === chartDates.length - 1 ? 1 : 0;
+          },
+        },
         ticks: { font: { size: 11 } },
       },
     },
@@ -190,7 +220,12 @@ const Free = () => {
         borderColor: "#14B8A6",
         backgroundColor: "#14B8A6",
         tension: 0.4,
-        pointRadius: 3,
+        pointRadius: (context) => {
+          return context.dataIndex === dates.length - 1 ? 6 : 3;
+        },
+        pointBackgroundColor: "#14B8A6",
+        pointBorderColor: "#14B8A6",
+        pointBorderWidth: 2,
         pointHoverRadius: 4,
       },
       {
@@ -199,7 +234,12 @@ const Free = () => {
         borderColor: "#A855F7",
         backgroundColor: "#A855F7",
         tension: 0.4,
-        pointRadius: 3,
+        pointRadius: (context) => {
+          return context.dataIndex === dates.length - 1 ? 6 : 3;
+        },
+        pointBackgroundColor: "#A855F7",
+        pointBorderColor: "#A855F7",
+        pointBorderWidth: 2,
       },
       {
         label: "Ease",
@@ -207,7 +247,12 @@ const Free = () => {
         borderColor: "#F59E0B",
         backgroundColor: "#F59E0B",
         tension: 0.4,
-        pointRadius: 3,
+        pointRadius: (context) => {
+          return context.dataIndex === dates.length - 1 ? 6 : 3;
+        },
+        pointBackgroundColor: "#F59E0B",
+        pointBorderColor: "#F59E0B",
+        pointBorderWidth: 2,
       },
       {
         label: "Overall",
@@ -215,7 +260,12 @@ const Free = () => {
         borderColor: "#6B4F4F",
         backgroundColor: "#6B4F4F",
         tension: 0.4,
-        pointRadius: 3,
+        pointRadius: (context) => {
+          return context.dataIndex === dates.length - 1 ? 6 : 3;
+        },
+        pointBackgroundColor: "#6B4F4F",
+        pointBorderColor: "#6B4F4F",
+        pointBorderWidth: 2,
       },
     ],
   }
@@ -230,13 +280,22 @@ const Free = () => {
           label: (ctx) => `${ctx.dataset.label}`,
         },
       },
+      datalabels: { display: false },
     },
     scales: {
       y: {
-        display: false, // 🔑 hide numeric axis
+        display: false,
       },
       x: {
-        grid: { display: false },
+        grid: { 
+          display: true,
+          color: (context) => {
+            return context.index === dates.length - 1 ? "#E5E7EB" : "transparent";
+          },
+          lineWidth: (context) => {
+            return context.index === dates.length - 1 ? 1 : 0;
+          },
+        },
         ticks: { font: { size: 11 } },
       },
     },
@@ -244,15 +303,15 @@ const Free = () => {
 
 
   return (
-    <div className="p-6">
+    <div className="pr-[15px] pl-[15px]">
       {/* Score Card */}
-      <div className="bg-white rounded-[8px] p-4 shadow-[0_4px_12px_rgba(0,0,0,0.08)] mb-5">
+      <div className="bg-white rounded-[27px] p-[32px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[29px]">
         <div className="flex items-center justify-between">
-          <div>
-            <div className="text-2xl font-bold text-[#B5A6D2]">82</div>
-            <div className="text-sm text-gray-500">Good</div>
+          <div className="pl-[50px]">
+            <div className="text-3xl font-medium text-[#B5A6D2]">82</div>
+            <div className="text-sm text-custom-12">Good</div>
           </div>
-          <div className="text-sm text-[#B5A6D2]">+7% vs Last</div>
+          <div className="text-base text-[#B5A6D2]">+7% vs Last</div>
         </div>
 
         <div className="mt-4">
@@ -275,112 +334,127 @@ const Free = () => {
       </div>
 
       {/* Food Type Distribution */}
-      <div className="text-primary text-x2 mb-3 mt-8">
-        Food Type Distribution
-      </div>
-      <div className="bg-ivory rounded-[8px] p-4 shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
-        <div className="flex items-end justify-between gap-3">
-          {dietData.map((item, index) => {
-            const Icon = item.icon;
-            return (
-              <div
-                key={index}
-                className="flex flex-col items-center flex-1 min-w-0"
-              >
-                {/* Icon in Gray Circle */}
-                <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center mb-3 shrink-0">
-                  <Icon className="w-6 h-6 text-gray-600" />
-                </div>
-
-                {/* Vertical Bar Chart */}
-                <div
-                  className="w-full"
-                  style={{ height: "128px", position: "relative" }}
-                >
-                  <Bar
-                    data={createChartData(item)}
-                    options={createChartOptions(item)}
+      <div className="text-base mb-3 font-medium pl-[15px] text-primary">Daily Types</div>
+      <div className="bg-white rounded-[20px] p-6 shadow-[2px_0_10px_rgba(3,3,3,0.1)] mb-[34px]">
+        <div className="flex items-end justify-between gap-2">
+          {dailyTypeValues.map((value, index) => (
+            <div key={index} className="flex flex-col items-center flex-1">
+              {/* Colored Bar with Gray Background and Icon Inside */}
+              <div className="w-full bg-[#E6E6E6] rounded-lg relative overflow-hidden flex flex-col" style={{ height: '120px' }}>
+                {/* Circular Icon at Top */}
+                <div className="w-12 h-12 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center mx-auto mt-2 mb-2 z-10">
+                  <img
+                    src={[GrainsImage, ProteinImage, FruitsVegImage, DairyImage, OtherImage][index]}
+                    alt={`Type ${index + 1}`}
+                    className="w-12 h-12 object-contain"
                   />
                 </div>
-
-                {/* Label */}
-                <div className="mt-2 text-center w-full">
-                  <span
-                    className="text-xs text-gray-700"
+                {/* Colored Bar Fill */}
+                {value > 0 ? (
+                  <div
+                    className="w-full rounded-lg flex items-center justify-center absolute bottom-0"
                     style={{
-                      whiteSpace: "nowrap",
-                      display: "block",
+                      height: `${value}%`,
+                      backgroundColor: dailyTypeColors[index],
+                      minHeight: '20px',
                     }}
                   >
-                    {item.label === "Fruits & Veg"
-                      ? "Fruits\u00A0&\u00A0Veg"
-                      : item.label}
-                  </span>
-                </div>
+                    <span className="text-white text-xs">
+                      {value}%
+                    </span>
+                  </div>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center absolute">
+                    <span className="text-custom-1 text-xs">0%</span>
+                  </div>
+                )}
               </div>
-            );
-          })}
+              {/* Label Below Bar */}
+              <div className="text-xs text-primary mt-2 text-center">
+                <span className="whitespace-nowrap" style={{ color: "#705d57" }}>{dailyTypeLabels[index].label}</span>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className="text-primary text-x2 mb-3 mt-8">Diet & Bowel Trends</div>
-      <div className="w-full max-w-sm rounded-[8px] bg-white p-5 shadow-md space-y-4">
+
+      <div className="text-primary text-base font-medium pl-[15px] mb-[14px] mt-9">Diet & Bowel Trends</div>
+      <div className="w-full rounded-[27px] bg-white shadow-[0_2px_4px_rgba(0,0,0,0.08)] space-y-4">
         {/* Date pills */}
-        <div className="flex gap-2 overflow-x-auto">
+        <div className="flex gap-2 overflow-x-auto items-center justify-center pt-[23px]">
           {dates.map((d) => (
-            <span
+            <button
               key={d}
-              className="px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-600"
+              onClick={() => setSelectedDate(d)}
+              className={`px-2 py-1 rounded-full text-xs ${
+                selectedDate === d
+                  ? "bg-[#b5a6d2] text-white"
+                  : "bg-[#f4f4f4] text-[#705d57]"
+              }`}
             >
               {d}
-            </span>
+            </button>
           ))}
         </div>
 
         {/* Title */}
-        <div className="flex items-center gap-2">
-          <span className="text-lg">🍜</span>
-          <h2 className="text-sm font-medium text-gray-800">Diet Trends</h2>
+        <div className="flex items-center gap-2 pl-[10px]">
+          <span className="text-lg"><MdRamenDining className="text-secondary"/></span>
+          <h2 className="text-sm font-medium text-secondary">Diet Trends</h2>
         </div>
 
         {/* Chart */}
-        <div className="h-48 grid grid-cols-[60px_1fr] gap2">
+        <div className="h-48 grid grid-cols-[30px_1fr] gap-2 relative pl-[10px] pr-[10px]">
           {/* LEFT LABELS */}
-          <div className="flex flex-col justify-between text-xs text-gray-600 pt-2 pb-6">
+          <div className="flex flex-col justify-between text-xs pt-2 pb-6">
             <span className="text-green-600">Fiber</span>
             <span className="text-blue-600">Protein</span>
             <span className="text-yellow-600">Fat</span>
             <span className="text-red-600">Sugar</span>
           </div>
-          <div className="relatvie">
+          <div className="relative">
             <Line data={dietTrendData} options={dietTrendOptions} />
           </div>
         </div>
+
+        {/* Legend */}
+        <div className="flex justify-center gap-4 text-xs mb-[32px]">
+          <Legend color="bg-green-500" label="Fiber" />
+          <Legend color="bg-blue-500" label="Protein" />
+          <Legend color="bg-yellow-500" label="Fat" />
+          <Legend color="bg-red-500" label="Sugar" />
+        </div>
       </div>
 
-      <div className="w-full max-w-sm rounded-[8px] bg-white p-5 shadow-md space-y-4 mt-8">
+      <div className="w-full rounded-[27px] bg-white shadow-[0_2px_4px_rgba(0,0,0,0.08)] space-y-4 mt-8">
         {/* Date pills */}
-        <div className="flex gap-2 overflow-x-auto">
+        <div className="flex gap-2 overflow-x-auto items-center justify-center pt-[23px]">
           {dates.map((d) => (
-            <span
+            <button
               key={d}
-              className="px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-500"
+              onClick={() => setSelectedDate(d)}
+              className={`px-2 py-1 rounded-full text-xs ${
+                selectedDate === d
+                  ? "bg-[#b5a6d2] text-white"
+                  : "bg-[#f4f4f4] text-[#705d57]"
+              }`}
             >
               {d}
-            </span>
+            </button>
           ))}
         </div>
 
         {/* Title */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 pl-[10px]">
           <span className="text-xl">💩</span>
-          <h2 className="text-sm font-medium">Bowel Trend</h2>
+          <h2 className="text-sm font-medium text-secondary">Bowel Trend</h2>
         </div>
 
         {/* Chart with left labels */}
-        <div className="grid grid-cols-[70px_1fr] gap-2 h-48">
+        <div className="grid grid-cols-[30px_1fr] gap-2 h-48 relative pl-[10px] pr-[10px]">
           {/* LEFT LABELS */}
-          <div className="flex flex-col justify-between pb-6 pt-4 text-sm text-gray-500">
+          <div className="flex flex-col justify-between pb-6 pt-4 text-xs">
             <span className="text-teal-500">Freq</span>
             <span className="text-purple-500">Consis</span>
             <span className="text-amber-500">Ease</span>
@@ -394,10 +468,10 @@ const Free = () => {
         </div>
 
         {/* Legend */}
-        <div className="flex justify-center gap-4 text-xs">
+        <div className="flex justify-center gap-4 text-xs mb-[32px]">
           <Legend color="bg-teal-500" label="Freq" />
           <Legend color="bg-purple-500" label="Consis" />
-          <Legend color="bg-amber-400" label="Ease" />
+          <Legend color="bg-amber-500" label="Ease" />
           <Legend color="bg-stone-500" label="Overall" />
         </div>
       </div>
@@ -409,7 +483,7 @@ const Free = () => {
 
 function Legend({ color, label }) {
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1 text-secondary text-xs">
       <span className={`h-2.5 w-2.5 rounded-full ${color}`} />
       <span>{label}</span>
     </div>

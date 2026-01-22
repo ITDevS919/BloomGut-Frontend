@@ -83,7 +83,7 @@ const DateRangeSelectorUpdate = (props) => {
           onClick={() => { handleViewModeChange("week"); props.setViewMode("week") }}
           className={`px-6 py-2 rounded-lg text-sm transition-colors ${viewMode === "week"
               ? "bg-[#D2B48C] text-primary" // Active: light brown/beige background
-              : "bg-white text-primary" // Inactive: white background
+              : "bg-white border border-[#d9cbc0]  text-primary" // Inactive: white background
             }`}
         >
           Week
@@ -92,7 +92,7 @@ const DateRangeSelectorUpdate = (props) => {
           onClick={() => { handleViewModeChange("month"); props.setViewMode("month") }}
           className={`px-6 py-2 rounded-lg text-sm transition-colors ${viewMode === "month"
               ? "bg-[#D2B48C] text-primary" // Active: light brown/beige background
-              : "bg-white text-primary" // Inactive: white background
+              : "bg-white border border-[#d9cbc0] text-primary" // Inactive: white background
             }`}
         >
           Month
@@ -101,7 +101,7 @@ const DateRangeSelectorUpdate = (props) => {
           onClick={() => { handleViewModeChange("year"); props.setViewMode("year") }}
           className={`px-6 py-2 rounded-lg text-sm transition-colors ${viewMode === "year"
               ? "bg-[#D2B48C] text-primary" // Active: light brown/beige background
-              : "bg-white text-primary" // Inactive: white background
+              : "bg-white border border-[#d9cbc0] text-primary" // Inactive: white background
             }`}
         >
           Year

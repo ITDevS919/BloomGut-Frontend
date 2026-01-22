@@ -25,9 +25,13 @@ import {
   ArrowUp,
   ArrowDown,
   Info,
+  TrendingDown,
 } from "lucide-react";
 import Free from "../Free";
 import { useState } from "react";
+import { FaExclamationTriangle } from "react-icons/fa";
+import { MdErrorOutline, MdOutlineErrorOutline } from "react-icons/md";
+import Upgrade from "./Upgrade";
 
 const Month = () => {
   const [showAnalysis, setShowAnalysis] = useState(false);
@@ -85,17 +89,17 @@ const Month = () => {
     scales: {
       x: {
         grid: { display: false },
-        ticks: { font: { size: 11 } },
+        ticks: { font: { size: 11 }, },
       },
       y: {
         min: 0,
         max: 3600,
         ticks: {
-          stepSize: 600,
+          stepSize: 900,
           font: { size: 11 },
         },
         grid: {
-          color: "#E5E7EB",
+          color: "white",
           borderDash: [4, 4],
         },
       },
@@ -104,10 +108,10 @@ const Month = () => {
   return (
     <>
       <Free />
-      <div className="p-6">
-        <div className="w-full max-w-md rounded-[8px] bg-white p-5 shadow-md space-y-5">
+      <div className="pl-[15px] pr-[15px] mt-[29px]">
+        <div className="w-full max-w-md rounded-[20px] bg-white p-5 shadow-md space-y-5">
           {/* Header */}
-          <h2 className="text-lg text-primary">Urine Trend Analysis</h2>
+          <h2 className="text-base font-medium text-primary">Urine Trend Analysis</h2>
 
           {/* Chart */}
           <div className="h-56">
@@ -115,7 +119,7 @@ const Month = () => {
           </div>
 
           {/* Legend */}
-          <div className="flex gap-4 text-xs text-gray-600">
+          <div className="flex gap-4 text-xs text-primary items-center justify-center mb-9">
             <LegendDot color="bg-yellow-300" label="Low <1200ml" />
             <LegendDot color="bg-green-300" label="Normal" />
             <LegendDot color="bg-red-300" label="High >2400ml" />
@@ -123,8 +127,8 @@ const Month = () => {
 
           {/* Monthly Header */}
           <div className="flex justify-between items-center">
-            <h3 className="text-sm text-primary">Monthly</h3>
-            <button className="text-xs text-blue-500 hover:underline" onClick={() => setShowAnalysis(!showAnalysis)}>
+            <h3 className="text-base text-primary">Monthly</h3>
+            <button className="text-xs text-[#3b82f6]" onClick={() => setShowAnalysis(!showAnalysis)}>
               {showAnalysis ? "Hide Analysis" : "View Analysis"}
             </button>
           </div>
@@ -139,21 +143,21 @@ const Month = () => {
             />
 
             <StatCard
-              icon={<AlertTriangle className="h-4 w-4 text-orange-500" />}
+              icon={<FaExclamationTriangle className="h-4 w-4 text-[#f09129]" />}
               title="Abnormal"
               value="9 Day"
               sub="Low 2 | High 7"
             />
 
             <StatCard
-              icon={<ArrowUp className="h-4 w-4 text-red-500" />}
+              icon={<TrendingUp className="h-4 w-4 text-[#f15a5a]" />}
               title="Highest Day"
               value="May 31"
               sub="2755 ml"
             />
 
             <StatCard
-              icon={<ArrowDown className="h-4 w-4 text-yellow-500" />}
+              icon={<TrendingDown className="h-4 w-4 text-yellow-500" />}
               title="Lowest Day"
               value="May 8"
               sub="1101 ml"
@@ -164,26 +168,26 @@ const Month = () => {
 
       {showAnalysis && (
         <>
-          <div className="p-6">
-            <div className="w-full max-w-sm rounded-[8px] bg-white p-5 shadow-md space-y-5">
+          <div className="pl-[15px] pr-[15px] mt-[20px]">
+            <div className="w-full max-w-sm rounded-[12px] bg-white p-5 shadow-md space-y-5">
               {/* Header */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 mb-[13px]">
                 <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
-                  <Info className="h-4 w-4 text-blue-500" />
+                  <MdErrorOutline className="h-4 w-4" />
                 </div>
-                <h2 className="text-base font-semibold text-gray-800">
+                <h2 className="text-base font-medium text-primary">
                   Trends & Tips
                 </h2>
               </div>
 
               {/* Monthly Notes */}
-              <div>
-                <h3 className="mb-2 text-sm font-medium text-primary">
+              <div className="mb-[30px]">
+                <h3 className="mb-4 text-sm font-medium text-primary">
                   Monthly Notes
                 </h3>
 
                 <div className="rounded-[8px] bg-blue-50 p-4 text-sm text-secondary">
-                  <ul className="list-disc space-y-2 pl-4">
+                  <ul className="list-disc space-y-2 pl-4 text-secondary">
                     <li>5/1–5/7: volume normal.</li>
                     <li>5/8–5/12: urine drop, likely low intake.</li>
                     <li>5/13–5/18: back to normal.</li>
@@ -193,39 +197,37 @@ const Month = () => {
               </div>
 
               {/* Health Status Assessment */}
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium text-gray-700">
+              <div className="space-y-2 mb-[10px]">
+                <h3 className="text-sm font-medium text-primary">
                   Health Status Assessment
                 </h3>
 
                 {/* Hydration Balance */}
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Hydration Balance:</span>
-                  <span className="font-medium text-blue-500">71%</span>
+                <div className="flex items-center gap-3 text-sm mb-[11px]">
+                  <span className="text-secondary font-['Roboto'] whitespace-nowrap">Hydration Balance:</span>
+                  <div className="flex-1 h-2 rounded-full bg-gray-200 relative">
+                    <div
+                      className="h-2 rounded-full bg-blue-300"
+                      style={{ width: "71%" }}
+                    />
+                  </div>
+                  <span className="text-[#3b82f6] font-medium whitespace-nowrap">71%</span>
                 </div>
 
-                <div className="h-2 w-full rounded-full bg-gray-200">
-                  <div
-                    className="h-2 rounded-full bg-blue-400"
-                    style={{ width: "71%" }}
-                  />
-                </div>
-
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-secondary font-['Aleo']">
                   Urine Normal Rate: <span className="font-medium">71%</span>
                 </p>
 
-                <p className="text-sm text-green-600">+8% vs last month</p>
+                <p className="text-sm text-secondary">+8% vs last month</p>
               </div>
 
               {/* Personalized Suggestions */}
               <div>
-                <h3 className="mb-2 text-sm font-medium text-gray-700">
-                  Personalized Suggestions
-                </h3>
-
                 <div className="rounded-[8px] bg-green-50 p-4 text-sm text-gray-700">
-                  <ul className="list-disc space-y-2 pl-4">
+                  <h3 className="mb-2 text-sm font-medium text-secondary">
+                    Personalized Suggestions
+                  </h3>
+                  <ul className="list-disc space-y-2 pl-4 text-secondary">
                     <li>Daily target: 1800–2400 ml</li>
                     <li>Drink 300 ml after waking and before meals.</li>
                     <li>Avoid large amounts within 10 min before bed.</li>
@@ -236,6 +238,11 @@ const Month = () => {
             </div>
           </div>
         </>)}
+
+      <div className="text-center text-sm text-custom-12 italic mt-[28px] mb-[28px]">For reference only. Consult a doctor if needed.</div>
+      <div className="pl-[15px] pr-[15px]">
+        <Upgrade />
+      </div>
     </>
   );
 };
@@ -251,13 +258,13 @@ function LegendDot({ color, label }) {
 
 function StatCard({ icon, title, value, sub }) {
   return (
-    <div className="rounded-[8px] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] p-3 space-y-1">
-      <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+    <div className="rounded-[10px] bg-white shadow-md p-3 space-y-1">
+      <div className="flex items-center gap-2 text-sm font-medium text-primary">
         {icon}
         {title}
       </div>
-      <p className="text-lg text-primary">{value}</p>
-      <p className="text-xs text-gray-500">{sub}</p>
+      <p className="text-base font-medium text-primary">{value}</p>
+      <p className="text-xs text-custom-12">{sub}</p>
     </div>
   );
 }

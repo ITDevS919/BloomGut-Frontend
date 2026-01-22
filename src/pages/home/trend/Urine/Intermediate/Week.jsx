@@ -5,6 +5,8 @@ import { Sun, Moon } from "lucide-react";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 import Free from "../Free";
+import { MdQueryBuilder } from "react-icons/md";
+import Upgrade from "./Upgrade";
 
 const Week = () => {
   const data = {
@@ -14,7 +16,7 @@ const Week = () => {
         data: [75, 25],
         backgroundColor: ["#FCD34D", "#818CF8"],
         borderColor: "#FFFFFF",
-        borderWidth: 3,
+        borderWidth: 1,
         cutout: "70%",
       },
     ],
@@ -29,6 +31,7 @@ const Week = () => {
           label: (ctx) => `${ctx.label}: ${ctx.raw}%`,
         },
       },
+      datalabels: { display: true, fomatValue: (value) => `${value}%`, color: 'white' },
     },
   };
 
@@ -37,15 +40,15 @@ const Week = () => {
   return (
     <>
       <Free />
-      <div className="flex items-center justify-center gap-20 text-sm">
+      <div className="flex items-center justify-center gap-20 text-sm mt-[38px]">
         {tabs.map((tab) => (
           <button
             key={tab}
             onClick={() => setActive(tab)}
             className={
               active === tab
-                ? "rounded-[8px] bg-white px-3 py-1.5 font-medium shadow text-gray-800"
-                : "text-gray-500 hover:text-gray-700"
+                ? "rounded-[8px] bg-white px-3 py-1.5 shadow-sm text-secondary "
+                : "text-secondary hover:text-secondary"
             }
           >
             {tab}
@@ -55,17 +58,19 @@ const Week = () => {
 
       <div className="w-full space-y-4 p-6">
         {/* Donut card */}
-        <div className="rounded-[8px] bg-white p-5 shadow-md">
+        <div className="rounded-[27px] bg-white p-5 shadow-md">
           <div className="relative mx-auto h-44 w-44">
             <Doughnut data={data} options={options} />
 
             {/* Center content */}
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-              <span className="text-xs text-gray-500 flex items-center gap-1">
-                <Sun className="h-3 w-3" />
+              <span>
+                <MdQueryBuilder className="text-custom-12" />
+              </span>
+              <span className="text-xs text-custom-12 flex items-center gap-1">
                 Day/Night
               </span>
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-xs text-custom-12">
                 Block Details
               </span>
             </div>
@@ -79,16 +84,16 @@ const Week = () => {
         </div>
 
         {/* Stat cards */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-3 mb-5">
           <StatCard title="Daily Volume" value="1943ml" />
           <StatCard title="Nighttime %" value="71%" />
           <StatCard title="Urination Avg" value="6.3/day" />
         </div>
 
         {/* Analysis & Advice */}
-        <div className="bg-white rounded-[8px] shadow-md p-6">
+        <div className="bg-white rounded-[27px] shadow-md p-6">
           <div className="space-y-3">
-            <h3 className="text-sm text-primary">Analysis & Advice</h3>
+            <h3 className="text-base font-medium text-primary">Analysis & Advice</h3>
 
             <AdviceCard
               icon={<Sun className="h-4 w-4 text-yellow-500" />}
@@ -105,6 +110,8 @@ const Week = () => {
             />
           </div>
         </div>
+        <div className="text-center text-sm text-custom-12 italic mt-5">For reference only. Consult a doctor if needed.</div>
+        <Upgrade />
       </div>
     </>
   );
@@ -121,21 +128,21 @@ function LegendDot({ color, label }) {
 
 function StatCard({ title, value }) {
   return (
-    <div className="rounded-[8px] bg-white p-3 text-center shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
-      <p className="text-xs text-gray-500">{title}</p>
-      <p className="mt-1 text-sm font-semibold text-orange-500">{value}</p>
+    <div className="rounded-[10px] bg-white p-3 text-center shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
+      <p className="text-sm text-secondary">{title}</p>
+      <p className="mt-[6px] text-[#f09129]">{value}</p>
     </div>
   );
 }
 
 function AdviceCard({ icon, title, desc, bg }) {
   return (
-    <div className={`rounded-[8px] p-4 ${bg}`}>
-      <div className="flex items-center gap-2 text-sm font-medium text-gray-800">
+    <div className={`rounded-[8px] p-4 ${bg} shadow-[0_2px_4px_rgba(0,0,0,0.08)]`}>
+      <div className="flex items-center gap-2 text-base text-secondary">
         {icon}
         {title}
       </div>
-      <p className="mt-1 text-xs text-gray-600">{desc}</p>
+      <p className="mt-1 text-sm text-secondary">{desc}</p>
     </div>
   );
 }

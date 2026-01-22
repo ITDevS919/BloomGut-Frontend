@@ -83,7 +83,7 @@ const DateRangeSelector = (props) => {
   };
 
   return (
-    <div className="bg-ivory mb-[28px]">
+    <div className="bg-ivory mb-[28px] mt-[31px]">
       {/* Date Range Selector */}
       <div className="flex items-center justify-center gap-4 mb-4">
         {/* Previous Button */}

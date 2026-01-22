@@ -66,13 +66,13 @@ const Week = () => {
   };
 
   return (
-    <div className="p-6">
-      <div className="w-full max-w-md rounded-[8px] bg-white p-5 shadow-md">
+    <div className="pl-[15px] pr-[15px] mt-[38px]">
+      <div className="w-full rounded-[20px] bg-white p-5 shadow-[2px_0_10px_rgba(0,0,0,0.15)] mb-20">
         {/* Header */}
-        <h2 className="text-center text-base text-primary">
+        <h2 className="text-center text-base text-primary mb-[9px]">
           Daily Intake
         </h2>
-        <p className="mb-4 text-center text-xs text-gray-400">Weekly Tracker</p>
+        <p className="mb-4 text-center text-xs text-custom-12">Weekly Tracker</p>
 
         {/* Chart wrapper (IMPORTANT) */}
         <div className="relative h-60">
@@ -88,7 +88,7 @@ const Week = () => {
         </div>
 
         {/* Footer text */}
-        <p className="mt-3 text-center text-xs text-gray-400">
+        <p className="mt-[34px] italic text-center text-xs text-custom-12">
           Tap icon for tips
         </p>
       </div>

@@ -122,8 +122,9 @@ const Month = () => {
   };
 
   return (
-    <div className="p-6">
-      <div className="w-full max-w-sm rounded-[8px] bg-white p-5 shadow-md space-y-4">
+    <div className="pl-[15px] pr-[15px] mt-[38px]">
+      <div className="text-base font-medium pl-[15px] mb-[10px] text-primary">Water & Urine Analysis</div>
+      <div className="w-full rounded-[20px] bg-white p-5 shadow-md space-y-4 mb-[33px]">
         {/* Tabs */}
         <div className="flex gap-3 items-center justify-center">
           <Tab active={mode === "line"} onClick={() => setMode("line")}>
@@ -151,7 +152,7 @@ const Month = () => {
           </div>
           <button
             onClick={() => setShowAnalysis(!showAnalysis)}
-            className="text-blue-500 text-xs hover:underline"
+            className="text-blue-500 text-xs"
           >
             {showAnalysis ? "Hide Analysis" : "View Analysis"}
           </button>
@@ -167,64 +168,54 @@ const Month = () => {
 
         {showAnalysis && (
           <div>
-            <div className="flex items-center gap-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
-                <Info className="h-4 w-4 text-blue-500" />
+            <div className="flex items-center gap-2 mb-[21px]">
+              <div className="flex h-[24px] w-[24px] items-center justify-center rounded-full">
+                <Info className="h-[24px] w-[24px] text-blue-500" />
               </div>
-              <h2 className="text-base   text-primary">Analysis Results</h2>
+              <h2 className="text-base font-medium text-primary">Analysis Results</h2>
             </div>
 
             {/* Correlation */}
-            <div className="space-y-1">
-              <h3 className="text-sm   text-secondary">
+            <div className="space-y-1 mb-5">
+              <h3 className="text-sm text-primary font-medium">
                 Correlation with Changes
               </h3>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                For every <span className="font-medium">500ml</span> increase in
-                water intake, urine clarity improves by{" "}
-                <span className="font-medium">12%</span>. Maintain{" "}
-                <span className="font-medium">2000–2500ml</span> daily to keep
-                clarity &gt; <span className="font-medium">75%</span>.
+              <p className="text-xs text-secondary leading-relaxed">
+                For every 500ml increase in water intake, urine clarity improves by 12%.Maintain 2000–2500ml daily to keep clarity &gt; 75%.
               </p>
             </div>
 
             {/* Drinking Time */}
-            <div className="space-y-1">
-              <h3 className="text-sm   text-secondary">
+            <div className="space-y-1 mb-[15px]">
+              <h3 className="text-sm text-primary font-medium mb-2">
                 Drinking Time Analysis
               </h3>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                Morning intake links strongest to clarity. Drink{" "}
-                <span className="font-medium">400–500ml</span> before breakfast
-                to improve urine health.
+              <p className="text-xs text-secondary leading-relaxed">
+                Morning intake links strongest to clarity.Drink 400–500ml before breakfast to improve urine health.
               </p>
             </div>
 
             {/* Abnormal Days */}
-            <div className="space-y-1">
-              <h3 className="text-sm   text-secondary">
+            <div className="space-y-1 mb-3">
+              <h3 className="text-sm text-primary font-medium mb-2">
                 Abnormal Days Analysis
               </h3>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                <span className="font-medium">7 days</span> this month with
-                clarity below <span className="font-medium">60%</span>, mostly
-                <span className="font-medium"> 5th–10th</span>. Related to lower
-                water intake.
+              <p className="text-xs text-secondary leading-relaxed">
+                7 days this month with clarity &lt; 60%, mostly 5th–10th.Related to lower water intake.
               </p>
             </div>
 
             {/* Personal Tip */}
             <div className="rounded-[8px] bg-blue-50 p-4 text-sm text-gray-700">
-              <p className="font-medium text-blue-600 mb-1">Personal Tip</p>
-              <p>
-                Before <span className="font-medium">9 AM</span>, drink at least
-                <span className="font-medium"> 800ml</span> for best urine
-                health.
+              <p className="text-[#619af8] mb-1">Personal Tip</p>
+              <p className="text-xs text-secondary">
+                Before 9 AM, drink at least 800ml for best urine health.
               </p>
             </div>
           </div>
         )}
       </div>
+      <div className="flex justify-center items-center text-gray-400 italic text-sm mt-5 mb-[32px]">For reference only. Consult a doctor if needed.</div>
     </div>
   );
 };
@@ -235,8 +226,8 @@ function Tab({ active, children, onClick }) {
       onClick={onClick}
       className={
         active
-          ? "rounded-lg bg-white px-4 py-1.5 text-sm font-medium shadow"
-          : "rounded-lg px-4 py-1.5 text-sm text-gray-500"
+          ? "rounded-md bg-white px-4 py-1.5 font-base shadow-sm text-secondary"
+          : "rounded-md px-4 py-1.5 text-sm text-secondary"
       }
     >
       {children}
@@ -248,23 +239,23 @@ function LegendDot({ color, label }) {
   return (
     <div className="flex items-center gap-1">
       <span className={`h-2 w-2 rounded-full ${color}`} />
-      <span>{label}</span>
+      <span className="text-xs font-['Aleo'] text-primary">{label}</span>
     </div>
   );
 }
 
 function Stat({ title, value, accent }) {
   const map = {
-    yellow: "border-yellow-300",
-    blue: "border-blue-300",
-    green: "border-green-300",
-    indigo: "border-indigo-300",
+    yellow: "border-[#FDEF89]",
+    blue: "border-[#B8D3F5]",
+    green: "border-[#BAF5CE]",
+    indigo: "border-[#C5D0FC]",
   };
 
   return (
     <div className={`rounded-[8px] border-l-4 ${map[accent]} bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] p-3`}>
-      <p className="text-xs text-primary">{title}</p>
-      <p className="text-sm   text-secondary">{value}</p>
+      <p className="text-sm text-primary font-medium">{title}</p>
+      <p className="text-sm  text-primary font-medium">{value}</p>
     </div>
   );
 }

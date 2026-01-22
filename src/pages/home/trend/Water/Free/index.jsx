@@ -8,7 +8,7 @@ import {
 } from "chart.js";
 import { Bar, Doughnut } from "react-chartjs-2";
 import ChartDataLabels from "chartjs-plugin-datalabels";
-import Upgrade from "../Upgrade";
+import Upgrade from "./Upgrade";
 
 ChartJS.register(
   BarElement,
@@ -128,14 +128,14 @@ const CircleStat = ({ value, label, color }) => {
 
 const Free = () => {
   return (
-    <div className="p-6">
-      <div className="bg-white rounded-[8px] p-4 shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
+    <div className="pl-[15px] pr-[15px]">
+      <div className="bg-white rounded-[27px] p-[32px] shadow-md mb-[36px]">
         <div className="flex items-center justify-between">
-          <div>
-            <div className="text-2xl font-bold text-[#4682B4]">78</div>
-            <div className="text-sm text-gray-500">Good</div>
+          <div className="pl-[50px]">
+            <div className="text-3xl font-medium text-[#4682B4]">78</div>
+            <div className="text-sm text-custom-12">Good</div>
           </div>
-          <div className="text-sm text-[#4682B4]">+5% vs Last</div>
+          <div className="text-sm text-[#4682B4] pr-[50px]">+5% vs Last</div>
         </div>
 
         <div className="mt-4">
@@ -158,17 +158,17 @@ const Free = () => {
       </div>
 
       {/* daily types */}
-      <div className="text-x2 mt-5 mb-3 text-primary">
+      <div className="text-base font-medium mb-5 text-primary">
         Daily Types(ml)
       </div>
-      <div className="bg-white rounded-[8px] shadow p-6">
+      <div className="bg-white rounded-[12px] shadow p-6 mb-[39px]">
         <Bar data={data} options={options} plugins={[goalLine]} />
       </div>
 
-      <div className="text-x2 mt-5 mb-3 text-primary">
+      <div className="text-base font-medium mb-[9px] text-primary">
         Daily Intake Rate
       </div>
-      <div className="bg-white rounded-[8px] shadow p-6 flex gap-8 justify-center">
+      <div className="bg-white rounded-[27px] shadow p-6 flex gap-8 justify-center">
         <CircleStat value={80} label="Avg" color="#1d4ed8" />
         <CircleStat value={100} label="Max" color="#1d4ed8" />
         <CircleStat value={65} label="Min" color="#7dd3fc" />

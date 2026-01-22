@@ -98,13 +98,13 @@ const Week = () => {
   };
 
   return (
-    <div className="p-6">
-      <div className="text-xl font-medium mb-3 text-primary">
+    <div className="pl-[15px] pr-[15px] mt-[44px]">
+      <div className="text-base font-medium mb-[20px] text-primary">
         Water Drinking Time
       </div>
-      <div className="w-full max-w-md rounded-[8px] bg-white p-5 shadow-md">
+      <div className="w-full max-w-md rounded-[27px] bg-white p-5 shadow-md mb-[68px]">
         {/* Info Block */}
-        <div className="mb-4 rounded-[8px] bg-blue-50 px-4 py-3 text-sm text-gray-600">
+        <div className="mb-4 rounded-[12px] bg-[#eff6ff] px-4 py-3 text-sm text-custom-12">
           Chart shows intake by time period to check balance. Concentrated
           drinking may cause constipation or night urination.
         </div>
@@ -117,22 +117,22 @@ const Week = () => {
         {/* Alert and Tip Section */}
         <div className="mt-5 space-y-3 rounded-[8px] bg-yellow-50 p-4">
           {/* Period with Rate */}
-          <div className="flex items-center gap-2 text-sm text-gray-700">
+          <div className="flex items-center gap-2 text-sm text-gray-700 mb-[12px]">
             <span className="h-3 w-3 rounded-full bg-yellow-400" />
-            <span>Afternoon (15-18)</span>
-            <span className="ml-auto text-xs font-medium">Rate: 30%</span>
+            <span className="text-secondary">Afternoon (15-18)</span>
+            <span className="ml-auto text-[9px] text-primary">Rate: 30%</span>
           </div>
 
           {/* Warning */}
           <div className="flex items-center gap-2 text-sm">
-            <AlertTriangle className="w-5 h-5 text-orange-600" />
-            <span className="text-orange-600 font-medium">
+            <AlertTriangle className="w-5 h-5 text-[#ffc92b]" />
+            <span className="text-[#f57c00] text-xs">
               Constipation may link to low afternoon intake.
             </span>
           </div>
 
           {/* Tip */}
-          <div className="rounded-lg bg-white px-3 py-2 text-xs text-gray-600">
+          <div className="rounded-[8px] bg-[#fdfdfd] px-3 py-2 text-xs text-custom-19">
             <span className="font-medium">Tip:</span> Set reminders, drink
             100ml/hr in afternoon.
           </div>
@@ -141,11 +141,11 @@ const Week = () => {
         {/* Summary Cards */}
         <div className="mt-5 grid grid-cols-2 gap-3">
           <StatCard title="Weekly Intake" value="1600ml" sub="Below Std." />
-          <StatCard title="Balance" value="Low" sub="M & PM Low" />
+          <StatCard2 title="Balance" value="Low" sub="M & PM Low" />
         </div>
 
         {/* Footer Text */}
-        <p className="mt-3 text-center text-xs text-gray-400">
+        <p className="mt-[22px] italic text-center text-xs text-custom-12">
           Tap period for tips & impacts.
         </p>
       </div>
@@ -155,10 +155,20 @@ const Week = () => {
 
 function StatCard({ title, value, sub }) {
   return (
-    <div className="rounded-[8px] bg-gray-50 p-3 text-center">
-      <p className="text-xs text-gray-500 mb-1">{title}</p>
-      <p className="text-lg font-bold text-blue-600 mb-1">{value}</p>
-      <p className="text-xs text-blue-500">{sub}</p>
+    <div className="rounded-[10px] shadow-[2px_0_10px_rgba(0,0,0,0.15)] bg-white p-3 text-center">
+      <p className="text-xs text-secondary mb-1">{title}</p>
+      <p className="text-sm text-primary mb-1">{value}</p>
+      <p className="text-xs text-[#3c74ed]">{sub}</p>
+    </div>
+  );
+}
+
+function StatCard2({ title, value, sub }) {
+  return (
+    <div className="rounded-[10px] shadow-[2px_0_10px_rgba(0,0,0,0.15)] bg-white p-3 text-center">
+      <p className="text-xs text-secondary mb-1">{title}</p>
+      <p className="text-sm text-[#3c74ed] mb-1">{value}</p>
+      <p className="text-xs text-secondary">{sub}</p>
     </div>
   );
 }

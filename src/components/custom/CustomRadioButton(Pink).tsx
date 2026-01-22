@@ -24,7 +24,7 @@ export const CustomRadioButtonPink = ({
   return (
     <label
       onClick={() => onSelect(option.id)}
-      className={`flex items-center justify-between rounded-[8px] px-5 py-4 cursor-pointer border shadow-[0_4px_12px_rgba(0,0,0,0.08)]
+      className={`flex items-center justify-between rounded-[20px] px-5 py-4 cursor-pointer border shadow-sm
         ${
           isSelected
             ? "bg-pink-50 border-[#6A1B9A]"
@@ -35,8 +35,8 @@ export const CustomRadioButtonPink = ({
         <Radio checked={isSelected} />
         
         <div className="flex-1">
-          <p className="text-gray-800 mb-1">{option.title}</p>
-          <p className="text-sm text-gray-500">{option.description}</p>
+          <p className="text-base text-secondary mb-1">{option.title}</p>
+          <p className="text-xs text-[#999]">{option.description}</p>
         </div>
       </div>
     </label>

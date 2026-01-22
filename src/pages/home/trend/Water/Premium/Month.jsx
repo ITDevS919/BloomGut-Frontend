@@ -107,10 +107,10 @@ const Month = () => {
     },
   };
   return (
-    <div className="p-6">
-      <div className="w-full max-w-md rounded-[8px] bg-white p-5 shadow-md">
+    <div className="pl-[15px] pr-[15px] mt-[38px]">
+      <div className="w-full rounded-[20px] bg-white p-5 shadow-[2px_0_10px_rgba(0,0,0,0.15)] mb-[54px]">
       {/* Header */}
-      <h2 className="text-center text-base text-primary">
+      <h2 className="text-center text-base text-primary mb-[13px]">
         Weekly Intake Analysis
       </h2>
       <p className="mb-4 text-center text-xs text-gray-400">Monthly Trend</p>
@@ -122,14 +122,14 @@ const Month = () => {
 
       {/* Icons */}
       <div className="mt-4 flex justify-center gap-4">
-        <IconBtn icon={Sun} />
-        <IconBtn icon={AlertTriangle} />
-        <IconBtn icon={Moon} />
-        <IconBtn icon={Clock} />
+        <IconBtn icon={Sun} color="text-yellow-400" />
+        <IconBtn icon={AlertTriangle} color="text-orange-500" />
+        <IconBtn icon={Moon} color="text-blue-300" />
+        <IconBtn icon={Clock} color="text-gray-500" />
       </div>
 
       {/* Footer */}
-      <p className="mt-3 text-center text-xs text-gray-400">
+      <p className="mt-5 text-center text-xs text-custom-12 italic">
           Tap icons for details
         </p>
       </div>
@@ -137,10 +137,10 @@ const Month = () => {
   );
 };
 
-function IconBtn({ icon: Icon }) {
+function IconBtn({ icon: Icon, color = "text-gray-600" }) {
   return (
-    <button className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200">
-      <Icon className="h-4 w-4 text-gray-600" />
+    <button className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-[0_2px_4px_rgba(0,0,0,0.1)] hover:shadow-[0_4px_8px_rgba(0,0,0,0.15)] transition-shadow">
+      <Icon className={`h-4 w-4 ${color}`} />
     </button>
   );
 }

@@ -8,9 +8,9 @@ const Water = () => {
   return (
     // <Premium />
     <>
-      {/* <Free /> */}
+      <Free />
       {/* <Intermediate /> */}
-      <Premium />
+      {/* <Premium /> */}
     </>
   );
 };

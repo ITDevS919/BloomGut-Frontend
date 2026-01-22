@@ -53,7 +53,7 @@ const DateRangeSelectorYellow = (props) => {
       const endDay = endOfWeek.getDate();
       const year = startOfWeek.getFullYear();
 
-      return `${month} ${startDay}-${endDay}, ${year}`;
+      return `${month} ${startDay}, ${year} - ${month} ${endDay}, ${year}`;
     } else {
       // Month view
       const month = months[date.getMonth()];
@@ -83,7 +83,7 @@ const DateRangeSelectorYellow = (props) => {
   };
 
   return (
-    <div className="bg-ivory p-4">
+    <div className="bg-ivory mb-[28px] mt-[31px]">
       {/* Date Range Selector */}
       <div className="flex items-center justify-center gap-4 mb-4">
         {/* Previous Button */}
@@ -96,7 +96,7 @@ const DateRangeSelectorYellow = (props) => {
         </button>
 
         {/* Date Display */}
-        <div className="text-base font-medium text-primary min-w-[180px] text-center">
+        <div className="text-base text-primary min-w-[180px] text-center">
           {formatDateRange(currentDate, viewMode)}
         </div>
 
