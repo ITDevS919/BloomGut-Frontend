@@ -73,7 +73,7 @@ const Settings = () => {
           aria-label="back"
           onClick={() => window.history.back()}
         >
-          <ChevronLeft className="text-primary text-xl leading-none" width="40px" height="40px" />
+          <ChevronLeft className="text-primary text-[40px] leading-none" />
         </button>
         <h2 className="text-lg font-['Noto_Sans_TC', sans-serif]">Settings</h2>
       </div>
