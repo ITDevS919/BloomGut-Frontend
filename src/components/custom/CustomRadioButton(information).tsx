@@ -50,7 +50,7 @@ export const FlowOptionCard = ({
             onInfoClick(option);
           }
         }}
-        className="ml-3 flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-colors"
+        className="ml-3 flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-colors cursor-pointer"
         aria-label="More information"
       >
         <Info className="w-3.5 h-3.5 text-custom-12" />

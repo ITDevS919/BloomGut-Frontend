@@ -111,7 +111,7 @@ const Login = () => {
             <Button
               variant="ghost"
               type="button"
-              className="text-custom-12 p-0"
+              className="text-custom-12 p-0 cursor-pointer"
               onClick={() => navigate("/auth/forgot-password")}
             >
               Forgot Password?
@@ -172,7 +172,7 @@ const Login = () => {
               type="button"
               variant="outline"
               onClick={() => oauthSignIn("google")}
-              className="flex items-center text-primary-muted h-auto rounded-md"
+              className="flex items-center text-primary-muted h-auto rounded-md cursor-pointer"
             >
               <span className="flex justify-center">
                 <FcGoogle className="size-6" size={24} />
@@ -194,7 +194,7 @@ const Login = () => {
               type="button"
               variant="outline"
               onClick={() => oauthSignIn("facebook")}
-              className="flex items-center text-primary-muted h-auto rounded-md"
+              className="flex items-center text-primary-muted h-auto rounded-md cursor-pointer"
             >
               <span className="flex justify-center">
                 <FaFacebook className="size-6" size={24} color="#365999" />
@@ -205,7 +205,7 @@ const Login = () => {
               type="button"
               variant="outline"
               onClick={() => oauthSignIn("apple")}
-              className="flex items-center text-primary-muted h-auto rounded-md"
+              className="flex items-center text-primary-muted h-auto rounded-md cursor-pointer"
             >
               <span className="flex justify-center">
                 <FaApple className="size-6" size={24} />
@@ -215,7 +215,7 @@ const Login = () => {
           </div>
 
           <div className="w-[60%] mx-auto mt-3">
-            <Button type="submit" className="w-full rounded-md shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
+            <Button type="submit" className="w-full rounded-md shadow-[0_4px_12px_rgba(0,0,0,0.08)] cursor-pointer">
               {loading ? "Logging in..." : "Login"}
             </Button>
             <div className="mt-3">

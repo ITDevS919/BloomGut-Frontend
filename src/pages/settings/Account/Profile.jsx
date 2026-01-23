@@ -142,7 +142,7 @@ const Profile = () => {
             aria-label="back"
             onClick={() => window.history.back()}
           >
-            <ChevronLeft className="text-primary text-[40px] leading-none" />
+            <ChevronLeft className="text-primary text-[40px] leading-none cursor-pointer " />
           </button>
           <h2 className="text-lg font-['Roboto', sans-serif]">Profile Settings</h2>
         </div>
@@ -390,7 +390,7 @@ const Profile = () => {
           </div>
 
           <button
-            className="py-3 rounded-[8px] bg-[#C69C6D] text-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] w-10/12 text-center flex items-center justify-center mx-auto mt-3"
+            className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)] mt-3"
           >
             Save Settings
           </button>

@@ -16,7 +16,7 @@ const SubScription = () => {
           aria-label="back"
           onClick={() => window.history.back()}
         >
-          <ChevronLeft className="text-primary text-[40px] leading-none" />
+          <ChevronLeft className="text-primary text-[40px] leading-none cursor-pointer " />
         </button>
         <h2 className="text-lg font-['Noto_Sans_TC', sans-serif]">Subscription</h2>
       </div>

@@ -31,6 +31,8 @@ const StoolPage = () => {
   const [timeValue, setTimeValue] = useState("card");
   const [frequencyValue, setFrequencyValue] = useState("card");
   const [selectedStool, setSelectedStool] = useState(null);
+  const [selectedStoolImage, setSelectedStoolImage] = useState(null);
+  const [selectedColor, setSelectedColor] = useState(null);
   const handleSaveRecord = () => {
     console.log("Save Record clicked");
     // TODO: submit record to backend
@@ -41,52 +43,66 @@ const StoolPage = () => {
       image: StoolType1,
       onclick: () => {
         setSelectedStool(Type1);
+        setSelectedStoolImage("Hard Lumps");
       },
     },
     {
       label: "Lumpy",
       image: StoolType2,
-      onclick: () =>
-        setSelectedStool(Type2),
+      onclick: () => {
+        setSelectedStool(Type2);
+        setSelectedStoolImage("Lumpy");
+      }
+
     },
     {
       label: "Firm",
       image: StoolType3,
-      onclick: () =>
-        setSelectedStool(Type3),
+      onclick: () => {
+        setSelectedStool(Type3);
+        setSelectedStoolImage("Firm");
+      }
     },
     {
       label: "Smooth",
       image: StoolType4,
-      onclick: () =>
-        setSelectedStool(Type4),
+      onclick: () => {
+        setSelectedStool(Type4);
+        setSelectedStoolImage("Smooth");
+      }
     },
     {
       label: "Soft",
       image: StoolType5,
-      onclick: () =>
-        setSelectedStool(Type5),
+      onclick: () => {
+        setSelectedStool(Type5);
+        setSelectedStoolImage("Soft");
+      }
     },
     {
       label: "Mushy",
       image: StoolType6,
-      onclick: () =>
-        setSelectedStool(Type6),
+      onclick: () => {
+        setSelectedStool(Type6);
+        setSelectedStoolImage("Mushy");
+      }
     },
     {
       label: "Watery",
       image: StoolType7,
-      onclick: () =>
-        setSelectedStool(Type7),
+      onclick: () => {
+        setSelectedStool(Type7);
+        setSelectedStoolImage("Watery");
+      }
     },
   ];
 
   const colorOptions = [
-    { label: "Brown", colorCode: "#8b4513" },
-    { label: "Black", colorCode: "#000000" },
-    { label: "Yellow", colorCode: "#daa520" },
-    { label: "Red", colorCode: "#990000" },
-    { label: "Green", colorCode: "#556b2f" },
+    { label: "Brown", colorCode: "#8b4513", onclick: () => { setSelectedColor("Brown"); } },
+    { label: "Black", colorCode: "#000000", onclick: () => { setSelectedColor("Black"); } },
+    { label: "Yellow", colorCode: "#daa520", onclick: () => { setSelectedColor("Yellow"); } },
+    { label: "Red", colorCode: "#990000", onclick: () => { setSelectedColor("Red"); } },
+    { label: "Green", colorCode: "#556b2f", onclick: () => { setSelectedColor("Green"); } },
   ];
 
   const timeOfTheDayOptions = [
@@ -116,8 +132,24 @@ const StoolPage = () => {
     { label: "No bowel movement for 3+ days", value: "noBowl" },
   ];
 
+  const mucusConditionOptions = [
+    { label: "Mucus (clear/white)", value: "mucus_clear" },
+    { label: "Black Clots", value: "black_clots" },
+  ];
+
+  const textureConditionOptions = [
+    { label: "Viscous", value: "viscous" },
+    { label: "Undigested Food", value: "undigested_food" },
+  ];
+
+  const odorConditionOptions = [
+    { label: "Yellow (Normal Odor)", value: "odor_yellow" },
+    { label: "Metallic", value: "odor_metallic" },
+    { label: "Foul", value: "odor_foul" },
+  ];
+
   const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
   return (
     <div className="flex flex-col gap-4 font-['Noto_Sans_TC', sans-serif]">
@@ -165,10 +197,11 @@ const StoolPage = () => {
         <div className="grid grid-cols-7 gap-5 mb-[39px]">
           {stoolImages?.map((i, index) => {
             return (
-              <div className="flex flex-col gap-3 items-center" key={index}>
+              <div className="flex flex-col gap-3 items-center cursor-pointer" key={index}>
                 <img
                   src={i?.image}
-                  className="w-10 h-9.5 object-cover rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+                  className={`w-10 h-9.5 object-cover rounded-full 
+                    ${selectedStoolImage === i?.label ? "border-2 border-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]" : "shadow-[0_1px_3px_rgba(0,0,0,0.04)]"}`}
                   alt={i?.label}
                   onClick={() => i?.onclick()}
                 />
@@ -182,13 +215,15 @@ const StoolPage = () => {
       </div>
 
       <div className="px-5.5 flex flex-col mb-[39px]">
-        <CustomHeading label="Color" isRequired className="mb-[8px]"/>
+        <CustomHeading label="Color" isRequired className="mb-[8px]" />
         <div className="flex justify-between items-center">
           {colorOptions?.map((color, index) => {
             return (
               <div
-                className="w-10.5 h-10 rounded-full shadow-xs flex items-center justify-center"
+                className={`w-10.5 h-10 cursor-pointer rounded-full flex items-center justify-center
+                  ${selectedColor === color?.label ? "border-2 border-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]" : "shadow-[0_1px_3px_rgba(0,0,0,0.04)]"}`}
                 style={{ backgroundColor: color.colorCode }}
+                onClick={() => color?.onclick()}
               >
                 <p className="text-white text-xs text-center">{color?.label}</p>
               </div>
@@ -198,7 +233,7 @@ const StoolPage = () => {
       </div>
 
       <div className="px-5.5 flex flex-col mb-[37px]">
-        <CustomHeading label="Amount" isRequired className="mb-[11px]"/>
+        <CustomHeading label="Amount" isRequired className="mb-[11px]" />
         <SegmentedControl
           labels={["Small", "Medium", "Large"]}
           onChange={(value) => console.log("Selected amount:", value)}
@@ -206,7 +241,7 @@ const StoolPage = () => {
       </div>
 
       <div className="px-5.5 flex flex-col mb-[37px]">
-        <CustomHeading label="Time" isRequired className="mb-[9px]"/>
+        <CustomHeading label="Time" isRequired className="mb-[9px]" />
         <CustomRadioGroup
           value={timeValue}
           onValueChange={setTimeValue}
@@ -227,7 +262,7 @@ const StoolPage = () => {
       </div>
 
       <div className="px-6 flex flex-col mb-[29px]">
-        <CustomHeading label="Frequency" isRequired className="mb-2"/>
+        <CustomHeading label="Frequency" isRequired className="mb-2" />
         <CustomRadioGroup
           value={frequencyValue}
           onValueChange={setFrequencyValue}
@@ -248,7 +283,7 @@ const StoolPage = () => {
       </div>
 
       <div className="px-6.5 flex flex-col mb-[30px]">
-        <CustomHeading label="Time of Day" isRequired className="mb-[20px]"/>
+        <CustomHeading label="Time of Day" isRequired className="mb-[20px]" />
         <div className="flex gap-4">
           {timeOfTheDayOptions?.map((time, i) => {
             return (
@@ -259,7 +294,7 @@ const StoolPage = () => {
       </div>
 
       <div className="px-6.5 flex flex-col mb-[34px]">
-        <CustomHeading label="Symptom Log" isRequired className="mb-[5px]"/>
+        <CustomHeading label="Symptom Log" isRequired className="mb-[5px]" />
         <span className="text-custom-12 text-xs mb-[31px]">
           Select symptoms today (Multiple)
         </span>
@@ -318,7 +353,7 @@ const StoolPage = () => {
         <button
           onClick={handleSaveRecord}
           aria-label="Save Record"
-          className="w-[242px] mx-auto flex items-center justify-center text-white text-base rounded-[8px] bg-[#C69C6D] py-3 shadow-[-2_2px_0px_rgba(0,0,0,0.25)] border border-custom-8"
+          className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)]"
         >
           Save Record
         </button>

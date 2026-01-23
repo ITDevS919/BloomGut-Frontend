@@ -73,7 +73,7 @@ const Settings = () => {
           aria-label="back"
           onClick={() => window.history.back()}
         >
-          <ChevronLeft className="text-primary text-[40px] leading-none" />
+          <ChevronLeft className="text-primary text-[40px] leading-none cursor-pointer  cursor-pointer" />
         </button>
         <h2 className="text-lg font-['Noto_Sans_TC', sans-serif]">Settings</h2>
       </div>
@@ -86,7 +86,7 @@ const Settings = () => {
               <button
                 key={index}
                 onClick={item.onclick}
-                className={`w-full flex items-center justify-between gap-4 px-3 py-3 rounded-[8px] mb-[22px] text-left`}
+                className={`w-full flex items-center justify-between gap-4 px-3 py-3 rounded-[8px] mb-[22px] text-left cursor-pointer`}
               >
                 <div className="flex items-center gap-3" onClick={item.onclick}>
                   <div className="text-secondary" width="21px" height="28px">{item.icon}</div>
@@ -104,7 +104,7 @@ const Settings = () => {
               <button
                 key={index}
                 onClick={item.onclick}
-                className={`w-full flex items-center justify-between gap-4 px-3 py-3 rounded-[8px] mb-[22px] text-left ${item.label.toLowerCase().includes("logout")
+                className={`w-full flex items-center justify-between cursor-pointer gap-4 px-3 py-3 rounded-[8px] mb-[22px] text-left ${item.label.toLowerCase().includes("logout")
                   ? "text-red-500"
                   : ""
                   }`}

@@ -58,7 +58,7 @@ const ForgotPass = () => {
             error={errors.identifier}
           />
 
-          <Button type="submit" className="w-[60%] mx-auto mt-4">
+          <Button type="submit" className="w-[60%] mx-auto mt-4 cursor-pointer">
             {loading ? "Sending..." : "Send Reset Link"}
           </Button>
         </form>

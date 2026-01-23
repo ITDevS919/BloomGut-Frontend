@@ -32,7 +32,7 @@ const FontSize = () => {
           aria-label="back"
           onClick={() => window.history.back()}
         >
-          <ChevronLeft className="text-primary text-[40px] leading-none" />
+          <ChevronLeft className="text-primary text-[40px] leading-none cursor-pointer " />
         </button>
         <h2 className="text-lg font-['Noto_Sans_TC', sans-serif]">Font Size</h2>
       </div>
@@ -101,7 +101,9 @@ const FontSize = () => {
           </div>
         </div>
 
-        <button className="w-[242px] mx-auto flex items-center justify-center bg-[#C69C6D] text-white py-3 rounded-[8px] shadow-[0_6px_12px_rgba(0,0,0,0.15)]" onClick={handleSave}>Save Settings</button>
+        <button className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)]">
+          Save Settings
+        </button>
       </div>
     </div>
   );

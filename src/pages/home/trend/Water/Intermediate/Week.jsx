@@ -53,8 +53,14 @@ const Week = () => {
       legend: { display: false },
       tooltip: { enabled: false },
       datalabels: {
-        anchor: "inner",
-        align: "end",
+        anchor: (context) => {
+          const value = context.dataset.data[context.dataIndex];
+          return value === 0 ? "start" : "inner";
+        },
+        align: (context) => {
+          const value = context.dataset.data[context.dataIndex];
+          return value === 0 ? "start" : "end";
+        },
         offset: 8,
         color: "#111827",
         font: {

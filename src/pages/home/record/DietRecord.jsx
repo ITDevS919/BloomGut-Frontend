@@ -33,7 +33,7 @@ const DietRecord = (props) => {
           aria-label="back"
           onClick={() => window.history.back()}
         >
-          <ChevronLeft className="text-primary text-[40px] leading-none" />
+          <ChevronLeft className="text-primary text-[40px] leading-none cursor-pointer " />
         </button>
         <h2 className="text-lg font-['Noto_Sans_TC', sans-serif]">Diet Record</h2>
       </div>
@@ -97,19 +97,19 @@ const DietRecord = (props) => {
       </div>
       <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] p-6 text-custom-12 text-sm mb-[28px]">
         No records yet, start your log
-        <div class="flex items-center space-x-4 text-xs text-gray-600 mt-3">
-          <div class="flex items-center space-x-1">
-            <span class="w-3 h-3 bg-green-400"></span>
+        <div className="flex items-center space-x-4 text-xs text-gray-600 mt-3">
+          <div className="flex items-center space-x-1">
+            <span className="w-3 h-3 bg-green-400"></span>
             <span>Gut-Friendly</span>
           </div>
 
-          <div class="flex items-center space-x-1">
-            <span class="w-3 h-3 bg-yellow-400"></span>
+          <div className="flex items-center space-x-1">
+            <span className="w-3 h-3 bg-yellow-400"></span>
             <span>Neutral</span>
           </div>
 
-          <div class="flex items-center space-x-1">
-            <span class="w-3 h-3 bg-red-400"></span>
+          <div className="flex items-center space-x-1">
+            <span className="w-3 h-3 bg-red-400"></span>
             <span>May Irritate</span>
           </div>
         </div>
@@ -140,7 +140,7 @@ const DietRecord = (props) => {
         </div>
       </div>
 
-      <button className="w-[242px] mx-auto flex items-center justify-center text-[#705d56] text-lg font-medium rounded-[8px] bg-[#e5e7eb] py-3 shadow-[0_4px_12px_rgba(0,0,0,0.08)] mt-5">Save Record</button>
+      <button className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)] mt-5">Save Record</button>
     </div>
   );
 };

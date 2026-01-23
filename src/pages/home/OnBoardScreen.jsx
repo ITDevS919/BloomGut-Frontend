@@ -41,7 +41,7 @@ const OnBoardScreen = () => {
   return (
     <div className="bg-ivory flex flex-col justify-center items-center text-primary p-6">
       <div className="w-full flex justify-end">
-        <Button variant="ghost" onClick={() => navigate("/home")}>
+        <Button variant="ghost" onClick={() => navigate("/home")} className="cursor-pointer">
           Skip
         </Button>
       </div>
@@ -66,7 +66,7 @@ const OnBoardScreen = () => {
           <Button
             variant="link"
             key={index}
-            className={`p-0 h-2 rounded-full transition-all duration-300 w-2 ${index === activeSlide ? "bg-custom-7" : "bg-custom-18"
+            className={`p-0 h-2 rounded-full transition-all duration-300 w-2 cursor-pointer ${index === activeSlide ? "bg-custom-7" : "bg-custom-18"
               }`}
           />
         ))}
@@ -75,7 +75,7 @@ const OnBoardScreen = () => {
         <div className="mt-4">
           <Button
             variant="outline"
-            className="border border-custom-16 shadow-sm mt-5"
+            className="border border-custom-16 shadow-sm mt-5 cursor-pointer"
             onClick={() => navigate("/home")}
           >
             Start Now

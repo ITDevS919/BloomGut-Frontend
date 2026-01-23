@@ -2,14 +2,16 @@ import { useEffect, useState } from "react";
 import { IoIosArrowDown } from "react-icons/io";
 import { CustomCheckbox } from "./CustomCheckbox";
 
-export const AccordionItem = ({
+export const DropDownSelectorItem = ({
   title,
   options,
   showTextarea,
+  variant = "common",
 }: {
   title: string;
   options?: { label: string; value: string }[];
   showTextarea?: boolean;
+  variant?: "common" | "special";
 }) => {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
@@ -34,9 +36,7 @@ export const AccordionItem = ({
 
   return (
     <>
-      <div
-        className="bg-white rounded-[8px] shadow-sm overflow-hidden border border-custom-8"
-      >
+      <div className="bg-white rounded-[8px] shadow-sm overflow-hidden border border-custom-8">
         <button
           className="w-full flex items-center justify-between p-4 cursor-pointer"
           onClick={() => setOpen(!open)}
@@ -54,37 +54,29 @@ export const AccordionItem = ({
           />
         </button>
       </div>
-
-      {
-        open && (
-          <div className="pt-0">
-            <div className="flex flex-wrap gap-4 items-center">
+      <div className="mt-5">
+        {open && (
+          <div className="px-4 pb-4">
+            <div className={variant === "special"
+              ? "flex flex-col gap-y-3"
+              : "grid grid-cols-2 gap-x-4 gap-y-3"
+            }>
               {(options || []).map((opt) => (
-                <div key={opt.value} className="flex items-center gap-3 ml-[20px]">
+                <div key={opt.value} className="flex items-center">
                   <CustomCheckbox
                     label={opt.label}
                     value={opt.value}
-                    onChange={(e) => toggle(opt.value)}
+                    checked={selected[opt.value] || false}
+                    onCheckedChange={() => toggle(opt.value)}
+                    borderColor="#79b6e2"
+                    checkColor="#79b6e2"
                   />
                 </div>
               ))}
-
-              {showTextarea && (
-                <div className="w-full">
-                  <textarea
-                    value={otherText}
-                    onChange={(e) => onOtherChange(e.target.value)}
-                    placeholder="Describe other symptoms (e.g., night)Max 20 characters, no symbols"
-                    className="w-full min-h-[48px] bg-white border border-[#ccc] text-sm text-secondary rounded-[8px] p-3 mb-[13px] placeholder:text-custom-12 placeholder:font-medium cursor-pointer"
-                    rows={3}
-                  />
-                  <p className="text-xs text-[#9e9e9e] font-medium flex items-center justify-center">Info for reference only; consult doctor if unsure</p>
-                </div>
-              )}
             </div>
           </div>
-        )
-      }
+        )}
+      </div>
     </>
   );
 };

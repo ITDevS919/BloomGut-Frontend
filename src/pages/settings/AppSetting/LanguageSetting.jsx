@@ -19,7 +19,7 @@ const LanguageSetting = () => {
           aria-label="back"
           onClick={() => window.history.back()}
         >
-          <ChevronLeft className="text-primary text-[40px] leading-none" />
+          <ChevronLeft className="text-primary text-[40px] leading-none cursor-pointer " />
         </button>
         <h2 className="text-lg font-['Noto_Sans_TC', sans-serif]">Language Settings</h2>
       </div>
@@ -50,7 +50,7 @@ const LanguageSetting = () => {
 
         <button
           type="button"
-          className="w-[242px] mx-auto flex items-center justify-center bg-[#C69C6D] text-white py-3 rounded-[8px] shadow-[0_6px_12px_rgba(0,0,0,0.15)]"
+          className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)]"
           onClick={() => alert(`Saved language: ${selected}`)}
         >
           Save Settings

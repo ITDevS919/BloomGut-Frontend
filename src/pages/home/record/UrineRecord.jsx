@@ -112,13 +112,13 @@ const UrineRecord = () => {
 
   const [urineStatusValue, setUrineStatusValue] = useState(50);
   const [estimatedUrinationTimeValue, setEstimatedUrinationTimeValue] =
-    useState("steady");
-  const [clarityValue, setClarityValue] = useState("clear and transparent");
-  const [odorValue, setOdorValue] = useState("No Odor");
+    useState("");
+  const [clarityValue, setClarityValue] = useState("");
+  const [odorValue, setOdorValue] = useState("");
   const [urinationFrequencyValue, setUrinationFrequencyValue] =
-    useState("normal");
+    useState("");
   const [nocturnalUrinationValue, setNocturnalUrinationValue] =
-    useState("none");
+    useState("");
 
   const getStatus = (v) => {
     if (v < 33) return "Transparent (Over Hydrated)";
@@ -136,7 +136,7 @@ const UrineRecord = () => {
           aria-label="back"
           onClick={() => window.history.back()}
         >
-          <ChevronLeft className="text-primary text-[40px] leading-none" />
+          <ChevronLeft className="text-primary text-[40px] leading-none cursor-pointer " />
         </button>
         <h2 className="text-lg font-['Noto_Sans_TC', sans-serif]">Urine Record</h2>
       </div>
@@ -277,7 +277,7 @@ const UrineRecord = () => {
       <div className="text-gray-400 flex text-center justify-center italic">
         For reference only. Consult a physician if needed.
       </div>
-      <button className="w-[242px] mx-auto flex items-center justify-center text-white text-lg font-medium rounded-[12px] bg-[#C69C6D] py-3 shadow-[-2px_2px_0_rgba(0,0,0,0.25)] mt-5">
+      <button className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)] mt-5">
         Save
       </button>
     </div>

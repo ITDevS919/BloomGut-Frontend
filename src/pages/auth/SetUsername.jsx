@@ -111,7 +111,7 @@ const SetupUsername = () => {
           className=""
         />
 
-        <Button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading} className="cursor-pointer">
           {loading ? "Saving..." : "Continue"}
         </Button>
       </form>

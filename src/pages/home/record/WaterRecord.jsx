@@ -1,7 +1,11 @@
+import { AccordionItem } from "@/components/custom/AccordionItem";
 import { CustomButton } from "@/components/custom/CustomButton";
 import CustomHeading from "@/components/custom/CustomHeading";
+import { DropDownSelectorItem } from "@/components/custom/DropDownSelectorItem";
 import { ChevronDown, ChevronLeft, Pencil } from "lucide-react";
 import { useState } from "react";
+import { FaGlassWhiskey, FaPencilAlt } from "react-icons/fa";
+import { FaBottleWater, FaGlassWater, FaMugHot } from "react-icons/fa6";
 
 const WaterRecord = () => {
   const days = [
@@ -27,6 +31,19 @@ const WaterRecord = () => {
     "Nov",
     "Dec",
   ];
+  const commonOptions = [
+    { label: "Coffee Cup(250ml)", value: "250ml" },
+    { label: "Glass Cup(300ml)", value: "300ml" },
+    { label: "Thermos(500ml)", value: "500ml" },
+    { label: "Travel Mug(650ml)", value: "650ml" },
+    { label: "Mineral Water(600ml)", value: "600ml" },
+    { label: "Sport Bottle(750ml)", value: "750ml" },
+  ];
+  const specialOptions = [
+    { label: "Outdoor Bottle(1500ml)", value: "1500ml" },
+    { label: "Fitness Bottle(650ml)", value: "650ml" },
+    { label: "Stainless Steel Straw Insulated Cup(1000ml)", value: "1000ml" },
+  ];
   return (
     <div className="bg-ivory min-h-full p-6 text-secondary flex flex-col">
       {/* header */}
@@ -37,7 +54,7 @@ const WaterRecord = () => {
           aria-label="back"
           onClick={() => window.history.back()}
         >
-          <ChevronLeft className="text-primary text-[40px] leading-none" />
+          <ChevronLeft className="text-primary text-[40px] leading-none cursor-pointer " />
         </button>
         <h2 className="text-lg font-['Noto_Sans_TC', sans-serif]">Water Record</h2>
       </div>
@@ -52,7 +69,7 @@ const WaterRecord = () => {
             {months[new Date().getMonth()]} {new Date().getDate()}
           </p>
         </div>
-        <CustomButton variant="outline" className="bg-white">
+        <CustomButton variant="outline" className="bg-white cursor-pointer">
           View Trend
         </CustomButton>
       </div>
@@ -66,9 +83,9 @@ const WaterRecord = () => {
             <span>Today</span>
             <span>2000ml</span>
           </div>
-          <div className="relative h-6 rounded-full bg-gray-200">
+          <div className="relative h-6 rounded-full bg-[#e5e5e5] shadow-[0_2px_8px_rgba(0,0,0,0.16)]">
             <div
-              className="absolute left-0 top-0 h-6 rounded-full bg-blue-400 text-center text-white text-xs leading-6"
+              className="absolute left-0 top-0 h-6 rounded-full bg-custom-13 text-center text-white text-xs leading-6"
               style={{ width: "32%" }}
             >
               650ml
@@ -77,35 +94,42 @@ const WaterRecord = () => {
         </div>
 
         {/* Recently Used */}
-        <div className="flex items-center justify-between text-sm mt-5">
+        <div className="flex items-center justify-between text-sm mt-[44px] mb-[31px]">
           <span className="font-medium">Recently Used</span>
-          <button className="shadow-[0_4px_12px_rgba(0,0,0,0.08)] border-gray-400 rounded-[8px] border px-3 py-1 text-xs">
+          <button className="bg-white shadow-[0_2px_8px_#afafaf] text-secondary border-custom-16 rounded-[8px] border px-3 py-1 text-xs cursor-pointer">
             Custom Amount
           </button>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 mt-3">
-          <QuickItem icon="☕" label="Coffee Cup" value="250ml" />
-          <QuickItem icon="🥛" label="Glass Cup" value="350ml" />
-          <QuickItem icon="🧴" label="Sport Bottle" value="750ml" />
+        <div className="grid grid-cols-3 gap-3 mt-3 mb-[45px]">
+          <QuickItem icon={<FaMugHot size={32} />} color="#a05a2c" label="Coffee Cup" value="250ml" />
+          <QuickItem icon={<FaGlassWater size={32} />} color="#d2d2d2" label="Glass Cup" value="350ml" />
+          <QuickItem icon={<FaBottleWater size={32} />} color="#79b6e2" label="Sport Bottle" value="750ml" />
         </div>
 
         <CustomHeading
           label="Select Container Type"
           isRequired
-          className="mt-5"
+          className="mt-5 mb-5"
         />
-        <CommonCollapse />
+        <DropDownSelectorItem
+          title="Common"
+          options={commonOptions}
+        />
 
-        <CustomHeading label="Special" isRequired className="mt-5" />
-        <SpecialCollapse />
+        <CustomHeading label="Special" isRequired className="mt-5 mb-5" />
+        <DropDownSelectorItem
+          title="Special"
+          options={specialOptions}
+          variant="special"
+        />
 
         {/* Today's Record */}
         <TodaysRecord />
 
         <button
           type="button"
-          className="w-10/12 mx-auto flex items-center justify-center text-white text-lg font-medium rounded-[8px] bg-[#C69C6D] py-3 shadow-[0_4px_12px_rgba(0,0,0,0.08)] mt-5"
+          className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)] mt-5"
           onClick={() => alert(`Saved language: ${selected}`)}
         >
           Save
@@ -115,12 +139,12 @@ const WaterRecord = () => {
   );
 };
 
-function QuickItem({ icon, label, value, active }) {
+function QuickItem({ icon, label, value, active, color }) {
   return (
-    <div className="rounded-[8px] border p-3 text-center text-xs shadow-[0_4px_12px_rgba(0,0,0,0.08)] border-gray-400">
-      <div className="text-xl">{icon}</div>
-      <p className="mt-1 font-medium">{label}</p>
-      <p className="text-gray-500">{value}</p>
+    <div className="rounded-[12px] border border-custom-10 p-3 text-center text-xs shadow-[0_4px_12px_rgba(0,0,0,0.08)] bg-white">
+      <div className="flex items-center justify-center text-xl mt-[17px]" style={{ color: color }}>{icon}</div>
+      <p className="text-secondary text-sm mt-[15px] mb-[7px]">{label}</p>
+      <p className="text-custom-12 text-sm">{value}</p>
     </div>
   );
 }
@@ -269,14 +293,14 @@ function TodaysRecord() {
   return (
     <div className="mt-5">
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-lg font-medium text-primary">Today's Record</h3>
+      <div className="flex  mb-3">
+        <h3 className="text-base font-medium text-primary">Today's Record</h3>
         <button
           type="button"
-          className="text-gray-400 hover:text-gray-600 transition-colors"
+          className="text-gray-400 hover:text-gray-600 transition-colors ml-5"
           aria-label="Edit record"
         >
-          <Pencil className="h-4 w-4" />
+          <FaPencilAlt className="h-4 w-4" />
         </button>
       </div>
 
@@ -292,7 +316,12 @@ function TodaysRecord() {
           </div>
         ))}
       </div>
-    </div>
+
+      <div className="grid grid-cols-2 mt-[28px] mb-[57px] gap-[106px] ">
+        <button className="w-[99px] bg-white border border-custom-16 ml-5 rounded-[8px] px- py-1 text-sm text-secondary shadow-[0_2px_6px_#afafaf]">Trend</button>
+        <button className="w-[99px] bg-white border border-custom-16 rounded-[8px] px-2 py-1 text-sm text-secondary shadow-[0_2px_6px_#afafaf]">Reminder</button>
+      </div>
+    </div >
   );
 }
 

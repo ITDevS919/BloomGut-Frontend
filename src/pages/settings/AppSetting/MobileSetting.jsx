@@ -87,7 +87,7 @@ const MobileSetting = () => {
 
         <button
           type="button"
-          className={`w-[242px] mx-auto flex items-center justify-center text-white text-base py-3 rounded-[8px]  bg-[#C69C6D] shadow-sm`}
+          className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)]"
           onClick={() => {
             // simple client-side validation demo: show error when code empty or incorrect
             if (!code) {

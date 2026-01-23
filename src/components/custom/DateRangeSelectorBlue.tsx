@@ -92,7 +92,7 @@ const DateRangeSelectorBlue = (props) => {
           className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors bg-[#EDEDEF]"
           aria-label="Previous"
         >
-          <ChevronLeft className="w-5 h-5 text-gray-600" />
+          <ChevronLeft className="w-5 h-5 text-gray-600 cursor-pointer" />
         </button>
 
         {/* Date Display */}
@@ -106,7 +106,7 @@ const DateRangeSelectorBlue = (props) => {
           className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors bg-[#EDEDEF]"
           aria-label="Next"
         >
-          <ChevronRight className="w-5 h-5 text-gray-600" />
+          <ChevronRight className="w-5 h-5 text-gray-600 cursor-pointer" />
         </button>
       </div>
 

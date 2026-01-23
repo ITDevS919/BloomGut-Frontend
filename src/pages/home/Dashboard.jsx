@@ -25,7 +25,7 @@ const Dashboard = () => {
         </div>
         <div className="flex flex-col gap-5 mt-15">
           <div
-            className="flex justify-start gap-3 bg-[#dfd2b2] rounded-[15px] p-5 cursor-pointer shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+            className="flex justify-start gap-3 bg-[#dfd2b2] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)]"
             onClick={() => navigate("/stool")}
           >
             <div className="flex-0">
@@ -33,7 +33,7 @@ const Dashboard = () => {
             </div>
             <div className="flex-1 flex flex-col text-start gap-2">
               <div className="flex gap-2 items-center">
-                <span className="text-primary font-bold text-lg">Poop</span>
+                <span className="text-primary font-medium text-lg">Poop</span>
                 <span className="text-primary-muted text-sm">
                   Monitor your Bowel health
                 </span>
@@ -60,13 +60,13 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="flex justify-start gap-3 bg-[#e0d5e6] rounded-[15px] p-5 cursor-pointer shadow-[0_4px_12px_rgba(0,0,0,0.08)]" onClick={() => navigate("/diet-record")}>
+          <div className="flex justify-start gap-3 bg-[#e0d5e6] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)]" onClick={() => navigate("/diet-record")}>
             <div>
               <FaUtensils className="text-primary" size={24} />
             </div>
             <div className="flex-1 flex flex-col text-start gap-2">
               <div className="flex gap-2 items-center">
-                <span className="text-primary font-bold text-lg">
+                <span className="text-primary font-medium text-lg">
                   Diet Record
                 </span>
                 <span className="text-primary-muted text-sm">
@@ -93,7 +93,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="flex justify-start gap-3 bg-[#d7eaf8] rounded-[15px] p-5 cursor-pointer shadow-[0_4px_12px_rgba(0,0,0,0.08)]" onClick={() => navigate("/water-record")}>
+          <div className="flex justify-start gap-3 bg-[#d7eaf8] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)]" onClick={() => navigate("/water-record")}>
             <div>
               <FaGlassWhiskey className="text-primary" size={24} />
             </div>
@@ -124,7 +124,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="flex justify-start gap-3 bg-[#fff3cd] rounded-[15px] p-5 cursor-pointer shadow-[0_4px_12px_rgba(0,0,0,0.08)]" onClick={() => navigate("/urine-record")}>
+          <div className="flex justify-start gap-3 bg-[#fff3cd] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)]" onClick={() => navigate("/urine-record")}>
             <div>
               <MdWaterDrop className="text-primary" size={24} />
             </div>

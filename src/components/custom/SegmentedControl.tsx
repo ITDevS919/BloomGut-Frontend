@@ -146,6 +146,7 @@ const SegmentedControl: React.FC<Props> = ({
               cursor: "grab",
               transition: "left 120ms",
             }}
+            className="cursor-pointer"
             onMouseDown={(e) => e.preventDefault()}
             onFocus={(e) => (e.currentTarget.style.outline = "2px solid rgba(246,160,42,0.25)")}
             onBlur={(e) => (e.currentTarget.style.outline = "")}

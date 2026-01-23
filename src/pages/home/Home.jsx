@@ -19,6 +19,7 @@ const Home = () => {
             navigate("/auth/login");
           }}
           variant="outline"
+          className="cursor-pointer"
         >
           Existing Account
         </Button>
@@ -27,22 +28,23 @@ const Home = () => {
             navigate("/auth/register");
           }}
           variant="outline"
+          className="cursor-pointer"
         >
           Register New Account
         </Button>
       </div>
       <div className="flex flex-col gap-4 mt-16 mb-auto">
         <div className="flex gap-5">
-          <FaToilet size={32} className="text-[#e29c53]" />
+          <FaToilet size={32} className="text-[#e29c53] cursor-pointer" />
           <p className="text-primary">Bowel Movement</p>
         </div>
         <div className="flex gap-5">
-          <FaGlassWhiskey size={32} className="text-[#79b6e2]" />
+          <FaGlassWhiskey size={32} className="text-[#79b6e2] cursor-pointer" />
           <p className="text-primary">Water Intake</p>
         </div>
         <div className="flex gap-5">
           {/* <FaArrowTrendUp size={32} className="text-[#3fb96e]" /> */}
-          <Icon name={"Trendup"} height={32} width={32} />
+          <Icon name={"Trendup"} height={32} width={32} className="cursor-pointer" />
           <p className="text-primary">Health Trends</p>
         </div>
       </div>

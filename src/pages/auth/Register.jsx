@@ -84,11 +84,11 @@ const Register = () => {
         <div className="flex items-center gap-4 mb-35">
           <button
             type="button"
-            className="text-primary text-xl leading-none"
+            className="text-primary text-xl leading-none cursor-pointer"
             aria-label="back"
             onClick={() => window.history.back()}
           >
-            <ChevronLeft className="text-primary text-[40px] leading-none" />
+            <ChevronLeft className="text-primary text-[40px] leading-none cursor-pointer " />
           </button>
           <h2 className="text-lg font-['Noto_Sans_TC', sans-serif]">Create Account</h2>
         </div>
@@ -140,7 +140,7 @@ const Register = () => {
 
           <div id="clerk-captcha" />
 
-          <Button type="submit" className="w-[60%] mx-auto">
+          <Button type="submit" className="w-[60%] mx-auto cursor-pointer">
             Register
           </Button>
         </form>

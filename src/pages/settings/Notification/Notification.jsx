@@ -59,7 +59,7 @@ const Notification = () => {
           onClick={() => window.history.back()}
           style={{ background: "transparent", border: "none", padding: 0 }}
         >
-          <ChevronLeft className="text-primary text-[40px] leading-none" />
+          <ChevronLeft className="text-primary text-[40px] leading-none cursor-pointer " />
         </button>
         <h2 className="text-lg">Notification Settings</h2>
       </div>
