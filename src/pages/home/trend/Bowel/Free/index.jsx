@@ -333,7 +333,7 @@ const Free = () => {
                     </span>
                   </div>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center absolute">
+                  <div className="w-full h-full flex items-end justify-center absolute bottom-0 pb-1">
                     <span className="text-custom-1 text-xs">0%</span>
                   </div>
                 )}

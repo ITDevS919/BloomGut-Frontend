@@ -13,7 +13,7 @@ const TrendHeader = (props) => {
 
   return (
     <div className="bg-ivory p-1 text-secondary font-['Noto_Sans_TC', sans-serif]">
-      <div className="flex items-center gap-4 mb-6 mt-[20px]">
+      <div className="flex items-center gap-4 mb-6 mt-[20px] ml-[20px]">
         <button
           type="button"
           className="text-primary text-xl leading-none"
@@ -22,7 +22,7 @@ const TrendHeader = (props) => {
         >
           <ChevronLeft className="text-primary text-[40px] leading-none cursor-pointer " />
         </button>
-        <h2 className="text-lg font-medium text-primary">Health Trends</h2>
+        <h2 className="text-lg text-primary">Health Trends</h2>
       </div>
 
       <div className="flex justify-end mt-5">

@@ -54,26 +54,17 @@ const options = {
   plugins: {
     legend: { display: false },
     tooltip: { enabled: false },
-      datalabels: {
-        anchor: (context) => {
-          const value = context.dataset.data[context.dataIndex];
-          return value === 0 ? "start" : "end";
-        },
-        align: (context) => {
-          const value = context.dataset.data[context.dataIndex];
-          return value === 0 ? "bottom" : "end";
-        },
-        offset: (context) => {
-          const value = context.dataset.data[context.dataIndex];
-          return value === 0 ? 4 : 4;
-        },
-        color: "#111827",
-        font: {
-          weight: "600",
-          size: 12,
-        },
-        formatter: (value) => value,
+    datalabels: {
+      anchor: "end",
+      align: "end",
+      offset: 4,
+      color: "#111827",
+      font: {
+        weight: "600",
+        size: 12,
       },
+      formatter: (value) => value,
+    },
   },
   scales: {
     x: { grid: { display: false } },
