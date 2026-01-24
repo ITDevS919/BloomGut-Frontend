@@ -7,8 +7,8 @@ import { FaTwitterSquare } from "react-icons/fa";
 const initialServices = [
   { id: "google", name: "Google", bound: false, subtitle: "Bound: user@gmail.com" },
   { id: "facebook", name: "Facebook", bound: false, subtitle: "Bound: Username" },
-  { id: "line", name: "LINE", bound: true, subtitle: "Link your LINE account for" },
-  { id: "twitter", name: "Twitter", bound: true, subtitle: "Link your Twitter account for" },
+  // { id: "line", name: "LINE", bound: true, subtitle: "Link your LINE account for" },
+  // { id: "twitter", name: "Twitter", bound: true, subtitle: "Link your Twitter account for" },
   { id: "apple", name: "Apple", bound: true, subtitle: "Sign in with Apple for privacy" },
 ];
 
@@ -29,10 +29,10 @@ const Binding = () => {
         return <FcGoogle className={`${base}`} />;
       case "facebook":
         return <FaFacebook className={`${base}`} color="#365999" />
-      case "line":
-        return <FaLine className={`${base} text-white bg-[#3fb96e]`} />;
-      case "twitter":
-        return <FaSquareTwitter className={`${base} text-white bg-[#1da1f2]`} />;
+      // case "line":
+      //   return <FaLine className={`${base} text-white bg-[#3fb96e]`} />;
+      // case "twitter":
+      //   return <FaSquareTwitter className={`${base} text-white bg-[#1da1f2]`} />;
       case "apple":
         return <FaApple className={`${base} text-whitebg-gray-700`} />;
       default:

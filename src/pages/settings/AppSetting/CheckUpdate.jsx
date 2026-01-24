@@ -42,7 +42,7 @@ const CheckUpdate = () => {
                 setAutoUpdate((s) => !s)
               }}
               aria-pressed={autoUpdate}
-              className="w-12 h-7 flex items-center p-1 rounded-full transition-colors bg-custom-8"
+              className={`w-12 h-7 flex items-center p-1 rounded-full transition-colors bg-custom-8 ${autoUpdate ? "border border-[#705d57]" : ""}`}
             >
               <div
                 className={`w-5 h-5 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.08)] transform transition-transform ${autoUpdate ? "translate-x-5 bg-[#C69C6D]" : "translate-x-0 bg-[#C69C6D]"

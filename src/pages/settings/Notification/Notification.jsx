@@ -81,10 +81,10 @@ const Notification = () => {
               setEmail(!oneClickOpen);
             }}
             aria-pressed={oneClickOpen}
-            className="w-12 h-7 flex items-center p-1 rounded-full transition-colors bg-custom-8"
+            className={`w-12 h-7 flex items-center p-1 rounded-full transition-colors bg-custom-8 ${oneClickOpen ? "border border-[#705d57]" : ""}`}
           >
             <div
-              className={`w-5 h-5 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.08)] transform transition-transform ${subUpdates ? "translate-x-5 bg-[#C69C6D]" : "translate-x-0 bg-[#C69C6D]"
+              className={`w-5 h-5 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.08)] transform transition-transform ${oneClickOpen ? "translate-x-5 bg-[#C69C6D]" : "translate-x-0 bg-[#C69C6D]"
                 }`}
             />
           </button>
@@ -105,7 +105,7 @@ const Notification = () => {
               else setOneClickOpen(true);
             }}
             aria-pressed={subUpdates}
-            className="w-12 h-7 flex items-center p-1 rounded-full transition-colors bg-custom-8"
+            className={`w-12 h-7 flex items-center p-1 rounded-full transition-colors bg-custom-8 ${subUpdates ? "border border-[#705d57]" : ""}`}
           >
             <div
               className={`w-5 h-5 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.08)] transform transition-transform ${subUpdates ? "translate-x-5 bg-[#C69C6D]" : "translate-x-0 bg-[#C69C6D]"
@@ -123,7 +123,7 @@ const Notification = () => {
               else setOneClickOpen(true);
             }}
             aria-pressed={offers}
-            className="w-12 h-7 flex items-center p-1 rounded-full transition-colors bg-custom-8"
+            className={`w-12 h-7 flex items-center p-1 rounded-full transition-colors bg-custom-8 ${offers ? "border border-[#705d57]" : ""}`}
           >
             <div
               className={`w-5 h-5 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.08)] transform transition-transform ${offers ? "translate-x-5 bg-[#C69C6D]" : "translate-x-0 bg-[#C69C6D]"
@@ -141,7 +141,7 @@ const Notification = () => {
               else setOneClickOpen(true);
             }}
             aria-pressed={maintenance}
-            className="w-12 h-7 flex items-center p-1 rounded-full transition-colors bg-custom-8"
+            className={`w-12 h-7 flex items-center p-1 rounded-full transition-colors bg-custom-8 ${maintenance ? "border border-[#705d57]" : ""}`}
           >
             <div
               className={`w-5 h-5 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.08)] transform transition-transform ${maintenance ? "translate-x-5 bg-[#C69C6D]" : "translate-x-0 bg-[#C69C6D]"
@@ -167,7 +167,7 @@ const Notification = () => {
               else setOneClickOpen(true);
             }}
             aria-pressed={inApp}
-            className="w-12 h-7 flex items-center p-1 rounded-full transition-colors bg-custom-8"
+            className={`w-12 h-7 flex items-center p-1 rounded-full transition-colors bg-custom-8 ${inApp ? "border border-[#705d57]" : ""}`}
           >
             <div
               className={`w-5 h-5 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.08)] transform transition-transform ${inApp ? "translate-x-5 bg-[#C69C6D]" : "translate-x-0 bg-[#C69C6D]"
@@ -185,7 +185,7 @@ const Notification = () => {
               else setOneClickOpen(true);
             }}
             aria-pressed={email}
-            className="w-12 h-7 flex items-center p-1 rounded-full transition-colors bg-custom-8"
+            className={`w-12 h-7 flex items-center p-1 rounded-full transition-colors bg-custom-8 ${email ? "border border-[#705d57]" : ""}`}
           >
             <div
               className={`w-5 h-5 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.08)] transform transition-transform ${email ? "translate-x-5 bg-[#C69C6D]" : "translate-x-0 bg-[#C69C6D]"

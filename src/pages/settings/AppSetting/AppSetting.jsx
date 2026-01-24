@@ -14,7 +14,7 @@ const AppSetting = () => {
           aria-label="back"
           onClick={() => window.history.back()}
         >
-          <ChevronLeft className="text-primary text-[40px]] leading-none" />
+          <ChevronLeft className="text-primary text-[40px]] leading-none cursor-pointer" />
         </button>
         <h2 className="text-lg">App Settings</h2>
       </div>

@@ -2,6 +2,14 @@
 @import url("https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap");
 @import "tailwindcss";
 
+/* Prevent body and html from scrolling - app handles its own scrolling */
+html, body {
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
 @theme {
   /* Brand / App */
   --color-primary: #5d4037;
