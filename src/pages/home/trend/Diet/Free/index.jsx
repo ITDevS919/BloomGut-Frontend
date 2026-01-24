@@ -26,7 +26,7 @@ ChartJS.register(
   ChartDataLabels
 );
 
-const Free = () => {
+const Free = ({ showUpgrade = true }) => {
   const [selectedDate, setSelectedDate] = useState("3/16");
 
   // Dietary breakdown data
@@ -477,6 +477,7 @@ const Free = () => {
       </div>
 
       {/* <Upgrade /> */}
+      {showUpgrade && <Upgrade />}
     </div >
   );
 };

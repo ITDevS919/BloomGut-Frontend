@@ -29,7 +29,7 @@ ChartJS.register(
   ChartDataLabels
 );
 
-const Free = () => {
+const Free = ({ showUpgrade = true }) => {
   // Daily bowel count data
   const dailyData = [1, 2, 3, 1, 2, 0, 1];
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -357,7 +357,7 @@ const Free = () => {
         </div>
       </div>
 
-      {/* <Upgrade /> */}
+      {showUpgrade && <Upgrade />}
     </div>
   );
 };

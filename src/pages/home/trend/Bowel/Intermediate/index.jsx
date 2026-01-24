@@ -97,7 +97,7 @@ const Intermediate = () => {
     <div>
       {/* Date Range Selector Header */}
       <DateRangeSelector setViewMode={setViewMode} />
-      <Free />
+      <Free showUpgrade={false} />
       <div className="pl-[15px] pr-[15px]">
         {/* Content */}
 

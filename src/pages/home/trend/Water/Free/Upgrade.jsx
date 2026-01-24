@@ -1,6 +1,8 @@
 import { LockKeyhole } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Upgrade = () => {
+  const navigate = useNavigate();
   return (
     <>
       {/* upgrade card */}
@@ -17,7 +19,9 @@ const Upgrade = () => {
         <div className="text-xs text-secondary mb-[21px]">
           Track Bowel health and g et personalized tips
         </div>
-        <button className="bg-[#3788C1] font-['Mulish'] text-white px-6 py-2 rounded-full shadow-[0_3px_8px_rgba(0,0,0,0.08)]">
+        <button className="bg-[#3788C1] font-['Mulish'] text-white px-6 py-2 rounded-full shadow-[0_3px_8px_rgba(0,0,0,0.08)] cursor-pointer"
+          onClick={() => navigate("/setting/upgrade-plan")}
+        >
           Upgrade Now
         </button>
         <div className="flex justify-between text-xs mt-4">

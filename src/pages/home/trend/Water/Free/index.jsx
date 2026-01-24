@@ -91,7 +91,7 @@ const data = {
   ],
 };
 
-const CircleStat = ({ value, label, color }) => {
+const CircleStat = ({ value, label, color, showUpgrade = true }) => {
   const data = {
     datasets: [
       {
@@ -122,6 +122,7 @@ const CircleStat = ({ value, label, color }) => {
           {label}
         </span>
       </div>
+      {showUpgrade && <Upgrade />}
     </div>
   );
 };

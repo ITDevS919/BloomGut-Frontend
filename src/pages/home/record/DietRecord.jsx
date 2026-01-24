@@ -7,8 +7,12 @@ import { CustomButton } from "@/components/custom/CustomButton";
 import { MdHttps } from "react-icons/md";
 
 const DietRecord = (props) => {
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
   const [searchValue, setSearchValue] = useState("");
   const [state, setState] = useState("idle");
+  const [clickedNutritionLabel, setClickedNutritionLabel] = useState(false);
 
   useEffect(() => {
     setSearchValue(props.recordResult);
@@ -38,57 +42,82 @@ const DietRecord = (props) => {
         <h2 className="text-lg font-['Noto_Sans_TC', sans-serif]">Diet Record</h2>
       </div>
 
-      {/* Search Bar */}
-      <div className="flex justify-center">
-        <div className="relative flex items-center bg-white rounded-full shadow-md overflow-hidden w-full max-w-md mb-5">
-          {/* Magnifying Glass Icon */}
-          <div className="pl-4 pr-3 flex items-center">
-            <Search className="w-5 h-5" style={{ color: "#a78bfa" }} />
+      {!clickedNutritionLabel && <>
+        <div className="flex justify-between mb-10">
+          <div>
+            <p className="text-[20px] text-primary font-bold font-base">
+              {days[new Date().getDay()]}
+            </p>
+            <p className="text-[20px] text-primary">
+              {months[new Date().getMonth()]} {new Date().getDate()}
+            </p>
+          </div>
+          <CustomButton variant="outline" className="bg-white">
+            View Trend
+          </CustomButton>
+        </div>
+      </>}
+      <>
+        {/* Search Bar */}
+        {clickedNutritionLabel && <>
+
+          <div className="flex justify-center">
+            <div className="relative flex items-center bg-white rounded-full shadow-md overflow-hidden w-full max-w-md mb-5">
+              {/* Magnifying Glass Icon */}
+              <div className="pl-4 pr-3 flex items-center">
+                <Search className="w-5 h-5" style={{ color: "#a78bfa" }} />
+              </div>
+
+              {/* Vertical Separator */}
+              <div className="h-6 w-px bg-gray-300"></div>
+
+              {/* Input Field */}
+              <input
+                type="text"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                placeholder="Enter food (e.g., chicken rice)"
+                className="flex-1 px-4 py-4 text-sm outline-none placeholder:text-custom-12 text-gray-700 bg-transparent"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleSearch(searchValue);
+                  }
+                }}
+              />
+
+              {/* Microphone Icon */}
+              <button
+                type="button"
+                onClick={handleVoiceInput}
+                className="pr-4 pl-3 flex items-center hover:opacity-70 transition-opacity"
+                aria-label="Voice input"
+              >
+                <Mic className="w-5 h-5" style={{ color: "#a78bfa" }} />
+              </button>
+            </div>
+
+          </div>
+          {!searchValue && (
+            <div className="text-secondary text-center text-sm mb-[11px]">
+              💡 You can enter a full sentence like: 'I had     eggs and vegetables for breakfas
+            </div>
+          )}
+
+          <div className="text-custom-12 text-center text-xs mb-[46px]">
+            Nutrition label generated automatically
           </div>
 
-          {/* Vertical Separator */}
-          <div className="h-6 w-px bg-gray-300"></div>
+        </>}
 
-          {/* Input Field */}
-          <input
-            type="text"
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            placeholder="Enter food (e.g., chicken rice)"
-            className="flex-1 px-4 py-4 text-sm outline-none placeholder:text-custom-12 text-gray-700 bg-transparent"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                handleSearch(searchValue);
-              }
-            }}
-          />
 
-          {/* Microphone Icon */}
-          <button
-            type="button"
-            onClick={handleVoiceInput}
-            className="pr-4 pl-3 flex items-center hover:opacity-70 transition-opacity"
-            aria-label="Voice input"
-          >
-            <Mic className="w-5 h-5" style={{ color: "#a78bfa" }} />
-          </button>
-        </div>
-      </div>
-
-      {!searchValue && (
-        <div className="text-secondary text-center text-sm mb-[11px]">
-          💡 You can enter a full sentence like: 'I had     eggs and vegetables for breakfas
-        </div>
-      )}
-      <div className="text-custom-12 text-center text-xs mb-[46px]">
-        Nutrition label generated automatically
-      </div>
-
+      </>
       <div className="flex flex-col gap-4 text-primary font-medium mb-3">
         Nutrition Label
       </div>
-      <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.15)] p-6 text-custom-12 mb-[28px]">
+      <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.15)] p-6 text-custom-12 mb-[28px]"
+        onClick={() => setClickedNutritionLabel(true)}
+      >
         No data yet, record your first meal
       </div>
 
@@ -117,18 +146,33 @@ const DietRecord = (props) => {
 
       <div className="flex flex-col gap-4 text-primary  mb-3 ">
         <CustomHeading label="Daily Progress" isRequired />
-        <div className="flex flex-col gap-2">
-          <CustomCheckbox label="Breakfast" />
-          <CustomCheckbox label="Lunch" />
-          <CustomCheckbox label="Dinner" />
-        </div>
+        {!clickedNutritionLabel ?
+          <>
+            <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.15)] p-6 text-custom-12 mb-[28px] text-sm">
+              Complete your food and symptoms log to see progress
+            </div>
+          </> : <>
+            <div className="flex flex-col gap-2">
+              <CustomCheckbox label="Breakfast" />
+              <CustomCheckbox label="Lunch" />
+              <CustomCheckbox label="Dinner" />
+            </div>
+          </>}
       </div>
 
-      <div className="flex flex-col gap-4 text-primary font-medium mt-5">
+      <div className="flex flex-col gap-4 text-primary font-medium mb-4">
         Gut Calendar View
       </div>
 
-      <div className="mb-[40px] mt-[40px] text-sm text-custom-12">No records found</div>
+      {!clickedNutritionLabel ?
+        <>
+          <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.15)] p-6 text-custom-12 mb-[28px] text-sm">
+            No records found
+          </div>
+        </> :
+        <>
+          <div className="mb-[40px] mt-[40px] text-sm text-custom-12">No records found</div>
+        </>}
 
       <div className="text-primary mt-5 mb-[63px]">
         <div className="font-medium">Gut Trends</div>

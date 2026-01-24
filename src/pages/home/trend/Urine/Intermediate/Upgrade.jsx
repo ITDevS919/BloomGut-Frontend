@@ -14,12 +14,12 @@ const Upgrade = () => {
           <p className="text-sm text-gray-400 mb-1">
             Upgrade to Premium for Analysis
           </p>
-          <button className="text-sm text-red-600 hover:underline">
+          <button className="text-sm text-red-600 hover:underline cursor-pointer">
             Urine still yellow? Check diet
           </button>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

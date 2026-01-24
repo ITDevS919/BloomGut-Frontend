@@ -2,7 +2,7 @@ import { Smile } from "lucide-react";
 import Upgrade from "./Upgrade";
 import { FaSmile } from "react-icons/fa";
 
-const Free = () => {
+const Free = ({ showUpgrade = true }) => {
   const days = [
     { day: "Mon", status: "clear" },
     { day: "Tue", status: "clear" },
@@ -117,6 +117,7 @@ const Free = () => {
       </div>
 
       {/* <Upgrade /> */}
+      {showUpgrade && <Upgrade />}
     </div>
   );
 };

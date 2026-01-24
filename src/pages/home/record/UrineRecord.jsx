@@ -1,4 +1,4 @@
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Bell, Pencil } from "lucide-react";
 import { CustomButton } from "@/components/custom/CustomButton";
 import CustomHeading from "@/components/custom/CustomHeading";
 import { useState } from "react";
@@ -6,6 +6,7 @@ import { FlowOptionCard } from "@/components/custom/CustomRadioButton(informatio
 import { CustomRadioButtonGreen } from "@/components/custom/CustomRadioButton(Green)";
 import { CustomRadioButtonRed } from "@/components/custom/CustomRadioButton(Red)";
 import { CustomRadioButtonPink } from "@/components/custom/CustomRadioButton(Pink)";
+import { MdEditNotifications } from "react-icons/md";
 
 const EstimatedUrinationTimeOptions = [
   {
@@ -119,11 +120,53 @@ const UrineRecord = () => {
     useState("");
   const [nocturnalUrinationValue, setNocturnalUrinationValue] =
     useState("");
+  const [showMissingFieldsModal, setShowMissingFieldsModal] = useState(false);
 
   const getStatus = (v) => {
     if (v < 33) return "Transparent (Over Hydrated)";
     if (v < 66) return "Light Yellow (Well Hydrated)";
     return "Deep Yellow (Dehydrated)";
+  };
+
+  const validateForm = () => {
+    const missingFields = [];
+    
+    if (!estimatedUrinationTimeValue) {
+      missingFields.push("Estimated Urination Time");
+    }
+    if (!clarityValue) {
+      missingFields.push("Clarity");
+    }
+    if (!odorValue) {
+      missingFields.push("Odor");
+    }
+    if (!urinationFrequencyValue) {
+      missingFields.push("Urination Frequency");
+    }
+    if (!nocturnalUrinationValue) {
+      missingFields.push("Nocturnal Urination");
+    }
+
+    return missingFields;
+  };
+
+  const handleSave = () => {
+    const missingFields = validateForm();
+    
+    if (missingFields.length > 0) {
+      setShowMissingFieldsModal(true);
+    } else {
+      // Proceed with save
+      console.log("Saving...", {
+        urineStatusValue,
+        estimatedUrinationTimeValue,
+        clarityValue,
+        odorValue,
+        urinationFrequencyValue,
+        nocturnalUrinationValue,
+      });
+      // Add your save logic here
+    }
   };
 
   return (
@@ -277,9 +320,57 @@ const UrineRecord = () => {
       <div className="text-gray-400 flex text-center justify-center italic">
         For reference only. Consult a physician if needed.
       </div>
-      <button className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)] mt-5">
+      <button 
+        onClick={handleSave}
+        className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)] mt-5"
+      >
         Save
       </button>
+
+      {/* Missing Fields Modal */}
+      {showMissingFieldsModal && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-50 bg-black/20"
+            onClick={() => setShowMissingFieldsModal(false)}
+          />
+          {/* Modal */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4 pointer-events-none">
+            <div
+              className="bg-ivory rounded-[8px] shadow-[0_4px_8px_rgba(0,0,0,0.25)] pb-6 px-6 max-w-xs w-full pointer-events-auto relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Icon */}
+              <div className="flex justify-center -mt-4 mb-4">
+                <div className="relative">
+                  {/* <Bell className="w-8 h-8 text-primary" />
+                  <Pencil className="w-4 h-4 text-primary absolute -top-1 -right-1" /> */}
+                  <MdEditNotifications size={48} color="#000000" />
+                </div>
+              </div>
+
+              {/* Title */}
+              <h3 className="text-[20px] font-['Mulish', sans-serif] font-medium text-[#e53935] text-center mb-2">
+                Missing fields
+              </h3>
+
+              {/* Message */}
+              <p className="text-base font-['Mulish', sans-serif] text-[#d32f2f] text-center mb-6">
+                Please fill in
+              </p>
+
+              {/* Confirm Button */}
+              <button
+                onClick={() => setShowMissingFieldsModal(false)}
+                className="w-[159px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)] mt-5"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

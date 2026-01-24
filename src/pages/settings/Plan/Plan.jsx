@@ -122,6 +122,7 @@ const Plan = () => {
               <button
                 type="button"
                 className="w-[176px] flex justify-center items-center mx-auto py-[10px] rounded-[8px] border border-custom-16 bg-white text-primary text-sm shadow-sm mb-[52px]"
+                onClick={() => navigate("/trend-analysis?plan=free")}
               >
                 Use
               </button>
@@ -188,7 +189,7 @@ const Plan = () => {
               <button
                 type="button"
                 className="w-[183px] flex items-center justify-center mx-auto py-2 rounded-lg text-secondary text-sm bg-[#FBB667] shadow-sm mb-[52px]"
-                onClick={() => navigate("/setting/upgrade-plan/subscription")}
+                onClick={() => navigate("/trend-analysis?plan=intermediate")}
               >
                 Subscribe
               </button>
@@ -246,6 +247,7 @@ const Plan = () => {
               <button
                 type="button"
                 className="w-[172px] flex items-center justify-center mx-auto py-2 rounded-lg text-secondary text-sm bg-white shadow-sm mb-[52px]"
+                onClick={() => navigate("/trend-analysis?plan=premium")}
               >
                 Subscribe
               </button>

@@ -1,5 +1,6 @@
 import { Activity, ChevronLeft, Coffee, Droplet, Heart } from "lucide-react";
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import Bowel from "./Bowel";
 import Water from "./Water";
 import Urine from "./Urine";
@@ -10,6 +11,8 @@ import { MdLocalDrink } from "react-icons/md";
 
 const TrendHeader = (props) => {
   const [selectedIcon, setSelectedIcon] = useState("toilet");
+  const [searchParams] = useSearchParams();
+  const plan = searchParams.get("plan");
 
   return (
     <div className="bg-ivory p-1 text-secondary font-['Noto_Sans_TC', sans-serif]">
@@ -26,8 +29,18 @@ const TrendHeader = (props) => {
       </div>
 
       <div className="flex justify-end mt-5">
-        <button className="bg-[#E2F1DB] border border-custom-8 text-[#4F7E4E] text-sm px-6 py-1 rounded-full shadow-[0_2px_6px_rgba(0,0,0,0.12)]">
-          Free/7 Days
+        <button 
+          className={`border border-custom-8 text-sm px-6 py-1 rounded-full shadow-[0_2px_6px_rgba(0,0,0,0.12)] ${
+            plan === "premium" 
+              ? "bg-[#fff5c0] text-secondary" 
+              : "bg-[#E2F1DB] text-[#4F7E4E]"
+          }`}
+        >
+          {plan === "intermediate" 
+            ? "Intermediate" 
+            : plan === "premium" 
+            ? "Premium" 
+            : "Free/7 Days"}
         </button>
       </div>
 
