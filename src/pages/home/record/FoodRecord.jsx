@@ -410,7 +410,7 @@ const FoodRecord = (props) => {
               )}
             </div>
 
-            <p className="text-sm" style={{ color: '#030303' }}>Voice input complete, press back</p>
+            <p className="text-sm text-secondary">Voice input complete, press back</p>
           </div>
         )}
       </div>
