@@ -104,7 +104,7 @@ const Dashboard = () => {
             </div>
             <div className="flex-1 flex flex-col text-start gap-2">
               <div className="flex gap-2 items-center">
-                <span className="text-primary font-bold text-lg">Water</span>
+                <span className="text-primary font-medium text-lg">Water</span>
                 <span className="text-primary-muted text-sm">
                   Track Water Intake
                 </span>

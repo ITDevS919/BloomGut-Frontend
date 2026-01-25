@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, Mic } from "lucide-react";
+import { FaMicrophone } from "react-icons/fa6";
 
 const FoodRecord = (props) => {
   const [state, setState] = useState("idle"); // idle, listening, processing, error, complete
@@ -238,11 +239,11 @@ const FoodRecord = (props) => {
             <button
               onClick={handleMicClick}
               className="w-32 h-32 rounded-full flex items-center justify-center mb-8 shadow-lg hover:opacity-90 transition-opacity"
-              style={{ backgroundColor: '#a78bfa' }}
+              style={{ backgroundColor: '#ab91d0' }}
               aria-label="Start voice input"
               disabled={!isSupported}
             >
-              <Mic className="w-16 h-16 text-white" />
+              <FaMicrophone className="w-16 h-16 text-white" />
             </button>
             <div className="text-center space-y-2">
               <p className="text-lg font-medium" style={{ color: '#5d4037' }}>Tap the mic to start</p>
@@ -365,7 +366,7 @@ const FoodRecord = (props) => {
                 <div className="w-24 h-24 rounded-full bg-pink-400 opacity-40"></div>
               </div>
               {/* Purple circle with mic */}
-              <div className="relative w-32 h-32 rounded-full flex items-center justify-center shadow-lg" style={{ backgroundColor: '#b3a2d0' }}>
+              <div className="relative w-32 h-32 rounded-full flex items-center justify-center shadow-lg" style={{ backgroundColor: '#ab91d0' }}>
                 <Mic className="w-16 h-16 text-white" />
               </div>
             </div>
