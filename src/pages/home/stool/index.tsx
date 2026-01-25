@@ -194,18 +194,20 @@ const StoolPage = () => {
         <span className="text-secondary font-rubik text-xs">
           Bristol Stool Scale
         </span>
-        <div className="grid grid-cols-7 gap-5 mb-[39px]">
+        <div className="flex justify-between items-center">
           {stoolImages?.map((i, index) => {
             return (
               <div className="flex flex-col gap-3 items-center cursor-pointer" key={index}>
                 <img
                   src={i?.image}
-                  className={`w-10 h-9.5 object-cover rounded-full 
-                    ${selectedStoolImage === i?.label ? "border-2 border-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]" : "shadow-[0_1px_3px_rgba(0,0,0,0.04)]"}`}
+                  className={`w-10 h-10 object-cover rounded-full aspect-square flex-shrink-0
+                    ${selectedStoolImage === i?.label ? "border-2 border-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]" : "shadow-[0_1px_3px_rgba(0,0,0,0.04)]"}
+                    ${index === 0 ? "mt-3" : ""}
+                    `}
                   alt={i?.label}
                   onClick={() => i?.onclick()}
                 />
-                <p className="text-primary text-xs font-medium text-center capitalize">
+                <p className="text-primary text-xs font-medium text-center capitalize max-w-[50px] leading-tight">
                   {i?.label}
                 </p>
               </div>

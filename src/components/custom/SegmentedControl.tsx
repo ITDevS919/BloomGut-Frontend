@@ -31,23 +31,34 @@ const SegmentedControl: React.FC<Props> = ({
 
   const percentFor = (i: number) => (i / (count - 1)) * 100;
 
-  const handleTrackClick = (e: React.MouseEvent) => {
+  const handleTrackClick = (e: React.MouseEvent | React.TouchEvent) => {
     if (!trackRef.current) return;
     const rect = trackRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
+    const clientX = 'touches' in e && e.touches.length > 0 
+      ? e.touches[0].clientX 
+      : (e as React.MouseEvent).clientX;
+    const x = clientX - rect.left;
     const pct = Math.max(0, Math.min(1, x / rect.width));
     const nearest = Math.round(pct * (count - 1));
     notify(nearest);
   };
 
-  // Drag support (click+drag anywhere on track)
+  // Drag support (click+drag anywhere on track) - Mouse events
   useEffect(() => {
     let dragging = false;
 
-    const onMove = (ev: MouseEvent) => {
+    const getClientX = (ev: MouseEvent | TouchEvent): number => {
+      if ('touches' in ev && ev.touches.length > 0) {
+        return ev.touches[0].clientX;
+      }
+      return (ev as MouseEvent).clientX;
+    };
+
+    const onMove = (ev: MouseEvent | TouchEvent) => {
       if (!dragging || !trackRef.current) return;
+      ev.preventDefault(); // Prevent scrolling on mobile
       const rect = trackRef.current.getBoundingClientRect();
-      const x = ev.clientX - rect.left;
+      const x = getClientX(ev) - rect.left;
       const pct = Math.max(0, Math.min(1, x / rect.width));
       const nearest = Math.round(pct * (count - 1));
       notify(nearest);
@@ -56,24 +67,43 @@ const SegmentedControl: React.FC<Props> = ({
     const onUp = () => {
       dragging = false;
       document.body.style.userSelect = "";
-      window.removeEventListener("mousemove", onMove);
+      document.body.style.touchAction = "";
+      window.removeEventListener("mousemove", onMove as EventListener);
       window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("touchmove", onMove as EventListener);
+      window.removeEventListener("touchend", onUp);
     };
 
-    const onDown = (ev: MouseEvent) => {
+    const onDown = (ev: MouseEvent | TouchEvent) => {
       if (!(ev.target instanceof HTMLElement) || !trackRef.current) return;
       if (ev.target.closest(".segmented-track") == null) return;
       dragging = true;
       document.body.style.userSelect = "none";
-      window.addEventListener("mousemove", onMove);
+      document.body.style.touchAction = "none"; // Prevent scrolling while dragging
+      
+      // Handle initial position update
+      const rect = trackRef.current.getBoundingClientRect();
+      const x = getClientX(ev) - rect.left;
+      const pct = Math.max(0, Math.min(1, x / rect.width));
+      const nearest = Math.round(pct * (count - 1));
+      notify(nearest);
+
+      // Add both mouse and touch listeners
+      window.addEventListener("mousemove", onMove as EventListener);
       window.addEventListener("mouseup", onUp);
+      window.addEventListener("touchmove", onMove as EventListener, { passive: false });
+      window.addEventListener("touchend", onUp);
     };
 
-    window.addEventListener("mousedown", onDown);
+    window.addEventListener("mousedown", onDown as EventListener);
+    window.addEventListener("touchstart", onDown as EventListener, { passive: false });
     return () => {
-      window.removeEventListener("mousedown", onDown);
-      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mousedown", onDown as EventListener);
+      window.removeEventListener("touchstart", onDown as EventListener);
+      window.removeEventListener("mousemove", onMove as EventListener);
       window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("touchmove", onMove as EventListener);
+      window.removeEventListener("touchend", onUp);
     };
   }, [count, notify]);
 
@@ -110,6 +140,7 @@ const SegmentedControl: React.FC<Props> = ({
             background: "#e9e9e9",
             boxShadow: "inset 0 1px 0 rgba(255,255,255,0.6)",
             cursor: "pointer",
+            touchAction: "none",
           }}
         >
           {/* fill extends slightly under the thumb so thumb overlaps nicely */}
@@ -145,9 +176,11 @@ const SegmentedControl: React.FC<Props> = ({
               justifyContent: "center",
               cursor: "grab",
               transition: "left 120ms",
+              touchAction: "none",
             }}
             className="cursor-pointer"
             onMouseDown={(e) => e.preventDefault()}
+            onTouchStart={(e) => e.preventDefault()}
             onFocus={(e) => (e.currentTarget.style.outline = "2px solid rgba(246,160,42,0.25)")}
             onBlur={(e) => (e.currentTarget.style.outline = "")}
           />

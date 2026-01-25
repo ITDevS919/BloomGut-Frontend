@@ -23,7 +23,7 @@ const Dashboard = () => {
           <h3 className="text-3xl font-bold text-primary mb-5">Hi {auth.user != null && auth.user.firstName}</h3>
           <p className="text-primary-muted">How is your health today?</p>
         </div>
-        <div className="flex flex-col gap-5 mt-15">
+        <div className="flex flex-col gap-5 mt-4">
           <div
             className="flex justify-start gap-3 bg-[#dfd2b2] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)]"
             onClick={() => navigate("/stool")}
@@ -75,16 +75,21 @@ const Dashboard = () => {
               </div>
               <div className="flex gap-4">
                 <div className="flex flex-col w-full gap-1">
-                  <span className="text-primary-muted text-sm">
-                    Today's Intake
-                  </span>
-                  <div className="w-full bg-white rounded-full h-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-primary text-sm ">
+                      Today's Intake
+                    </span>
+                    <span className="text-primary text-sm ">
+                      0%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3 shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
                     <div
-                      className="bg-[#ac95cc] h-3 rounded-full transition-all shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
-                      style={{ width: `${30}%` }}
+                      className="bg-[#ac95cc] h-3 rounded-full transition-all"
+                      style={{ width: `0%` }}
                     />
                   </div>
-                  <p className="text-primary-muted text-xs">Not Recorded</p>
+                  <p className="text-primary text-sm">Not Recorded</p>
                 </div>
                 <div className="flex items-center">
                   <FaChevronRight className="text-primary" size={24} />
@@ -106,13 +111,18 @@ const Dashboard = () => {
               </div>
               <div className="flex gap-4">
                 <div className="flex flex-col w-full gap-1">
-                  <span className="text-primary-muted text-sm">
-                    Today's Water
-                  </span>
-                  <div className="w-full bg-white rounded-full h-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-primary text-sm ">
+                      Today's Intake
+                    </span>
+                    <span className="text-primary text-sm ">
+                      0%
+                    </span>
+                  </div>
+                  <div className="w-full bg-white rounded-full h-3 shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
                     <div
-                      className="bg-[#79b6e2] h-3 rounded-full transition-all shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
-                      style={{ width: `${50}%` }}
+                      className="bg-[#79b6e2] h-3 rounded-full transition-all"
+                      style={{ width: `${0}%` }}
                     />
                   </div>
                   <p className="text-primary-muted text-xs">Not Recorded</p>
