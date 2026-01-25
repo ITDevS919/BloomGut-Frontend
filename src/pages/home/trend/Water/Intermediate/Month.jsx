@@ -4,7 +4,7 @@ import Upgrade from "./Upgrade";
 import { useState } from "react";
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const Month = () => {
+const Month = ({ showUpgrade = true }) => {
   const [selectedSession, setSelectedSession] = useState("Morning");
 
   const sessions = [
@@ -156,7 +156,8 @@ const Month = () => {
         </p>
       </div>
 
-      <Upgrade />
+      {/* <Upgrade /> */}
+      {showUpgrade && <Upgrade />}
     </div>
   );
 };

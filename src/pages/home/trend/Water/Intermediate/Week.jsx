@@ -9,6 +9,7 @@ import {
 import { Bar } from "react-chartjs-2";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import { AlertTriangle } from "lucide-react";
+import Upgrade from "./Upgrade";
 
 ChartJS.register(
   BarElement,
@@ -19,7 +20,7 @@ ChartJS.register(
   ChartDataLabels
 );
 
-const Week = () => {
+const Week = ({ showUpgrade = true }) => {
   // Water intake data
   const timePeriods = [
     { label: "Morning (6-12)", value: 205, percentage: 31, color: "#F87171" }, // Red
@@ -149,6 +150,7 @@ const Week = () => {
           Tap period for tips & impacts.
         </p>
       </div>
+      {showUpgrade && <Upgrade />}
     </div>
   );
 };

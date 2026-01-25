@@ -122,12 +122,12 @@ const CircleStat = ({ value, label, color, showUpgrade = true }) => {
           {label}
         </span>
       </div>
-      {showUpgrade && <Upgrade />}
+      {/* {showUpgrade && <Upgrade />} */}
     </div>
   );
 };
 
-const Free = () => {
+const Free = ({ showUpgrade = true }) => {
   return (
     <div className="pl-[15px] pr-[15px]">
       <div className="bg-white rounded-[27px] p-[32px] shadow-md mb-[36px]">
@@ -175,7 +175,7 @@ const Free = () => {
         <CircleStat value={65} label="Min" color="#7dd3fc" />
       </div>
 
-      {/* <Upgrade /> */}
+      {showUpgrade && <Upgrade />}
     </div>
   );
 };

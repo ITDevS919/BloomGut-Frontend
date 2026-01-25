@@ -2,6 +2,7 @@ import { useState } from "react";
 
 const PremiumWeek = () => {
   const [tooltip, setTooltip] = useState(null); // { food, status, percentage, note, tip, x, y }
+  const [foodTooltip, setFoodTooltip] = useState(null); // { food, status, percentage, note, tip, x, y }
 
   // Function to get background color based on percentage
   const getCellColor = (percentage) => {
@@ -87,6 +88,41 @@ const PremiumWeek = () => {
     setTooltip(null);
   };
 
+  // Get the highest sensitivity symptom for a food item
+  const getHighestSensitivity = (foodItem) => {
+    const symptoms = [
+      { name: "Abd Pain", value: foodItem.abdPain },
+      { name: "Diarrh", value: foodItem.diarrh },
+      { name: "Constip", value: foodItem.constip },
+      { name: "Bloat", value: foodItem.bloat },
+    ];
+    
+    const highest = symptoms.reduce((max, symptom) => 
+      symptom.value > max.value ? symptom : max
+    );
+    
+    return highest;
+  };
+
+  const handleFoodHover = (e, foodItem) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const highestSymptom = getHighestSensitivity(foodItem);
+    const tooltipData = getTooltipData(foodItem.food, highestSymptom.name, highestSymptom.value);
+    
+    setFoodTooltip({
+      food: foodItem.food,
+      status: highestSymptom.name,
+      percentage: highestSymptom.value,
+      ...tooltipData,
+      x: rect.left,
+      y: rect.top + rect.height / 2,
+    });
+  };
+
+  const handleFoodLeave = () => {
+    setFoodTooltip(null);
+  };
+
   const symptoms = ["Abd Pain", "Diarrh", "Constip", "Bloat"];
 
   return (
@@ -110,7 +146,13 @@ const PremiumWeek = () => {
             <tbody>
               {foodData.map((row, index) => (
                 <tr key={index} className="border-t border-gray-200">
-                  <td className="text-center text-sm text-primary py-2 px-2">{row.food}</td>
+                  <td 
+                    className="text-center text-sm text-primary py-2 px-2 cursor-pointer hover:bg-gray-50 transition-colors"
+                    onMouseEnter={(e) => handleFoodHover(e, row)}
+                    onMouseLeave={handleFoodLeave}
+                  >
+                    {row.food}
+                  </td>
                   <td
                     className="text-center text-sm py-2 px-2 cursor-pointer"
                     style={{ backgroundColor: getCellColor(row.abdPain) }}
@@ -163,8 +205,8 @@ const PremiumWeek = () => {
         </div>
       </div>
 
-      {/* Tooltip */}
-      {tooltip && (
+      {/* Cell Tooltip */}
+      {/* {tooltip && (
         <div
           className="fixed z-50 bg-white rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.15)] p-5 max-w-xs"
           style={{
@@ -173,8 +215,8 @@ const PremiumWeek = () => {
             transform: 'translate(-50%, -100%)',
             marginTop: '-8px',
           }}
-          onMouseEnter={() => setTooltip(tooltip)}
-          onMouseLeave={handleCellLeave}
+          // onMouseEnter={() => setTooltip(tooltip)}
+          // onMouseLeave={handleCellLeave}
         >
           <h3 className="text-lg font-bold text-primary mb-4">Details</h3>
           <div className="space-y-2 text-sm text-gray-600">
@@ -183,6 +225,29 @@ const PremiumWeek = () => {
             <p>Sensit: {tooltip.percentage}%</p>
             <p className="text-gray-500 text-xs mt-4">Note: {tooltip.note}</p>
             <p className="text-gray-500 text-xs">Tip: {tooltip.tip}</p>
+          </div>
+        </div>
+      )} */}
+
+      {/* Food Name Tooltip */}
+      {foodTooltip && (
+        <div
+          className="fixed z-50 bg-white rounded-[15px] shadow-[0_2px_8px_rgba(0,0,0,0.16)] p-4 pointer-events-none"
+          style={{
+            left: `${foodTooltip.x + 10}px`,
+            top: `${foodTooltip.y}px`,
+            transform: 'translateY(-50%)',
+            minWidth: '200px',
+            maxWidth: '280px',
+          }}
+        >
+          <h3 className="text-base font-medium text-primary mb-4">Details</h3>
+          <div className="flex flex-col gap-2 text-sm text-secondary">
+            <p><span className="font-medium">Food:</span> {foodTooltip.food}</p>
+            <p><span className="font-medium">Status:</span> {foodTooltip.status}</p>
+            <p><span className="font-medium">Sensit:</span> {foodTooltip.percentage}%</p>
+            <p className="mt-2"><span className="font-medium">Note:</span> {foodTooltip.note}</p>
+            <p><span className="font-medium">Tip:</span> {foodTooltip.tip}</p>
           </div>
         </div>
       )}

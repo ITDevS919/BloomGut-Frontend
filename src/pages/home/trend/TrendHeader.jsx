@@ -1,6 +1,6 @@
 import { Activity, ChevronLeft, Coffee, Droplet, Heart } from "lucide-react";
-import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useSearchParams, useLocation } from "react-router-dom";
 import Bowel from "./Bowel";
 import Water from "./Water";
 import Urine from "./Urine";
@@ -10,9 +10,33 @@ import { FaGlassWhiskey, FaTint } from "react-icons/fa";
 import { MdLocalDrink } from "react-icons/md";
 
 const TrendHeader = (props) => {
+  const location = useLocation();
   const [selectedIcon, setSelectedIcon] = useState("toilet");
   const [searchParams] = useSearchParams();
   const plan = searchParams.get("plan");
+
+  useEffect(() => {
+    // Set initial selected icon based on navigation state
+    if (location.state?.trendType) {
+      const trendType = location.state.trendType;
+      switch (trendType) {
+        case "bowel":
+          setSelectedIcon("toilet");
+          break;
+        case "diet":
+          setSelectedIcon("utensils");
+          break;
+        case "water":
+          setSelectedIcon("water");
+          break;
+        case "urine":
+          setSelectedIcon("urine");
+          break;
+        default:
+          setSelectedIcon("toilet");
+      }
+    }
+  }, [location.state]);
 
   return (
     <div className="bg-ivory p-1 text-secondary font-['Noto_Sans_TC', sans-serif]">
