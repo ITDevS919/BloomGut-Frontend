@@ -324,7 +324,7 @@ const FoodRecord = (props) => {
         {/* Error State */}
         {state === "error" && (
           <div className="flex flex-col items-center">
-            <div className="w-32 h-32 rounded-full bg-red-500 flex items-center justify-center mb-8 shadow-lg relative">
+            <div className="w-32 h-32 rounded-full bg-[#f66] flex items-center justify-center mb-8 shadow-lg relative">
               <Mic className="w-16 h-16 text-white" />
               {/* Diagonal line across microphone */}
               <div 
@@ -339,15 +339,11 @@ const FoodRecord = (props) => {
             <p className="text-lg font-medium mb-6" style={{ color: '#5d4037' }}>Sorry. Voice Not</p>
             <button
               onClick={handleTryAgain}
-              className="px-8 py-3 border rounded-[8px] bg-white font-medium mb-6 hover:opacity-90 transition-opacity"
-              style={{ 
-                borderColor: '#fca5a5',
-                color: '#ef4444'
-              }}
+              className="px-8 py-3 border rounded-[24px] shadow-[0_2px_8px_rgba(0,0,0,0.12)] bg-white font-medium mb-6 hover:opacity-90 transition-opacity"
             >
               Try Again
             </button>
-            <p className="text-sm" style={{ color: '#705d56' }}>Please Speak in a Quiet</p>
+            <p className="text-sm text-custom-12">Please Speak in a Quiet</p>
           </div>
         )}
 
