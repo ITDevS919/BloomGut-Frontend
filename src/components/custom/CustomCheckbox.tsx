@@ -22,16 +22,21 @@ export const CustomCheckbox = React.forwardRef<
 
   const checkboxStyle = React.useMemo(() => {
     const baseStyle = style || {};
+    const defaultStyle = {
+      borderWidth: "1px",
+      borderColor: "#705d56",
+      ...baseStyle,
+    };
     if (borderColor) {
       return {
-        ...baseStyle,
-        borderColor: "#ccc", // Default border color when unchecked
+        ...defaultStyle,
+        borderColor: "#705d56", // Default border color when unchecked
       };
     }
-    return baseStyle;
+    return defaultStyle;
   }, [borderColor, style]);
 
-  const checkStyle = checkColor ? { color: checkColor } : {};
+  const checkStyle = checkColor ? { color: checkColor } : { color: "#b3a2d0" };
   
   return (
     <>
@@ -39,7 +44,8 @@ export const CustomCheckbox = React.forwardRef<
         <style dangerouslySetInnerHTML={{
           __html: `
             .${uniqueId} {
-              border-color: #ccc;
+              border-width: 1px;
+              border-color: #705d56;
             }
             .${uniqueId}[data-state="checked"] {
               border-color: ${borderColor} !important;
@@ -52,9 +58,9 @@ export const CustomCheckbox = React.forwardRef<
           ref={ref}
           className={clsx(
             "h-5.5 w-5 rounded border bg-white",
-            borderColor ? uniqueId || "" : "border-custom-12",
+            borderColor ? uniqueId || "" : "",
             "flex items-center justify-center",
-            borderColor ? "" : "data-[state=checked]:bg-white data-[state=checked]:border-custom-12",
+            borderColor ? "" : "data-[state=checked]:bg-white",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
             className
           )}
@@ -63,7 +69,7 @@ export const CustomCheckbox = React.forwardRef<
         >
           <CheckboxPrimitive.Indicator>
             <Check 
-              className={clsx("h-4 w-4", checkColor ? "" : "text-custom-5")} 
+              className="h-4 w-4" 
               style={checkStyle}
             />
           </CheckboxPrimitive.Indicator>

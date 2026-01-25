@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ChevronLeft, Lock, LockKeyhole } from "lucide-react";
+import { ChevronLeft, Lock, LockKeyhole, ChevronRight } from "lucide-react";
 import { Search, Mic } from "lucide-react";
 import { CustomCheckbox } from "@/components/custom/CustomCheckbox";
 import CustomHeading from "@/components/custom/CustomHeading";
@@ -13,6 +13,79 @@ const DietRecord = (props) => {
   const [searchValue, setSearchValue] = useState("");
   const [state, setState] = useState("idle");
   const [clickedNutritionLabel, setClickedNutritionLabel] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  // Sample data for color-coded dates (you can replace this with actual data)
+  const dateColors = {
+    1: "green",
+    4: "green",
+    11: "green",
+    5: "yellow",
+    6: "yellow",
+    10: "yellow",
+    7: "red",
+    9: "red",
+    2: "grey",
+    3: "grey",
+    8: "grey",
+    12: "pink"
+  };
+
+  const getDaysInMonth = (date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
+
+  const navigateMonth = (direction) => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      if (direction === 'prev') {
+        newDate.setMonth(prev.getMonth() - 1);
+      } else {
+        newDate.setMonth(prev.getMonth() + 1);
+      }
+      return newDate;
+    });
+  };
+
+  const renderCalendar = () => {
+    const daysInMonth = getDaysInMonth(currentDate);
+    const firstDay = getFirstDayOfMonth(currentDate);
+    const calendarDays = [];
+
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < firstDay; i++) {
+      calendarDays.push(null);
+    }
+
+    // Add all days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      calendarDays.push(day);
+    }
+
+    return calendarDays;
+  };
+
+  const getDateColor = (day) => {
+    return dateColors[day] || null;
+  };
+
+  const getColorClass = (color) => {
+    const colorMap = {
+      green: "bg-green-500",
+      yellow: "bg-yellow-400",
+      red: "bg-red-500",
+      grey: "bg-gray-400",
+      pink: "bg-pink-400"
+    };
+    return colorMap[color] || "";
+  };
 
   useEffect(() => {
     setSearchValue(props.recordResult);
@@ -160,8 +233,8 @@ const DietRecord = (props) => {
           </>}
       </div>
 
-      <div className="flex flex-col gap-4 text-primary font-medium mb-4">
-        Gut Calendar View
+      <div className="flex flex-col gap-4 text-primary font-medium mb-4 mt-5">
+        Gut Impact Records
       </div>
 
       {!clickedNutritionLabel ?
@@ -171,7 +244,93 @@ const DietRecord = (props) => {
           </div>
         </> :
         <>
-          <div className="mb-[40px] mt-[40px] text-sm text-custom-12">No records found</div>
+          {searchValue ? (
+            <div className="rounded-[27px]  p-2 mb-[28px]">
+              {/* Calendar Header */}
+              <div className="flex items-center justify-between mb-4">
+                <button
+                  onClick={() => navigateMonth('prev')}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  aria-label="Previous month"
+                >
+                  <ChevronLeft className="w-5 h-5 text-primary" />
+                </button>
+                <h3 className="text-lg font-medium text-primary">
+                  {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+                </h3>
+                <button
+                  onClick={() => navigateMonth('next')}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  aria-label="Next month"
+                >
+                  <ChevronRight className="w-5 h-5 text-primary" />
+                </button>
+              </div>
+
+              {/* Days of Week Header */}
+              <div className="grid grid-cols-7 gap-2 mb-2">
+                {dayNames.map((day) => (
+                  <div key={day} className="text-center text-xs text-gray-600 font-medium py-2">
+                    {day}
+                  </div>
+                ))}
+              </div>
+
+              {/* Calendar Grid */}
+              <div className="grid grid-cols-7 gap-2">
+                {renderCalendar().map((day, index) => {
+                  const color = day ? getDateColor(day) : null;
+                  return (
+                    <div
+                      key={index}
+                      className={`aspect-square flex items-center justify-center text-sm ${day ? "cursor-pointer hover:bg-gray-50 rounded-full" : ""
+                        }`}
+                    >
+                      {day && (
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center ${color ? getColorClass(color) + " text-white" : "text-primary"
+                            }`}
+                        >
+                          {day}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Legend */}
+              <div className="flex flex-wrap items-center gap-4 mt-6 text-xs text-[#030303]">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  <span>Beneficial</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                  <span>Neutral</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                  <span>Irritating</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-gray-400"></div>
+                  <span>Unrecorded</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-pink-400"></div>
+                  <span>Incomplete</span>
+                </div>
+              </div>
+
+              {/* Instruction Text */}
+              <p className="text-xs text-gray-400 text-center mt-4 text-custom-12">
+                Click on calendar date/expand for details
+              </p>
+            </div>
+          ) : (
+            <div className="mb-[40px] mt-[40px] text-sm text-custom-12">No records found</div>
+          )}
         </>}
 
       <div className="text-primary mt-5 mb-[63px]">
@@ -184,7 +343,7 @@ const DietRecord = (props) => {
         </div>
       </div>
 
-      <button className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)] mt-5">Save Record</button>
+      <button className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)] mt-5">Save</button>
     </div>
   );
 };

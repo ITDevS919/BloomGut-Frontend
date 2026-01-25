@@ -252,11 +252,11 @@ const FoodRecord = (props) => {
           </div>
         )}
 
-        {/* Listening State */}
-        {state === "listening" && (
+        {/* Listening/Processing State - First Image */}
+        {(state === "listening" || state === "processing") && (
           <div className="flex flex-col items-center w-full">
-            <div className="relative mb-8">
-              {/* Concentric rings */}
+            <div className="relative mb-6">
+              {/* Concentric rings - animated pulsing */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-32 h-32 rounded-full bg-pink-200 opacity-60 animate-ping" style={{ animationDuration: '1.5s' }}></div>
               </div>
@@ -267,84 +267,56 @@ const FoodRecord = (props) => {
                 <div className="w-24 h-24 rounded-full bg-pink-400 opacity-40 animate-ping" style={{ animationDuration: '1s', animationDelay: '0.6s' }}></div>
               </div>
               {/* Purple circle with mic */}
-              <div className="relative w-32 h-32 rounded-full flex items-center justify-center shadow-lg" style={{ backgroundColor: '#9333ea' }}>
+              <div className="relative w-32 h-32 rounded-full flex items-center justify-center shadow-lg" style={{ backgroundColor: '#b3a2d0' }}>
                 <Mic className="w-16 h-16 text-white" />
               </div>
             </div>
             
-            <p className="text-lg font-medium mb-2" style={{ color: '#5d4037' }}>Listening...</p>
-            <p className="text-sm mb-8" style={{ color: '#705d56' }}>Voice input in progress...</p>
+            <p className="text-base font-medium mb-1 text-secondary">Listening...</p>
+            <p className="text-sm mb-6 text-secondary">Voice input in progress...</p>
+
+            {/* Separator */}
+            <div className="w-full border-t mb-6" style={{ borderColor: '#d1d5db' }}></div>
 
             {/* Waveform visualization */}
-            <div className="flex items-end justify-center gap-1 h-24 mb-8">
-              {waveformData.map((height, idx) => (
-                <div
-                  key={idx}
-                  className="rounded-t"
-                  style={{
-                    width: '8px',
-                    height: `${height}%`,
-                    minHeight: '4px',
-                    backgroundColor: '#9333ea',
-                    boxShadow: '0 2px 4px rgba(147, 51, 234, 0.3)',
-                  }}
-                />
-              ))}
-            </div>
-            
-            <button
-              onClick={handleStop}
-              className="px-6 py-2 bg-gray-200 text-gray-700 rounded-[8px] text-sm"
-            >
-              Stop Recording
-            </button>
-          </div>
-        )}
-
-        {/* Processing State */}
-        {state === "processing" && (
-          <div className="flex flex-col items-center w-full">
-            <div className="relative mb-8">
-              {/* Concentric rings */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-32 h-32 rounded-full bg-pink-200 opacity-60 animate-ping" style={{ animationDuration: '1.5s' }}></div>
-              </div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-28 h-28 rounded-full bg-pink-300 opacity-50 animate-ping" style={{ animationDuration: '1.2s', animationDelay: '0.3s' }}></div>
-              </div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-24 h-24 rounded-full bg-pink-400 opacity-40 animate-ping" style={{ animationDuration: '1s', animationDelay: '0.6s' }}></div>
-              </div>
-              {/* Purple circle with mic */}
-              <div className="relative w-32 h-32 rounded-full flex items-center justify-center shadow-lg" style={{ backgroundColor: '#9333ea' }}>
-                <Mic className="w-16 h-16 text-white" />
-              </div>
-            </div>
-            
-            <p className="text-lg font-medium mb-2" style={{ color: '#5d4037' }}>Listening...</p>
-            <p className="text-sm mb-6" style={{ color: '#705d56' }}>Voice input in progress...</p>
-
-            <div className="w-full border-t my-6" style={{ borderColor: '#d1d5db' }}></div>
-
-            {/* Waveform visualization */}
-            <div className="flex items-end justify-center gap-1 h-24 mb-6">
-              {waveformData.map((height, idx) => (
-                <div
-                  key={idx}
-                  className="rounded-t"
-                  style={{
-                    width: '8px',
-                    height: `${height}%`,
-                    minHeight: '4px',
-                    backgroundColor: '#9333ea',
-                    boxShadow: '0 2px 4px rgba(147, 51, 234, 0.3)',
-                  }}
-                />
-              ))}
+            <div className="flex items-end justify-center gap-1 h-20 mb-6">
+              {waveformData.length > 0 ? (
+                waveformData.map((height, idx) => (
+                  <div
+                    key={idx}
+                    className="rounded-t"
+                    style={{
+                      width: '6px',
+                      height: `${height}%`,
+                      minHeight: '4px',
+                      backgroundColor: '#b3a2d0',
+                    }}
+                  />
+                ))
+              ) : (
+                // Fallback static waveform when no data
+                Array.from({ length: 21 }).map((_, idx) => {
+                  const center = 10;
+                  const distance = Math.abs(idx - center);
+                  const height = Math.max(20, 60 - distance * 3);
+                  return (
+                    <div
+                      key={idx}
+                      className="rounded-t"
+                      style={{
+                        width: '6px',
+                        height: `${height}%`,
+                        minHeight: '4px',
+                        backgroundColor: '#b3a2d0',
+                      }}
+                    />
+                  );
+                })
+              )}
             </div>
 
-            <p className="text-lg font-medium mb-2" style={{ color: '#5d4037' }}>Recognizing speech...</p>
-            <p className="text-sm" style={{ color: '#705d56' }}>Converting to text...</p>
+            <p className="text-sm text-secondary  mb-1">Recognizing speech...</p>
+            <p className="text-sm text-secondary">Converting to text...</p>
           </div>
         )}
 
@@ -378,11 +350,11 @@ const FoodRecord = (props) => {
           </div>
         )}
 
-        {/* Complete State */}
+        {/* Complete State - Second Image */}
         {state === "complete" && (
           <div className="flex flex-col items-center w-full">
-            <div className="relative mb-8">
-              {/* Concentric rings */}
+            <div className="relative mb-6">
+              {/* Concentric rings - static (no animation) */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-32 h-32 rounded-full bg-pink-200 opacity-60"></div>
               </div>
@@ -393,38 +365,51 @@ const FoodRecord = (props) => {
                 <div className="w-24 h-24 rounded-full bg-pink-400 opacity-40"></div>
               </div>
               {/* Purple circle with mic */}
-              <div className="relative w-32 h-32 rounded-full flex items-center justify-center shadow-lg" style={{ backgroundColor: '#9333ea' }}>
+              <div className="relative w-32 h-32 rounded-full flex items-center justify-center shadow-lg" style={{ backgroundColor: '#b3a2d0' }}>
                 <Mic className="w-16 h-16 text-white" />
               </div>
             </div>
             
-            <p className="text-lg font-medium mb-8" style={{ color: '#5d4037' }}>Listening...</p>
+            <p className="text-base font-medium mb-6" style={{ color: '#030303' }}>Listening...</p>
 
             {/* Waveform visualization */}
-            <div className="flex items-end justify-center gap-1 h-24 mb-8">
-              {waveformData.map((height, idx) => (
-                <div
-                  key={idx}
-                  className="rounded-t"
-                  style={{
-                    width: '8px',
-                    height: `${height}%`,
-                    minHeight: '4px',
-                    backgroundColor: '#9333ea',
-                    boxShadow: '0 2px 4px rgba(147, 51, 234, 0.3)',
-                  }}
-                />
-              ))}
+            <div className="flex items-end justify-center gap-1 h-20 mb-6">
+              {waveformData.length > 0 ? (
+                waveformData.map((height, idx) => (
+                  <div
+                    key={idx}
+                    className="rounded-t"
+                    style={{
+                      width: '6px',
+                      height: `${height}%`,
+                      minHeight: '4px',
+                      backgroundColor: '#b3a2d0',
+                    }}
+                  />
+                ))
+              ) : (
+                // Fallback static waveform when no data
+                Array.from({ length: 21 }).map((_, idx) => {
+                  const center = 10;
+                  const distance = Math.abs(idx - center);
+                  const height = Math.max(20, 60 - distance * 3);
+                  return (
+                    <div
+                      key={idx}
+                      className="rounded-t"
+                      style={{
+                        width: '6px',
+                        height: `${height}%`,
+                        minHeight: '4px',
+                        backgroundColor: '#b3a2d0',
+                      }}
+                    />
+                  );
+                })
+              )}
             </div>
 
-            <p className="text-sm mb-4" style={{ color: '#705d56' }}>Voice input complete, press back</p>
-            
-            {transcript && (
-              <div className="mt-4 p-4 bg-white rounded-[8px] shadow-[0_4px_12px_rgba(0,0,0,0.08)] max-w-md w-full">
-                <p className="text-sm text-gray-500 mb-2">Your food record:</p>
-                <p className="text-base text-gray-700">{transcript}</p>
-              </div>
-            )}
+            <p className="text-sm" style={{ color: '#030303' }}>Voice input complete, press back</p>
           </div>
         )}
       </div>
