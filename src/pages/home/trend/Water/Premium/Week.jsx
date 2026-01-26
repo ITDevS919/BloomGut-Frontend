@@ -9,10 +9,12 @@ import {
 import { MessageCircle } from "lucide-react";
 import { Bar } from "react-chartjs-2";
 import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 const Week = () => {
+  const navigate = useNavigate();
   const chartRef = useRef(null);
   const messageCircleRef = useRef(null);
   const [tooltip, setTooltip] = useState({ visible: false, x: 0, y: 0, data: null });
@@ -122,7 +124,7 @@ const Week = () => {
 
   return (
     <div className="pl-[15px] pr-[15px] mt-[38px]">
-      <div className="w-full rounded-[20px] bg-white p-5 shadow-[2px_0_10px_rgba(0,0,0,0.15)] mb-20">
+      <div className="w-full rounded-[20px] bg-white p-5 shadow-[2px_0_10px_rgba(0,0,0,0.15)] mb-10">
         {/* Header */}
         <h2 className="text-center text-base text-primary mb-[9px]">
           Daily Intake
@@ -234,6 +236,15 @@ const Week = () => {
         <p className="mt-[34px] italic text-center text-xs text-custom-12">
           Tap icon for tips
         </p>
+      </div>
+
+      <div className="flex items-center justify-center mb-[27px]">
+        <button
+          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
+          onClick={() => navigate("/trend-analysis?plan=intermediate", { state: { trendType: "water", viewMode: "month" } })}
+        >
+          OverView
+        </button>
       </div>
     </div>
   );

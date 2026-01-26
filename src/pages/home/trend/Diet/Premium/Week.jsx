@@ -1,9 +1,11 @@
 import { Chart as ChartJS, LinearScale, PointElement, Tooltip } from "chart.js";
+import { useNavigate } from "react-router-dom";
 
 ChartJS.register(LinearScale, PointElement, Tooltip);
 import { Scatter } from "react-chartjs-2";
 
 const Week = () => {
+  const navigate = useNavigate();
   const xLabels = ["Breakfast", "Lunch", "Dinner"];
   const yLabels = ["Normal", "Undefined", "Constipation"];
 
@@ -115,6 +117,15 @@ const Week = () => {
       <div className="flex justify-center items-center text-custom-12 italic text-sm mt-3 text-center p-4">
         This analysis is based on recent behavior and health indicators, for
         reference only
+      </div>
+
+      <div className="flex items-center justify-center mt-[27px] mb-[27px]">
+        <button
+          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
+          onClick={() => navigate("/trend-analysis?plan=intermediate", { state: { trendType: "diet", viewMode: "month" } })}
+        >
+          OverView
+        </button>
       </div>
     </div>
   );

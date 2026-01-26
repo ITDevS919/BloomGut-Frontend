@@ -11,6 +11,7 @@ import annotationPlugin from "chartjs-plugin-annotation";
 import { Line } from "react-chartjs-2";
 import { Info } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 ChartJS.register(
   LineElement,
@@ -23,6 +24,7 @@ ChartJS.register(
 );
 
 const Week = () => {
+  const navigate = useNavigate();
   const [showAnalysis, setShowAnalysis] = useState(false);
   const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -171,7 +173,17 @@ const Week = () => {
       <div className="flex justify-center items-center text-gray-400 italic text-sm mt-5 mb-[32px]">
         For reference only. Consult a doctor if needed.
       </div>
+
+      <div className="flex items-center justify-center mt-[27px] mb-[27px]">
+        <button
+          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
+          onClick={() => navigate("/trend-analysis?plan=intermediate", { state: { trendType: "urine", viewMode: "month" } })}
+        >
+          OverView
+        </button>
+      </div>
     </div>
+
   );
 };
 

@@ -284,14 +284,14 @@ const PremiumYear = () => {
               className="rounded-[8px] p-4"
               style={{ backgroundColor: food.bg }}
             >
-              <h3 className="text-base text-primary mb-1 text-center">
+              <h3 className="text-base text-primary mb-1 text-center whitespace-nowrap">
                 {food.rank}. {food.name}
               </h3>
 
               <div className="my-2 h-0.5 bg-white" />
 
-              <div className="space-y-1 text-xs text-primary mt-2 text-center">
-                <p>Sensit: {food.sensit}</p>
+              <div className="space-y-1 text-xs text-primary mt-2 text-center whitespace-nowrap">
+                <p className="md:text-[10px] sm:text-[5px]">Sensit: {food.sensit}</p>
                 <p>Main: {food.main}</p>
                 <p>2nd: {food.second}</p>
                 <p>Type: {food.type}</p>

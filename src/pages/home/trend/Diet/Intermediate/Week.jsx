@@ -85,7 +85,7 @@ const Week = () => {
   };
   return (
     <>
-      <Free />
+      <Free showUpgrade={false} />
 
       <div className="pl-[15px] pr-[15spx]">
         <div className="text-primary text-base pl-[15px] mb-3">Weekly Diet Analysis</div>

@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const DateRangeSelectorBlue = (props) => {
-  const [viewMode, setViewMode] = useState("week"); // "week" or "month"
+  const [viewMode, setViewMode] = useState(props.initialViewMode || "week"); // "week" or "month"
   const [currentDate, setCurrentDate] = useState(new Date());
 
   // Format date range based on view mode
@@ -81,6 +81,17 @@ const DateRangeSelectorBlue = (props) => {
     }
     setCurrentDate(newDate);
   };
+
+  // Update viewMode when initialViewMode prop changes
+  useEffect(() => {
+    if (props.initialViewMode && props.initialViewMode !== viewMode) {
+      setViewMode(props.initialViewMode);
+      if (props.setViewMode) {
+        props.setViewMode(props.initialViewMode);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.initialViewMode]);
 
   return (
     <div className="bg-ivory mb-[28px] mt-[31px]">

@@ -10,6 +10,7 @@ import { Bar } from "react-chartjs-2";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import { AlertTriangle } from "lucide-react";
 import Upgrade from "./Upgrade";
+import Free from "../Free";
 
 ChartJS.register(
   BarElement,
@@ -100,6 +101,7 @@ const Week = ({ showUpgrade = true }) => {
 
   return (
     <div className="pl-[15px] pr-[15px] mt-[44px]">
+      <Free showUpgrade={false} />
       <div className="text-base font-medium mb-[20px] text-primary">
         Water Drinking Time
       </div>

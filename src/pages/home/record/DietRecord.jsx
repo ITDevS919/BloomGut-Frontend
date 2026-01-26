@@ -4,9 +4,14 @@ import { Search, Mic } from "lucide-react";
 import { CustomCheckbox } from "@/components/custom/CustomCheckbox";
 import CustomHeading from "@/components/custom/CustomHeading";
 import { CustomButton } from "@/components/custom/CustomButton";
-import { MdHttps } from "react-icons/md";
+import { MdAccessibilityNew, MdHttps } from "react-icons/md";
+import { useNavigate } from "react-router-dom";
+import { FaAccessibleIcon, FaUtensils } from "react-icons/fa6";
+import { FaGlassWhiskey } from "react-icons/fa";
+import { CustomCheckboxWater } from "@/components/custom/CustomCheckbox(Water)";
 
 const DietRecord = (props) => {
+  const navigate = useNavigate();
   const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -101,6 +106,10 @@ const DietRecord = (props) => {
     props.setRecordUI("food record");
   };
 
+  const handleViewTrend = () => {
+    navigate("/trend-analysis", { state: { trendType: "diet" } });
+  };
+
   return (
     <div className="bg-ivory min-h-full p-6 text-primary flex flex-col">
       <div className="flex items-center gap-4 mb-[27px]">
@@ -125,7 +134,7 @@ const DietRecord = (props) => {
               {months[new Date().getMonth()]} {new Date().getDate()}
             </p>
           </div>
-          <CustomButton variant="outline" className="bg-white">
+          <CustomButton variant="outline" className="bg-white" onClick={handleViewTrend}>
             View Trend
           </CustomButton>
         </div>
@@ -188,34 +197,76 @@ const DietRecord = (props) => {
       <div className="flex flex-col gap-4 text-primary font-medium mb-3">
         Nutrition Label
       </div>
-      <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.15)] p-6 text-custom-12 mb-[28px]"
+      <div className={`bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.15)] p-6 text-custom-12 ${searchValue ? "mb-[10px]" : "mb-[28px]"}`}
         onClick={() => setClickedNutritionLabel(true)}
       >
         No data yet, record your first meal
       </div>
+      {searchValue &&
+        <div className="text-xs text-custom-12 text-center mb-[28px] italic">
+          This label is estimated by the system based on the default word bank, not the actual query result
+        </div>
+      }
 
       <div className="flex flex-col gap-4 text-primary font-medium mb-3">
         Gut Impact Analysis
       </div>
       <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] p-6 text-custom-12 text-sm mb-[28px]">
         No records yet, start your log
-        <div className="flex items-center space-x-4 text-xs text-gray-600 mt-3">
-          <div className="flex items-center space-x-1">
-            <span className="w-3 h-3 bg-green-400"></span>
-            <span>Gut-Friendly</span>
-          </div>
+        <div className="flex items-center space-x-4 text-xs text-custom-12 mt-3">
 
-          <div className="flex items-center space-x-1">
-            <span className="w-3 h-3 bg-yellow-400"></span>
-            <span>Neutral</span>
-          </div>
-
-          <div className="flex items-center space-x-1">
-            <span className="w-3 h-3 bg-red-400"></span>
-            <span>May Irritate</span>
-          </div>
         </div>
       </div>
+
+      {searchValue &&
+        <>
+          <div className="flex items-center gap-2 text-primary font-medium mb-3">
+            How to Eat
+            <FaUtensils color="#6aa84f" />
+          </div>
+          <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] p-6 text-custom-12 text-sm mb-[28px]">
+            <div className="flex items-center space-x-4 text-xs text-custom-12">
+              Eat high-fiber veggies & quality protein
+              <br />
+              Limit sodium & refined carbs
+            </div>
+          </div>
+        </>
+      }
+
+      {searchValue &&
+        <>
+          <div className="flex items-center gap-2 text-primary font-medium mb-3">
+            How to Drink
+            <FaGlassWhiskey color="#6fa8dc" />
+          </div>
+          <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] p-6 text-custom-12 text-sm mb-[28px]">
+            <div className="flex items-center space-x-4 text-xs text-custom-12">
+              Drink 300ml water before 10 AM
+              <br />
+              Sip 2-3 times to prevent bloatingf
+            </div>
+          </div>
+        </>
+      }
+
+      {searchValue &&
+        <>
+          <div className="flex items-center gap-2 text-primary font-medium mb-3">
+            How to Relax
+            <MdAccessibilityNew size={24} color="#e69138" />
+          </div>
+          <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] p-6 text-custom-12 text-sm mb-[28px]">
+            <div className="flex items-center space-x-4 text-xs text-custom-12">
+              Drink 300ml water before 10 AM
+              <br />
+              Sip 2-3 times to prevent bloatingf
+            </div>
+          </div>
+        </>
+      }
+
+
 
       <div className="flex flex-col gap-4 text-primary  mb-3 ">
         <CustomHeading label="Daily Progress" isRequired />
@@ -226,9 +277,9 @@ const DietRecord = (props) => {
             </div>
           </> : <>
             <div className="flex flex-col gap-2">
-              <CustomCheckbox label="Breakfast" />
-              <CustomCheckbox label="Lunch" />
-              <CustomCheckbox label="Dinner" />
+              <CustomCheckboxWater label="Breakfast" borderColor="#b3a2d0" checkColor="#b3a2d0" />
+              <CustomCheckboxWater label="Lunch" borderColor="#b3a2d0" checkColor="#b3a2d0" />
+              <CustomCheckboxWater label="Dinner" borderColor="#b3a2d0" checkColor="#b3a2d0" />
             </div>
           </>}
       </div>
@@ -300,7 +351,7 @@ const DietRecord = (props) => {
               </div>
 
               {/* Legend */}
-              <div className="flex flex-wrap items-center gap-4 mt-6 text-xs text-[#030303]">
+              <div className="flex flex-wrap items-center justify-center gap-4 mt-6 text-xs text-[#030303]">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-green-500"></div>
                   <span>Beneficial</span>

@@ -34,6 +34,12 @@ export const AccordionItem = ({
 
   return (
     <>
+      <style>{`
+        textarea:focus {
+          border-color: grey !important;
+          outline: none !important;
+        }
+      `}</style>
       <div
         className="bg-white rounded-[8px] shadow-sm overflow-hidden border border-custom-8"
       >
@@ -75,7 +81,19 @@ export const AccordionItem = ({
                     value={otherText}
                     onChange={(e) => onOtherChange(e.target.value)}
                     placeholder="Describe other symptoms (e.g., night)Max 20 characters, no symbols"
-                    className="w-full min-h-[48px] bg-white border border-[#ccc] text-sm text-secondary rounded-[8px] p-3 mb-[13px] placeholder:text-custom-12 placeholder:font-medium cursor-pointer"
+                    className="w-full min-h-[48px] text-sm text-secondary rounded-[8px] p-3 mb-[13px] placeholder:text-custom-12 placeholder:font-medium cursor-pointer focus:outline-none"
+                    style={{
+                      backgroundColor: 'white',
+                      borderWidth: '1px',
+                      borderStyle: 'solid',
+                      borderColor: 'grey',
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = 'grey';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = 'grey';
+                    }}
                     rows={3}
                   />
                   <p className="text-xs text-[#9e9e9e] font-medium flex items-center justify-center">Info for reference only; consult doctor if unsure</p>

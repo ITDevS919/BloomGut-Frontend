@@ -7,6 +7,7 @@ import { CustomRadioButtonGreen } from "@/components/custom/CustomRadioButton(Gr
 import { CustomRadioButtonRed } from "@/components/custom/CustomRadioButton(Red)";
 import { CustomRadioButtonPink } from "@/components/custom/CustomRadioButton(Pink)";
 import { MdEditNotifications } from "react-icons/md";
+import { useNavigate } from "react-router-dom";
 
 const EstimatedUrinationTimeOptions = [
   {
@@ -87,6 +88,7 @@ const NocturnalUrinationOptions = [
 ];
 
 const UrineRecord = () => {
+  const navigate = useNavigate();
   const days = [
     "Sunday",
     "Monday",
@@ -169,6 +171,10 @@ const UrineRecord = () => {
     }
   };
 
+  const handleViewTrend = () => {
+    navigate("/trend-analysis", { state: { trendType: "urine" } });
+  };
+
   return (
     <div className="bg-ivory min-h-full p-6 text-secondary flex flex-col">
       {/* header */}
@@ -194,7 +200,7 @@ const UrineRecord = () => {
             {months[new Date().getMonth()]} {new Date().getDate()}
           </p>
         </div>
-        <CustomButton variant="outline" className="bg-white">
+        <CustomButton variant="outline" className="bg-white" onClick={handleViewTrend}>
           View Trend
         </CustomButton>
       </div>

@@ -2,7 +2,8 @@ import Free from "../Free";
 import DateRangeSelector from "@/components/custom/DateRangeSelector";
 import { Doughnut, Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import Upgrade from "./Upgrade";
 import DateRangeSelectorYellowUpdate from "@/components/custom/DateRangeSelectorYellow(Update)";
 import DateRangeSelectorYellow from "@/components/custom/DateRangeSelectorYellow";
@@ -33,6 +34,9 @@ function Progress({ value, color }) {
 }
 
 const Intermediate = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
   const weeklydata = {
     labels: ["Hard", "Firm", "Normal", "Soft"],
     datasets: [
@@ -91,12 +95,19 @@ const Intermediate = () => {
     },
   };
 
-  const [viewMode, setViewMode] = useState("week");
+  const [viewMode, setViewMode] = useState(location.state?.viewMode || "week");
+
+  useEffect(() => {
+    // Update viewMode if it's passed via navigation state
+    if (location.state?.viewMode) {
+      setViewMode(location.state.viewMode);
+    }
+  }, [location.state]);
 
   return (
     <div>
       {/* Date Range Selector Header */}
-      <DateRangeSelector setViewMode={setViewMode} />
+      <DateRangeSelector setViewMode={setViewMode} initialViewMode={viewMode} />
       <Free showUpgrade={false} />
       <div className="pl-[15px] pr-[15px]">
         {/* Content */}
@@ -186,7 +197,15 @@ const Intermediate = () => {
             <div className="flex items-center justify-center text-xs text-custom-12 mt-[20px] mb-[43px]">
               Data for reference only
             </div>
-            <Upgrade />
+
+            <div className="flex items-center justify-center mb-[47px]">
+              <button 
+                className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
+                onClick={() => navigate("/trend-analysis?plan=premium", { state: { trendType: "bowel" } })}
+              >
+                In-depth Analysis
+              </button>
+            </div>
           </>
         )}
 

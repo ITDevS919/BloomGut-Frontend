@@ -6,6 +6,7 @@ import { ChevronDown, ChevronLeft, Pencil } from "lucide-react";
 import { useState } from "react";
 import { FaGlassWhiskey, FaPencilAlt } from "react-icons/fa";
 import { FaBottleWater, FaGlassWater, FaMugHot } from "react-icons/fa6";
+import { useNavigate } from "react-router-dom";
 
 const WaterRecord = () => {
   const days = [
@@ -284,6 +285,9 @@ function SpecialCollapse() {
 }
 
 function TodaysRecord() {
+  
+  const navigate = useNavigate();
+  
   const records = [
     { time: "09:00", volume: "250ml" },
     { time: "12:00", volume: "500ml" },
@@ -300,7 +304,7 @@ function TodaysRecord() {
           className="text-gray-400 hover:text-gray-600 transition-colors ml-5"
           aria-label="Edit record"
         >
-          <FaPencilAlt className="h-4 w-4" />
+          <FaPencilAlt className="h-4 w-4 cursor-pointer" onClick={() => navigate("/custom-volume", { state: { initialVolume: 250 } })} />
         </button>
       </div>
 
@@ -319,7 +323,7 @@ function TodaysRecord() {
 
       <div className="grid grid-cols-2 mt-[28px] mb-[57px] gap-[106px] ">
         <button className="w-[99px] bg-white border border-custom-16 ml-5 rounded-[8px] px- py-1 text-sm text-secondary shadow-[0_2px_6px_#afafaf]">Trend</button>
-        <button className="w-[99px] bg-white border border-custom-16 rounded-[8px] px-2 py-1 text-sm text-secondary shadow-[0_2px_6px_#afafaf]">Reminder</button>
+        <button className="w-[99px] bg-white border border-custom-16 rounded-[8px] px-2 py-1 text-sm text-secondary shadow-[0_2px_6px_#afafaf]" onClick={() => navigate("/reminders")}>Reminder</button>
       </div>
     </div >
   );

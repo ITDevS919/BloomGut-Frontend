@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const PremiumWeek = () => {
+  const navigate = useNavigate();
   const [tooltip, setTooltip] = useState(null); // { food, status, percentage, note, tip, x, y }
   const [foodTooltip, setFoodTooltip] = useState(null); // { food, status, percentage, note, tip, x, y }
 
@@ -96,11 +98,11 @@ const PremiumWeek = () => {
       { name: "Constip", value: foodItem.constip },
       { name: "Bloat", value: foodItem.bloat },
     ];
-    
-    const highest = symptoms.reduce((max, symptom) => 
+
+    const highest = symptoms.reduce((max, symptom) =>
       symptom.value > max.value ? symptom : max
     );
-    
+
     return highest;
   };
 
@@ -108,7 +110,7 @@ const PremiumWeek = () => {
     const rect = e.currentTarget.getBoundingClientRect();
     const highestSymptom = getHighestSensitivity(foodItem);
     const tooltipData = getTooltipData(foodItem.food, highestSymptom.name, highestSymptom.value);
-    
+
     setFoodTooltip({
       food: foodItem.food,
       status: highestSymptom.name,
@@ -126,7 +128,7 @@ const PremiumWeek = () => {
   const symptoms = ["Abd Pain", "Diarrh", "Constip", "Bloat"];
 
   return (
-    <div className="pl-[15px] pr-[15px] mb-[93px] relative">
+    <div className="pl-[15px] pr-[15px] mb-[60px] relative">
       <div className="text-base pl-[15px] font-medium mb-[11px] text-primary">
         Food vs Symptoms
       </div>
@@ -146,7 +148,7 @@ const PremiumWeek = () => {
             <tbody>
               {foodData.map((row, index) => (
                 <tr key={index} className="border-t border-gray-200">
-                  <td 
+                  <td
                     className="text-center text-sm text-primary py-2 px-2 cursor-pointer hover:bg-gray-50 transition-colors"
                     onMouseEnter={(e) => handleFoodHover(e, row)}
                     onMouseLeave={handleFoodLeave}
@@ -251,6 +253,15 @@ const PremiumWeek = () => {
           </div>
         </div>
       )}
+
+      <div className="flex items-center justify-center mt-[27px]">
+        <button
+          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
+          onClick={() => navigate("/trend-analysis?plan=intermediate", { state: { trendType: "bowel", viewMode: "month" } })}
+        >
+          OverView
+        </button>
+      </div>
     </div>
   );
 };

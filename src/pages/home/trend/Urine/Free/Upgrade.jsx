@@ -19,7 +19,7 @@ const Upgrade = () => {
           Track Bowel health and g et personalized tips
         </div>
         <button className="bg-[#FBC52D] text-white px-6 py-2 rounded-full shadow-md cursor-pointer"
-          onClick={() => navigate("/setting/upgrade-plan")}
+          onClick={() => navigate("/setting/upgrade-plan?plan=standard")}
         >
           Upgrade Now
         </button>

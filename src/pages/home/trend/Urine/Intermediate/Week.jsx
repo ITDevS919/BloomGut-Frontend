@@ -39,7 +39,7 @@ const Week = () => {
   const tabs = ["Day/Night", "Clarity", "Time"];
   return (
     <>
-      <Free />
+      <Free showUpgrade={false} />
       <div className="flex items-center justify-center gap-20 text-sm mt-[38px]">
         {tabs.map((tab) => (
           <button

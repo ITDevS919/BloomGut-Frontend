@@ -27,7 +27,7 @@ const DateRangeSelectorBlueUpdate = (props) => {
       const endOfWeek = new Date(startOfWeek);
       endOfWeek.setDate(startOfWeek.getDate() + 6);
 
-      const month = months[startOfWeek.getMonth()];
+      const month = weekMonths[startOfWeek.getMonth()];
       const startDay = startOfWeek.getDate();
       const endDay = endOfWeek.getDate();
       const year = startOfWeek.getFullYear();
@@ -76,9 +76,9 @@ const DateRangeSelectorBlueUpdate = (props) => {
   };
 
   return (
-    <div className="bg-ivory mb-[32px]">
+    <div className="bg-ivory mb-[32px] mt-[20px]">
       {/* View Mode Toggle Buttons - Top Row */}
-      <div className="flex gap-10 justify-center mb-4">
+      <div className="flex gap-4 sm:gap-6 md:gap-10 justify-center mb-4 px-[15px] overflow-x-auto">
         <button
           onClick={() => { handleViewModeChange("week"); props.setViewMode("week") }}
           className={`px-6 py-1 rounded-lg text-lg transition-colors ${viewMode === "week"
@@ -133,7 +133,7 @@ const DateRangeSelectorBlueUpdate = (props) => {
           </button>
 
             {/* Date Display */}
-            <div className="text-base text-primary min-w-[180px] text-center">
+            <div className="text-sm sm:text-base text-primary min-w-[160px] sm:min-w-[180px] max-w-[calc(100vw-120px)] text-center px-2">
               {formatDateRange(currentDate, viewMode)}
             </div>
 

@@ -2,9 +2,12 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 import Upgrade from "./Upgrade";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Free from "../Free";
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const Month = ({ showUpgrade = true }) => {
+  const navigate = useNavigate();
   const [selectedSession, setSelectedSession] = useState("Morning");
 
   const sessions = [
@@ -76,6 +79,7 @@ const Month = ({ showUpgrade = true }) => {
 
   return (
     <div className="pl-[15px] pr-[15px] mt-[36px]">
+      <Free showUpgrade={false} />
       <div className="text-base font-medium mb-[10px] text-primary">
         Water Intake Chart
       </div>
@@ -134,8 +138,8 @@ const Month = ({ showUpgrade = true }) => {
               key={session.name}
               onClick={() => setSelectedSession(session.name)}
               className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm ${selectedSession === session.name
-                  ? "bg-[#eff6ff] text-secondary"
-                  : "bg-transparent text-secondary"
+                ? "bg-[#eff6ff] text-secondary"
+                : "bg-transparent text-secondary"
                 }`}
             >
               <div
@@ -158,6 +162,15 @@ const Month = ({ showUpgrade = true }) => {
 
       {/* <Upgrade /> */}
       {showUpgrade && <Upgrade />}
+
+      <div className="flex items-center justify-center mb-[47px] mt-[20px]">
+        <button
+          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
+          onClick={() => navigate("/trend-analysis?plan=premium", { state: { trendType: "water" } })}
+        >
+          In-depth Analysis
+        </button>
+      </div>
     </div>
   );
 };

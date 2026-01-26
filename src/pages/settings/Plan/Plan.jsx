@@ -1,12 +1,28 @@
 import { ChevronLeft, Check, Crown, Star, CrownIcon } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaCrown } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const Plan = () => {
-  const [currentPlan, setCurrentPlan] = useState(0); // 0 = FREE, 1 = STANDARD, 2 = PRO
+  const [searchParams] = useSearchParams();
+  const planParam = searchParams.get("plan");
+  
+  // Initialize currentPlan based on URL parameter
+  const getInitialPlan = (param) => {
+    if (param === "standard") return 1; // STANDARD
+    if (param === "pro" || param === "premium") return 2; // PRO
+    return 0; // FREE (default)
+  };
+  
+  const [currentPlan, setCurrentPlan] = useState(getInitialPlan(planParam));
   const [selectedPricing, setSelectedPricing] = useState("month"); // "month" or "quarter" for STANDARD
   const [selectedProPricing, setSelectedProPricing] = useState("6mo"); // "6mo" or "year" for PRO
+
+  // Update currentPlan when URL parameter changes
+  useEffect(() => {
+    const plan = getInitialPlan(planParam);
+    setCurrentPlan(plan);
+  }, [planParam]);
 
   const plans = [
     {
@@ -50,6 +66,12 @@ const Plan = () => {
 
   const navigate = useNavigate();
 
+  const handleChevronLeftClick = () => {
+    // Cycle backwards through plans: PRO -> STANDARD -> FREE -> PRO
+    const nextPlan = currentPlan === 0 ? 2 : currentPlan - 1;
+    setCurrentPlan(nextPlan);
+  };
+
   return (
     <>
       <div className="bg-ivory min-h-full p-6 text-primary font-['Noto_Sans_TC', sans-serif]">
@@ -59,7 +81,7 @@ const Plan = () => {
             type="button"
             className="text-primary text-xl leading-none"
             aria-label="back"
-            onClick={() => window.history.back()}
+            onClick={handleChevronLeftClick}
           >
             <ChevronLeft className="text-primary text-[40px] leading-none cursor-pointer " />
           </button>
@@ -189,7 +211,7 @@ const Plan = () => {
               <button
                 type="button"
                 className="w-[183px] flex items-center justify-center mx-auto py-2 rounded-lg text-secondary text-sm bg-[#FBB667] shadow-sm mb-[52px]"
-                onClick={() => navigate("/trend-analysis?plan=intermediate")}
+                onClick={() => navigate("/setting/upgrade-plan/subscription")}
               >
                 Subscribe
               </button>

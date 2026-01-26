@@ -1,9 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const DateRangeSelector = (props) => {
-  const [viewMode, setViewMode] = useState("week"); // "week" or "month"
+  const [viewMode, setViewMode] = useState(props.initialViewMode || "week"); // "week" or "month"
   const [currentDate, setCurrentDate] = useState(new Date());
+
+  // Update viewMode when initialViewMode prop changes
+  useEffect(() => {
+    if (props.initialViewMode && props.initialViewMode !== viewMode) {
+      setViewMode(props.initialViewMode);
+      if (props.setViewMode) {
+        props.setViewMode(props.initialViewMode);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.initialViewMode]);
 
   // Format date range based on view mode
   const formatDateRange = (date, mode) => {

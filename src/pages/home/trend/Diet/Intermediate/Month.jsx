@@ -1,5 +1,6 @@
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 import { Doughnut, Pie } from "react-chartjs-2";
@@ -7,6 +8,7 @@ import { AlertTriangle } from "lucide-react";
 import Free from "../Free";
 
 const Month = () => {
+  const navigate = useNavigate();
   const [showAnalysis, setShowAnalysis] = useState(false);
   const data = {
     labels: ["Fiber", "Protein", "Fat", "Sugar"],
@@ -50,7 +52,7 @@ const Month = () => {
   };
   return (
     <>
-      <Free />
+      <Free showUpgrade={false} />
       <div className="pl-[15px] pr-[15px]">
         <div className="text-primary text-base pl-[15px] mb-3">Monthly Diet Category</div>
         <div className="w-full max-w-sm rounded-[20px] bg-white p-5 shadow-md space-y-4">
@@ -112,6 +114,15 @@ const Month = () => {
           This analysis is based on recent behavior and health indicators, for
           reference only
         </div>
+      </div>
+
+      <div className="flex items-center justify-center mb-[47px]">
+        <button
+          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
+          onClick={() => navigate("/trend-analysis?plan=premium", { state: { trendType: "diet" } })}
+        >
+          In-depth Analysis
+        </button>
       </div>
     </>
   );

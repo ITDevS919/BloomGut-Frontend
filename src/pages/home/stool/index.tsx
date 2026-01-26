@@ -11,6 +11,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useEffect, useState } from "react";
 import { IoIosArrowBack } from "react-icons/io";
 import { IoIosArrowDown } from "react-icons/io";
+import { useNavigate } from "react-router-dom";
 
 import StoolType1 from "@/assets/Images/stool-types/Stool type 1.png";
 import StoolType2 from "@/assets/Images/stool-types/Stool type 2.png";
@@ -28,14 +29,20 @@ import Type6 from "@/assets/Images/stool-types/Type 6.png";
 import Type7 from "@/assets/Images/stool-types/Type 7.png";
 
 const StoolPage = () => {
+  const navigate = useNavigate();
   const [timeValue, setTimeValue] = useState("card");
   const [frequencyValue, setFrequencyValue] = useState("card");
   const [selectedStool, setSelectedStool] = useState(null);
   const [selectedStoolImage, setSelectedStoolImage] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
+  
   const handleSaveRecord = () => {
     console.log("Save Record clicked");
     // TODO: submit record to backend
+  };
+
+  const handleViewTrend = () => {
+    navigate("/trend-analysis", { state: { trendType: "bowel" } });
   };
   const stoolImages = [
     {
@@ -158,7 +165,7 @@ const StoolPage = () => {
           icon={IoIosArrowBack}
           variant="ghost"
           size="lg"
-          iconSize={24}
+          iconSize={20}
           onClick={() => window.history.back()}
         />
       </div>
@@ -172,7 +179,7 @@ const StoolPage = () => {
             {months[new Date().getMonth()]} {new Date().getDate()}
           </p>
         </div>
-        <CustomButton variant="outline" className="bg-white">
+        <CustomButton variant="outline" className="bg-white" onClick={handleViewTrend}>
           View Trend
         </CustomButton>
       </div>
@@ -357,7 +364,7 @@ const StoolPage = () => {
           aria-label="Save Record"
           className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)]"
         >
-          Save Record
+          Save
         </button>
       </div>
     </div>

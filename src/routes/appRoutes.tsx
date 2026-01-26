@@ -35,6 +35,8 @@ import Record from "@/pages/home/record";
 import Trend from "@/pages/home/trend";
 import UrineRecord from "@/pages/home/record/UrineRecord";
 import WaterRecord from "@/pages/home/record/WaterRecord";
+import CustomVolume from "@/pages/home/record/CustomVolume";
+import Reminders from "@/pages/home/record/Reminders";
 
 export const ROUTES = [
   {
@@ -317,7 +319,24 @@ export const RECORD_ROUTES = [
     ),
     isRouteAccessible: true,
   },
-  
+  {
+    path: "/custom-volume",
+    element: (
+      <PrivateLayout>
+        <CustomVolume />
+      </PrivateLayout>
+    ),
+    isRouteAccessible: true,
+  },
+  {
+    path: "/reminders",
+    element: (
+      <PrivateLayout>
+        <Reminders />
+      </PrivateLayout>
+    ),
+    isRouteAccessible: true,
+  },
   {
     path: "/urine-record",
     element: (

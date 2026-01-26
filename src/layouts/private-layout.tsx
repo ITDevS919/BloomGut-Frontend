@@ -104,14 +104,14 @@ const PrivateLayout = ({ children }) => {
   useEffect(() => {
     const currentPath = location.pathname;
     const previousPath = previousPathRef.current;
-    
+
     // If navigation was done via button click, don't override (it's already set)
     if (isManualNavigationRef.current) {
       isManualNavigationRef.current = false;
       previousPathRef.current = currentPath;
       return;
     }
-    
+
     // Check if current path is a record route
     const recordRoutes = ["/stool", "/diet-record", "/water-record", "/urine-record"];
     if (recordRoutes.includes(currentPath)) {
@@ -129,7 +129,7 @@ const PrivateLayout = ({ children }) => {
       previousPathRef.current = currentPath;
       return;
     }
-    
+
     // If on dashboard, set Home icon as active and reset selected record option
     if (currentPath === "/dashboard") {
       setSelectedIcon(selectedHomeIcon);
@@ -137,13 +137,13 @@ const PrivateLayout = ({ children }) => {
       previousPathRef.current = currentPath;
       return;
     }
-    
+
     // Match current path with navItems
     const matchedItem = navItems.find(item => item.path === currentPath);
     if (matchedItem && !matchedItem.isRecords) {
       setSelectedIcon(matchedItem.selectionIcon);
     }
-    
+
     previousPathRef.current = currentPath;
   }, [location.pathname]);
 
@@ -223,11 +223,11 @@ const PrivateLayout = ({ children }) => {
                   navigate(item.path);
                   setSelectedIcon(item.selectionIcon);
                 }
-                if(item.label === "Home") {
+                if (item.label === "Home") {
                   setSelectedRecordOption("");
                   setSelectedTrendOption("");
                 }
-                if(item.label === "Settings") {
+                if (item.label === "Settings") {
                   setSelectedRecordOption("");
                   setSelectedTrendOption("");
                 }
@@ -265,7 +265,7 @@ const PrivateLayout = ({ children }) => {
           <div className="fixed bottom-24 left-0 right-0 z-30 flex justify-center px-4 pointer-events-none">
             <div
               ref={modalRef}
-              className="bg-[#f6f6f6] rounded-[8px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] px-6 py-5 pointer-events-auto"
+              className="bg-white rounded-[15px] shadow-[0_2px_8px_rgba(0,0,0,0.16)] px-6 py-5 pointer-events-auto"
               style={{
                 width: "auto",
                 maxWidth: "480px",
@@ -337,12 +337,12 @@ const PrivateLayout = ({ children }) => {
                 maxWidth: "480px",
               }}
             >
-              <h3 className="text-primary font-medium text-base mb-4">
+              <h3 className="text-base text-primary mb-4">
                 Choose Trend
               </h3>
               <div className="flex justify-between items-center gap-4">
-                <button 
-                  className="flex flex-col items-center gap-3 flex-1 cursor-pointer transition-opacity hover:opacity-80 active:opacity-70" 
+                <button
+                  className="flex flex-col items-center gap-3 flex-1 cursor-pointer transition-opacity hover:opacity-80 active:opacity-70"
                   onClick={() => { handleTrendOptionClick("bowel"); setSelectedTrendOption("toilet"); setSelectedRecordOption("") }}
                 >
                   <FaToilet className={` ${selectedTrendOption === "toilet" ? "text-[#E29C53]" : "text-[#F3D5B2]"}`} size={32} />
@@ -350,8 +350,8 @@ const PrivateLayout = ({ children }) => {
                     Bowel Trend
                   </p>
                 </button>
-                <button 
-                  className="flex flex-col items-center gap-3 flex-1 cursor-pointer transition-opacity hover:opacity-80 active:opacity-70" 
+                <button
+                  className="flex flex-col items-center gap-3 flex-1 cursor-pointer transition-opacity hover:opacity-80 active:opacity-70"
                   onClick={() => { handleTrendOptionClick("diet"); setSelectedTrendOption("utensils"); setSelectedRecordOption("") }}
                 >
                   <FaUtensils className={` ${selectedTrendOption === "utensils" ? "text-[#6AA84F]" : "text-[#CFE4B8]"}`} size={32} />
@@ -359,8 +359,8 @@ const PrivateLayout = ({ children }) => {
                     Diet Trend
                   </p>
                 </button>
-                <button 
-                  className="flex flex-col items-center gap-3 flex-1 cursor-pointer transition-opacity hover:opacity-80 active:opacity-70" 
+                <button
+                  className="flex flex-col items-center gap-3 flex-1 cursor-pointer transition-opacity hover:opacity-80 active:opacity-70"
                   onClick={() => { handleTrendOptionClick("water"); setSelectedTrendOption("water"); setSelectedRecordOption("") }}
                 >
                   <FaGlassWhiskey className={` ${selectedTrendOption === "water" ? "text-[#79b6e2]" : "text-[#D6EAF8]"}`} size={32} />
@@ -368,8 +368,8 @@ const PrivateLayout = ({ children }) => {
                     Water Trend
                   </p>
                 </button>
-                <button 
-                  className="flex flex-col items-center gap-3 flex-1 cursor-pointer transition-opacity hover:opacity-80 active:opacity-70" 
+                <button
+                  className="flex flex-col items-center gap-3 flex-1 cursor-pointer transition-opacity hover:opacity-80 active:opacity-70"
                   onClick={() => { handleTrendOptionClick("urine"); setSelectedTrendOption("urine"); setSelectedRecordOption("") }}
                 >
                   <FaTint className={` ${selectedTrendOption === "urine" ? "text-[#F6C700]" : "text-[#FDE8B4]"}`} size={32} />

@@ -29,11 +29,13 @@ import {
 } from "lucide-react";
 import Free from "../Free";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { MdErrorOutline, MdOutlineErrorOutline } from "react-icons/md";
 import Upgrade from "./Upgrade";
 
 const Month = () => {
+  const navigate = useNavigate();
   const [showAnalysis, setShowAnalysis] = useState(false);
   const labels = [
     "1st",
@@ -107,7 +109,7 @@ const Month = () => {
   };
   return (
     <>
-      <Free />
+      <Free showUpgrade={false} />
       <div className="pl-[15px] pr-[15px] mt-[29px]">
         <div className="w-full max-w-md rounded-[20px] bg-white p-5 shadow-md space-y-5">
           {/* Header */}
@@ -240,8 +242,16 @@ const Month = () => {
         </>)}
 
       <div className="text-center text-sm text-custom-12 italic mt-[28px] mb-[28px]">For reference only. Consult a doctor if needed.</div>
-      <div className="pl-[15px] pr-[15px]">
+      {/* <div className="pl-[15px] pr-[15px]">
         <Upgrade />
+      </div> */}
+      <div className="flex items-center justify-center mb-[47px]">
+        <button
+          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
+          onClick={() => navigate("/trend-analysis?plan=premium", { state: { trendType: "urine" } })}
+        >
+          In-depth Analysis
+        </button>
       </div>
     </>
   );

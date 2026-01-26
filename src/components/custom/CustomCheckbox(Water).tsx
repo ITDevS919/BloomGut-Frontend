@@ -11,7 +11,7 @@ type CheckboxProps = React.ComponentPropsWithoutRef<
   checkColor?: string;
 };
 
-export const CustomCheckbox = React.forwardRef<
+export const CustomCheckboxWater = React.forwardRef<
   React.ElementRef<typeof CheckboxPrimitive.Root>,
   CheckboxProps
 >(({ className, label, borderColor, checkColor, style, ...props }, ref) => {
@@ -79,4 +79,4 @@ export const CustomCheckbox = React.forwardRef<
   );
 });
 
-CustomCheckbox.displayName = "CustomCheckbox";
+CustomCheckboxWater.displayName = "CustomCheckboxWater";
