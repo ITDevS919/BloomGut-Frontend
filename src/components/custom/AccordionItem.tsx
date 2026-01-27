@@ -6,24 +6,37 @@ export const AccordionItem = ({
   title,
   options,
   showTextarea,
+  selected: controlledSelected,
+  onSelectionChange,
+  hasError,
 }: {
   title: string;
   options?: { label: string; value: string }[];
   showTextarea?: boolean;
+  selected?: Record<string, boolean>;
+  onSelectionChange?: (selected: Record<string, boolean>) => void;
+  hasError?: boolean;
 }) => {
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<Record<string, boolean>>({});
+  const [internalSelected, setInternalSelected] = useState<Record<string, boolean>>({});
   const [otherText, setOtherText] = useState("");
 
+  // Use controlled or internal state
+  const selected = controlledSelected !== undefined ? controlledSelected : internalSelected;
+  const setSelected = onSelectionChange || setInternalSelected;
+
   useEffect(() => {
-    // initialize selected state
-    const init: Record<string, boolean> = {};
-    (options || []).forEach((o) => (init[o.value] = false));
-    setSelected(init);
-  }, [options]);
+    // initialize selected state only if not controlled
+    if (controlledSelected === undefined) {
+      const init: Record<string, boolean> = {};
+      (options || []).forEach((o) => (init[o.value] = false));
+      setInternalSelected(init);
+    }
+  }, [options, controlledSelected]);
 
   const toggle = (val: string) => {
-    setSelected((s) => ({ ...s, [val]: !s[val] }));
+    const newSelected = { ...selected, [val]: !selected[val] };
+    setSelected(newSelected);
   };
 
   const onOtherChange = (v: string) => {
@@ -70,7 +83,9 @@ export const AccordionItem = ({
                   <CustomCheckbox
                     label={opt.label}
                     value={opt.value}
-                    onChange={(e) => toggle(opt.value)}
+                    checked={selected[opt.value] || false}
+                    onCheckedChange={() => toggle(opt.value)}
+                    borderColor={hasError ? "#ef4444" : undefined}
                   />
                 </div>
               ))}

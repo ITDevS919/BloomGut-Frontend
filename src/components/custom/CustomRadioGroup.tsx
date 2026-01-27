@@ -17,6 +17,7 @@ export interface CustomRadioItemProps
   description?: React.ReactNode;
   variant?: RadioVariant;
   className?: string;
+  hasError?: boolean;
 }
 
 export const CustomRadioGroup = React.forwardRef<
@@ -37,7 +38,7 @@ CustomRadioGroup.displayName = "CustomRadioGroup";
 export const CustomRadioItem = React.forwardRef<
   React.ElementRef<typeof RadioGroupPrimitive.Item>,
   CustomRadioItemProps
->(({ label, description, variant = "default", className, ...props }, ref) => {
+>(({ label, description, variant = "default", className, hasError, ...props }, ref) => {
   const isCard = variant === "card";
 
   return (
@@ -46,7 +47,11 @@ export const CustomRadioItem = React.forwardRef<
       className={cn(
         "relative outline-none disabled:opacity-50 disabled:cursor-not-allowed",
         isCard
-          ? "flex items-center justify-between w-full shodow-sm rounded-lg bg-white p-4 shadow-md data-[state=checked]:border data-[state=checked]:border-primary-muted"
+          ? `flex items-center justify-between w-full shodow-sm rounded-lg bg-white p-4 shadow-md ${
+              hasError 
+                ? "border border-red-500" 
+                : "data-[state=checked]:border data-[state=checked]:border-primary-muted"
+            }`
           : "flex items-center gap-3",
         className
       )}

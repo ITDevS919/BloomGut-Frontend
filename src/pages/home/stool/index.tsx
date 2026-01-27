@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import { IoIosArrowBack } from "react-icons/io";
 import { IoIosArrowDown } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
+import { MdEditNotifications } from "react-icons/md";
 
 import StoolType1 from "@/assets/Images/stool-types/Stool type 1.png";
 import StoolType2 from "@/assets/Images/stool-types/Stool type 2.png";
@@ -30,15 +31,74 @@ import Type7 from "@/assets/Images/stool-types/Type 7.png";
 
 const StoolPage = () => {
   const navigate = useNavigate();
-  const [timeValue, setTimeValue] = useState("card");
-  const [frequencyValue, setFrequencyValue] = useState("card");
+  const [timeValue, setTimeValue] = useState("");
+  const [frequencyValue, setFrequencyValue] = useState("");
   const [selectedStool, setSelectedStool] = useState(null);
   const [selectedStoolImage, setSelectedStoolImage] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
-  
+
+  // Checkbox states
+  const [timeOfDayChecked, setTimeOfDayChecked] = useState<Record<string, boolean>>({});
+  const [symptomChecked, setSymptomChecked] = useState<Record<string, boolean>>({});
+  const [mucusChecked, setMucusChecked] = useState<Record<string, boolean>>({});
+  const [textureChecked, setTextureChecked] = useState<Record<string, boolean>>({});
+  const [odorChecked, setOdorChecked] = useState<Record<string, boolean>>({});
+
+  // Validation errors
+  const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
+  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+
   const handleSaveRecord = () => {
+    // Reset validation errors
+    setValidationErrors({});
+
+    // Check if any checkboxes are checked
+    const hasTimeOfDay = Object.values(timeOfDayChecked).some(v => v);
+    const hasSymptom = Object.values(symptomChecked).some(v => v);
+    const hasMucus = Object.values(mucusChecked).some(v => v);
+    const hasTexture = Object.values(textureChecked).some(v => v);
+    const hasOdor = Object.values(odorChecked).some(v => v);
+    const hasAdditionalStatus = hasMucus || hasTexture || hasOdor;
+
+    // Check if radio groups have valid selections
+    const hasTime = timeValue && timeValue !== "card" && timeValue !== "";
+    const hasFrequency = frequencyValue && frequencyValue !== "card" && frequencyValue !== "";
+
+    const errors: Record<string, boolean> = {};
+
+    if (!hasTimeOfDay) {
+      errors.timeOfDay = true;
+    }
+    if (!hasSymptom) {
+      errors.symptom = true;
+    }
+    if (!hasAdditionalStatus) {
+      errors.additionalStatus = true;
+    }
+    if (!hasTime) {
+      errors.time = true;
+    }
+    if (!hasFrequency) {
+      errors.frequency = true;
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      setShowUnsavedModal(true);
+      return;
+    }
+
     console.log("Save Record clicked");
     // TODO: submit record to backend
+  };
+
+  const handleConfirmSave = () => {
+    setShowUnsavedModal(false);
+    // The validation errors are already set, user can see them
+  };
+
+  const handleCancelSave = () => {
+    setShowUnsavedModal(false);
   };
 
   const handleViewTrend = () => {
@@ -253,7 +313,12 @@ const StoolPage = () => {
         <CustomHeading label="Time" isRequired className="mb-[9px]" />
         <CustomRadioGroup
           value={timeValue}
-          onValueChange={setTimeValue}
+          onValueChange={(value) => {
+            setTimeValue(value);
+            if (value && validationErrors.time) {
+              setValidationErrors(prev => ({ ...prev, time: false }));
+            }
+          }}
           className="flex gap-8.5 items-center"
         >
           {timeOptions?.map((time, index) => {
@@ -264,17 +329,26 @@ const StoolPage = () => {
                 label={time.label}
                 variant="card"
                 className="px-4.5 py-3 w-fit text-secondary text-sm"
+                hasError={validationErrors.time}
               />
             );
           })}
         </CustomRadioGroup>
+        {validationErrors.time && (
+          <p className="text-red-500 text-xs mb-2 text-center mt-2">select bowel movement time</p>
+        )}
       </div>
 
       <div className="px-6 flex flex-col mb-[29px]">
         <CustomHeading label="Frequency" isRequired className="mb-2" />
         <CustomRadioGroup
           value={frequencyValue}
-          onValueChange={setFrequencyValue}
+          onValueChange={(value) => {
+            setFrequencyValue(value);
+            if (value && validationErrors.frequency) {
+              setValidationErrors(prev => ({ ...prev, frequency: false }));
+            }
+          }}
           className="flex gap-5 items-center flex-wrap"
         >
           {frequencyOptions?.map((time, index) => {
@@ -285,10 +359,14 @@ const StoolPage = () => {
                 label={time.label}
                 variant="card"
                 className="px-4.5 py-3 w-fit text-nowrap"
+                hasError={validationErrors.frequency}
               />
             );
           })}
         </CustomRadioGroup>
+        {validationErrors.frequency && (
+          <p className="text-red-500 text-xs mb-2 text-center mt-2">Select frequency required</p>
+        )}
       </div>
 
       <div className="px-6.5 flex flex-col mb-[30px]">
@@ -296,10 +374,25 @@ const StoolPage = () => {
         <div className="flex gap-4">
           {timeOfTheDayOptions?.map((time, i) => {
             return (
-              <CustomCheckbox label={time.label} value={time.value} key={i} />
+              <CustomCheckbox
+                label={time.label}
+                value={time.value}
+                key={i}
+                checked={timeOfDayChecked[time.value] || false}
+                onCheckedChange={(checked) => {
+                  setTimeOfDayChecked(prev => ({ ...prev, [time.value]: checked }));
+                  if (checked && validationErrors.timeOfDay) {
+                    setValidationErrors(prev => ({ ...prev, timeOfDay: false }));
+                  }
+                }}
+                borderColor={validationErrors.timeOfDay ? "#ef4444" : undefined}
+              />
             );
           })}
         </div>
+        {validationErrors.timeOfDay && (
+          <p className="text-red-500 text-xs mb-2 text-center mt-2">Bowel time required</p>
+        )}
       </div>
 
       <div className="px-6.5 flex flex-col mb-[34px]">
@@ -314,10 +407,21 @@ const StoolPage = () => {
                 label={symptom.label}
                 value={symptom.value}
                 key={i}
+                checked={symptomChecked[symptom.value] || false}
+                onCheckedChange={(checked) => {
+                  setSymptomChecked(prev => ({ ...prev, [symptom.value]: checked }));
+                  if (checked && validationErrors.symptom) {
+                    setValidationErrors(prev => ({ ...prev, symptom: false }));
+                  }
+                }}
+                borderColor={validationErrors.symptom ? "#ef4444" : undefined}
               />
             );
           })}
         </div>
+        {validationErrors.symptom && (
+          <p className="text-red-500 text-xs mb-2 text-center mt-2">Symptom Log required</p>
+        )}
       </div>
 
       <div className="px-6.5 flex flex-col">
@@ -337,6 +441,17 @@ const StoolPage = () => {
             { label: "Mucus (clear/white)", value: "mucus_clear" },
             { label: "Black Clots", value: "black_clots" },
           ]}
+          selected={mucusChecked}
+          onSelectionChange={(newSelected) => {
+            setMucusChecked(newSelected);
+            const hasAny = Object.values(newSelected).some(v => v) ||
+              Object.values(textureChecked).some(v => v) ||
+              Object.values(odorChecked).some(v => v);
+            if (hasAny && validationErrors.additionalStatus) {
+              setValidationErrors(prev => ({ ...prev, additionalStatus: false }));
+            }
+          }}
+          hasError={validationErrors.additionalStatus}
         />
 
         <AccordionItem
@@ -345,6 +460,17 @@ const StoolPage = () => {
             { label: "Viscous", value: "viscous" },
             { label: "Undigested Food", value: "undigested_food" },
           ]}
+          selected={textureChecked}
+          onSelectionChange={(newSelected) => {
+            setTextureChecked(newSelected);
+            const hasAny = Object.values(mucusChecked).some(v => v) ||
+              Object.values(newSelected).some(v => v) ||
+              Object.values(odorChecked).some(v => v);
+            if (hasAny && validationErrors.additionalStatus) {
+              setValidationErrors(prev => ({ ...prev, additionalStatus: false }));
+            }
+          }}
+          hasError={validationErrors.additionalStatus}
         />
 
         <AccordionItem
@@ -354,10 +480,25 @@ const StoolPage = () => {
             { label: "Metallic", value: "odor_metallic" },
             { label: "Foul", value: "odor_foul" },
           ]}
+          selected={odorChecked}
+          onSelectionChange={(newSelected) => {
+            setOdorChecked(newSelected);
+            const hasAny = Object.values(mucusChecked).some(v => v) ||
+              Object.values(textureChecked).some(v => v) ||
+              Object.values(newSelected).some(v => v);
+            if (hasAny && validationErrors.additionalStatus) {
+              setValidationErrors(prev => ({ ...prev, additionalStatus: false }));
+            }
+          }}
+          hasError={validationErrors.additionalStatus}
         />
 
         <AccordionItem title="Other Symptoms" showTextarea />
+        {validationErrors.additionalStatus && (
+          <p className="text-red-500 text-xs mb-2 text-center mt-2">Additional Status required</p>
+        )}
       </div>
+
       <div className="px-6.5 pb-6 flex justify-center">
         <button
           onClick={handleSaveRecord}
@@ -367,6 +508,52 @@ const StoolPage = () => {
           Save
         </button>
       </div>
+
+      {/* Unsaved Confirmation Modal */}
+      {showUnsavedModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/20"
+            onClick={handleCancelSave}
+          />
+          {/* Modal */}
+          <div className="bg-ivory rounded-[8px] shadow-[0_4px_8px_rgba(0,0,0,0.25)] pb-6 px-6 max-w-xs w-full pointer-events-auto relative">
+              {/* Icon */}
+              <div className="flex justify-center -mt-4 mb-4">
+                <div className="relative">
+                  <MdEditNotifications size={48} color="#000000" />
+                </div>
+              </div>
+
+              {/* Title */}
+              <h3 className="text-lg font-medium text-[#ef4444] text-center mb-2">
+                Unsaved
+              </h3>
+
+              {/* Message */}
+              <p className="text-base text-[#ef4444] text-center mb-6">
+                Are you sure to
+              </p>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCancelSave}
+                  className="flex-1 bg-white text-[#ef4444] px-4 py-3 rounded-[8px] text-base font-medium shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:opacity-90 transition-opacity"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmSave}
+                  className="flex-1 bg-white text-secondary px-4 py-3 rounded-[8px] text-base font-medium shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:opacity-90 transition-opacity"
+                >
+                  Confirm
+                </button>
+              </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -132,7 +132,7 @@ const UrineRecord = () => {
 
   const validateForm = () => {
     const missingFields = [];
-    
+
     if (!estimatedUrinationTimeValue) {
       missingFields.push("Estimated Urination Time");
     }
@@ -154,7 +154,7 @@ const UrineRecord = () => {
 
   const handleSave = () => {
     const missingFields = validateForm();
-    
+
     if (missingFields.length > 0) {
       setShowMissingFieldsModal(true);
     } else {
@@ -326,7 +326,7 @@ const UrineRecord = () => {
       <div className="text-gray-400 flex text-center justify-center italic">
         For reference only. Consult a physician if needed.
       </div>
-      <button 
+      <button
         onClick={handleSave}
         className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)] mt-5"
       >
@@ -350,8 +350,6 @@ const UrineRecord = () => {
               {/* Icon */}
               <div className="flex justify-center -mt-4 mb-4">
                 <div className="relative">
-                  {/* <Bell className="w-8 h-8 text-primary" />
-                  <Pencil className="w-4 h-4 text-primary absolute -top-1 -right-1" /> */}
                   <MdEditNotifications size={48} color="#000000" />
                 </div>
               </div>

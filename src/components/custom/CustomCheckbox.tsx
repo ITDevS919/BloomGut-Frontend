@@ -23,6 +23,13 @@ export const CustomCheckbox = React.forwardRef<
   const checkboxStyle = React.useMemo(() => {
     const baseStyle = style || {};
     if (borderColor) {
+      // If it's red (error state), always show red border
+      if (borderColor === "#ef4444" || borderColor === "red") {
+        return {
+          ...baseStyle,
+          borderColor: borderColor,
+        };
+      }
       return {
         ...baseStyle,
         borderColor: "#ccc", // Default border color when unchecked
@@ -32,6 +39,7 @@ export const CustomCheckbox = React.forwardRef<
   }, [borderColor, style]);
 
   const checkStyle = checkColor ? { color: checkColor } : {};
+  const isErrorState = borderColor === "#ef4444" || borderColor === "red";
   
   return (
     <>
@@ -39,7 +47,7 @@ export const CustomCheckbox = React.forwardRef<
         <style dangerouslySetInnerHTML={{
           __html: `
             .${uniqueId} {
-              border-color: #ccc;
+              border-color: ${isErrorState ? borderColor : "#ccc"} !important;
             }
             .${uniqueId}[data-state="checked"] {
               border-color: ${borderColor} !important;
@@ -52,13 +60,13 @@ export const CustomCheckbox = React.forwardRef<
           ref={ref}
           className={clsx(
             "h-5.5 w-5 rounded border bg-white",
-            borderColor ? uniqueId || "" : "border-custom-12",
+            borderColor && !isErrorState ? uniqueId || "" : isErrorState ? "" : "border-custom-12",
             "flex items-center justify-center",
-            borderColor ? "" : "data-[state=checked]:bg-white data-[state=checked]:border-custom-12",
+            borderColor && !isErrorState ? "" : isErrorState ? "" : "data-[state=checked]:bg-white data-[state=checked]:border-custom-12",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
             className
           )}
-          style={checkboxStyle}
+          style={isErrorState ? { ...checkboxStyle, borderColor: borderColor } : checkboxStyle}
           {...props}
         >
           <CheckboxPrimitive.Indicator>
