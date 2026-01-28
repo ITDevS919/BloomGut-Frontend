@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const PremiumMonth = () => {
+  const navigate = useNavigate();
   const [tooltip, setTooltip] = useState(null);
   const [hoveredCell, setHoveredCell] = useState(null);
 
@@ -187,6 +189,14 @@ const PremiumMonth = () => {
           </div>
         </div>
       )}
+      <div className="flex items-center justify-center mt-[27px]">
+        <button
+          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
+          onClick={() => navigate("/trend-analysis?plan=intermediate", { state: { trendType: "bowel", viewMode: "month", subscribed: true } })}
+        >
+          OverView
+        </button>
+      </div>
     </div>
   );
 };

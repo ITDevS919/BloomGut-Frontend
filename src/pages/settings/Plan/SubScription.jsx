@@ -53,21 +53,18 @@ const SubScription = () => {
             // onClick={() => navigate("/trend-analysis")}
             className="w-[159px] px-3 py-2 mx-auto bg-ivory rounded-md shadow-sm text-sm text-secondary flex items-center justify-center mb-[31px]"
             onClick={() => {
-              // If Pro plan subscription, redirect to bowel intermediate monthly with subscribed flag
-              if (plan === "premium" && trendType === "bowel") {
-                navigate("/trend-analysis?plan=intermediate", { 
-                  state: { 
-                    trendType: "bowel", 
-                    viewMode: "month",
-                    subscribed: true 
-                  } 
+              // Premium subscribe -> go to Premium trend
+              if (plan === "premium") {
+                navigate("/trend-analysis?plan=premium", {
+                  state: { trendType: trendType || "bowel" },
                 });
-              } else {
-                const url = trendType 
-                  ? `/trend-analysis?plan=intermediate`
-                  : "/trend-analysis?plan=intermediate";
-                navigate(url, { state: { trendType: trendType || "bowel" } });
+                return;
               }
+
+              // Standard subscribe (intermediate) -> go to Intermediate trend
+              navigate("/trend-analysis?plan=intermediate", {
+                state: { trendType: trendType || "bowel" },
+              });
             }}
           >
             Go to Trend Analysis

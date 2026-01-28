@@ -11,6 +11,7 @@ import annotationPlugin from "chartjs-plugin-annotation";
 import { Line } from "react-chartjs-2";
 import { Info } from "lucide-react";
 import { FaUserDoctor } from "react-icons/fa6";
+import { useNavigate } from "react-router-dom";
 
 ChartJS.register(
   LineElement,
@@ -23,6 +24,7 @@ ChartJS.register(
 );
 
 const PremiumYear = () => {
+  const navigate = useNavigate();
   const foods = [
     {
       rank: 1,
@@ -414,7 +416,15 @@ const PremiumYear = () => {
           </div>
         </div>
       </div>
-      <div className="text-center text-xs text-custom-12 mt-[12px] mb-[58px]">Based on past diet & bowel data, for reference only</div>
+      <div className="text-center text-xs text-custom-12 mt-[12px]">Based on past diet & bowel data, for reference only</div>
+      <div className="flex items-center justify-center mt-[27px] mb-[40px]">
+        <button
+          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
+          onClick={() => navigate("/trend-analysis?plan=intermediate", { state: { trendType: "bowel", viewMode: "month", subscribed: true } })}
+        >
+          OverView
+        </button>
+      </div>
     </div>
   );
 };
