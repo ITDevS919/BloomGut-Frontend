@@ -3,7 +3,7 @@ import DateRangeSelector from "@/components/custom/DateRangeSelector";
 import { Doughnut, Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import Upgrade from "./Upgrade";
 import DateRangeSelectorYellowUpdate from "@/components/custom/DateRangeSelectorYellow(Update)";
 import DateRangeSelectorYellow from "@/components/custom/DateRangeSelectorYellow";
@@ -36,6 +36,8 @@ function Progress({ value, color }) {
 const Intermediate = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const plan = searchParams.get("plan");
 
   const weeklydata = {
     labels: ["Hard", "Firm", "Normal", "Soft"],
@@ -199,15 +201,17 @@ const Intermediate = () => {
               Data for reference only
             </div>
 
-            {!isSubscribed && <Upgrade />}
-            <div className="flex items-center justify-center mb-[47px]">
-              <button
-                className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
-                onClick={() => navigate("/trend-analysis?plan=premium", { state: { trendType: "bowel" } })}
-              >
-                In-depth Analysis
-              </button>
-            </div>
+            {plan !== "premium" && plan !== "pro" && !isSubscribed && <Upgrade />}
+            {(plan === "premium" || plan === "pro" || isSubscribed) && (
+              <div className="flex items-center justify-center mb-[47px]">
+                <button
+                  className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
+                  onClick={() => navigate("/trend-analysis?plan=premium", { state: { trendType: "bowel" } })}
+                >
+                  In-depth Analysis
+                </button>
+              </div>
+            )}
           </>
         )}
 

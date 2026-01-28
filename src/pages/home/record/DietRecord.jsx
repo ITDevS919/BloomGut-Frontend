@@ -338,12 +338,21 @@ const DietRecord = (props) => {
                         }`}
                     >
                       {day && (
-                        <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center ${color ? getColorClass(color) + " text-white" : "text-secondary"
-                            }`}
-                        >
-                          {day}
-                        </div>
+                        color === "pink" ? (
+                          <div
+                            className={`w-8 h-8 flex items-center justify-center ${getColorClass(color)} text-white`}
+                            style={{ clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }}
+                          >
+                            {day}
+                          </div>
+                        ) : (
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center ${color ? getColorClass(color) + " text-white" : "text-secondary"
+                              }`}
+                          >
+                            {day}
+                          </div>
+                        )
                       )}
                     </div>
                   );
@@ -351,7 +360,7 @@ const DietRecord = (props) => {
               </div>
 
               {/* Legend */}
-              <div className="flex flex-wrap items-center justify-center gap-4 mt-6 text-xs text-[#030303]">
+              <div className="flex flex-wrap items-center justify-center gap-4 mt-6 text-xs text-secondary">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-[#66BB6A]"></div>
                   <span>Beneficial</span>
