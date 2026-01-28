@@ -83,11 +83,11 @@ const DietRecord = (props) => {
 
   const getColorClass = (color) => {
     const colorMap = {
-      green: "bg-green-500",
-      yellow: "bg-yellow-400",
-      red: "bg-red-500",
-      grey: "bg-gray-400",
-      pink: "bg-pink-400"
+      green: "bg-[#66BB6A]",
+      yellow: "bg-[#FFEB3B]",
+      red: "bg-[#EF5350]",
+      grey: "bg-[#BDBDBD]",
+      pink: "bg-[#F8C8C8]"
     };
     return colorMap[color] || "";
   };
@@ -339,7 +339,7 @@ const DietRecord = (props) => {
                     >
                       {day && (
                         <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center ${color ? getColorClass(color) + " text-white" : "text-primary"
+                          className={`w-8 h-8 rounded-full flex items-center justify-center ${color ? getColorClass(color) + " text-white" : "text-secondary"
                             }`}
                         >
                           {day}
@@ -353,23 +353,23 @@ const DietRecord = (props) => {
               {/* Legend */}
               <div className="flex flex-wrap items-center justify-center gap-4 mt-6 text-xs text-[#030303]">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-[#66BB6A]"></div>
                   <span>Beneficial</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                  <div className="w-3 h-3 rounded-full bg-[#FFEB3B]"></div>
                   <span>Neutral</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-[#EF5350]"></div>
                   <span>Irritating</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-gray-400"></div>
+                  <div className="w-3 h-3 rounded-full bg-[#BDBDBD]"></div>
                   <span>Unrecorded</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-pink-400"></div>
+                  <div className="w-3 h-3 rounded-full bg-[#F8C8C8]"></div>
                   <span>Incomplete</span>
                 </div>
               </div>

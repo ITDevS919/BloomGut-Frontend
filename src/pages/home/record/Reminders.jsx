@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronLeft, Clock, Trash2 } from "lucide-react";
 import { MdDeleteSweep } from "react-icons/md";
+import { FaBell } from "react-icons/fa6";
 
 const Switch = ({ checked, onChange }) => {
     return (
@@ -254,9 +255,13 @@ const Reminders = () => {
                 >
                     <ChevronLeft className="text-primary text-[40px] leading-none cursor-pointer" />
                 </button>
-                <h2 className="text-lg font-['Noto_Sans_TC', sans-serif]">Reminder Time</h2>
+                <h2 className="text-lg font-['Noto_Sans_TC', sans-serif] flex items-center gap-2">
+                    <FaBell className="text-[#79B6E2]" />
+                    <span>Reminders</span>
+                </h2>
             </div>
 
+            <div className="text-lg text-secondary ml-2 mb-2">Reminder Time</div>
             {/* Enable Toggle */}
             <div className="flex items-center justify-between mb-6">
                 <span className="text-base text-primary">Enable</span>

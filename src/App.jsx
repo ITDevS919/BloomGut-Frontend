@@ -47,7 +47,15 @@ function App() {
     <>
       <BrowserRouter>
         <CustomThemeProvider>
-          <Toaster />
+          <Toaster 
+            position="bottom-center"
+            offset="80px"
+            toastOptions={{
+              style: {
+                marginTop: '80px',
+              },
+            }}
+          />
           <MainRoutes />
         </CustomThemeProvider>
       </BrowserRouter>

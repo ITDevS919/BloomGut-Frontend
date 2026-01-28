@@ -1,5 +1,6 @@
 import { ChevronLeft } from "lucide-react";
 import { useState } from "react";
+import { FaTint } from "react-icons/fa";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const CustomVolume = () => {
@@ -38,7 +39,10 @@ const CustomVolume = () => {
                 >
                     <ChevronLeft className="text-primary text-[40px] leading-none cursor-pointer " />
                 </button>
-                <h2 className="text-lg font-['Noto_Sans_TC', sans-serif]">Custom Volume</h2>
+                <h2 className="text-lg font-['Noto_Sans_TC', sans-serif] flex items-center gap-2">
+                    <FaTint className="text-[#2190EE]" />
+                    <span>Custom Volume</span>
+                </h2>
             </div>
             <div className="bg-ivory min-h-full p-6 flex flex-col items-center justify-center mt-20">
 

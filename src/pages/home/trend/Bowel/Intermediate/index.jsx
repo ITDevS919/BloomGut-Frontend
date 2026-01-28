@@ -36,7 +36,7 @@ function Progress({ value, color }) {
 const Intermediate = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const weeklydata = {
     labels: ["Hard", "Firm", "Normal", "Soft"],
     datasets: [
@@ -96,6 +96,7 @@ const Intermediate = () => {
   };
 
   const [viewMode, setViewMode] = useState(location.state?.viewMode || "week");
+  const isSubscribed = location.state?.subscribed || false;
 
   useEffect(() => {
     // Update viewMode if it's passed via navigation state
@@ -198,8 +199,9 @@ const Intermediate = () => {
               Data for reference only
             </div>
 
+            {!isSubscribed && <Upgrade />}
             <div className="flex items-center justify-center mb-[47px]">
-              <button 
+              <button
                 className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
                 onClick={() => navigate("/trend-analysis?plan=premium", { state: { trendType: "bowel" } })}
               >

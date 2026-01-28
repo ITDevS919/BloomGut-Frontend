@@ -68,7 +68,7 @@ export const DropDownSelectorItem = ({
                     value={opt.value}
                     checked={selected[opt.value] || false}
                     onCheckedChange={() => toggle(opt.value)}
-                    borderColor="#79b6e2"
+                    // borderColor="#79b6e2"
                     checkColor="#79b6e2"
                   />
                 </div>

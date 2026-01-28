@@ -8,7 +8,12 @@ import { CustomRadioButtonRed } from "@/components/custom/CustomRadioButton(Red)
 import { CustomRadioButtonPink } from "@/components/custom/CustomRadioButton(Pink)";
 import { MdEditNotifications } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useSelector } from "react-redux";
+import { set } from "react-hook-form";
+import { toast } from "sonner";
 
+const backendUrl = import.meta.env.VITE_API_ENDPOINT;
 const EstimatedUrinationTimeOptions = [
   {
     id: "short",
@@ -89,6 +94,8 @@ const NocturnalUrinationOptions = [
 
 const UrineRecord = () => {
   const navigate = useNavigate();
+  const auth = useSelector((state) => state.auth);
+
   const days = [
     "Sunday",
     "Monday",
@@ -114,15 +121,14 @@ const UrineRecord = () => {
   ];
 
   const [urineStatusValue, setUrineStatusValue] = useState(50);
+  const [urineColor, setUrineColor] = useState("Light Yellow");
   const [estimatedUrinationTimeValue, setEstimatedUrinationTimeValue] =
     useState("");
   const [clarityValue, setClarityValue] = useState("");
   const [odorValue, setOdorValue] = useState("");
-  const [urinationFrequencyValue, setUrinationFrequencyValue] =
-    useState("");
-  const [nocturnalUrinationValue, setNocturnalUrinationValue] =
-    useState("");
-  const [showMissingFieldsModal, setShowMissingFieldsModal] = useState(false);
+  const [urinationFrequencyValue, setUrinationFrequencyValue] = useState("");
+  const [nocturnalUrinationValue, setNocturnalUrinationValue] = useState("");
+  const [showMissingFieldsModal, setShowMissingFieldsModal] = useState("");
 
   const getStatus = (v) => {
     if (v < 33) return "Transparent (Over Hydrated)";
@@ -159,15 +165,35 @@ const UrineRecord = () => {
       setShowMissingFieldsModal(true);
     } else {
       // Proceed with save
-      console.log("Saving...", {
-        urineStatusValue,
-        estimatedUrinationTimeValue,
-        clarityValue,
-        odorValue,
-        urinationFrequencyValue,
-        nocturnalUrinationValue,
-      });
-      // Add your save logic here
+
+      const param = {
+        color: urineColor,
+        estimatedTime: estimatedUrinationTimeValue,
+        clarity: clarityValue,
+        odor: odorValue,
+        frequency: urinationFrequencyValue,
+        nocturnalUrination: nocturnalUrinationValue,
+      };
+      console.log("Saving data:", auth);
+
+      axios
+        .put(`${backendUrl}/record/urine`, {
+          userId: auth.user.id,
+          ...param,
+        })
+        .then((response) => {
+          setUrineStatusValue(50);
+          setUrineColor("Light Yellow");
+          setEstimatedUrinationTimeValue("");
+          setClarityValue("");
+          setOdorValue("");
+          setUrinationFrequencyValue("");
+          setNocturnalUrinationValue("");
+          toast.success(response.data.data);
+        })
+        .catch((error) => {
+          console.error("Error saving data:", error);
+        });
     }
   };
 
@@ -187,7 +213,9 @@ const UrineRecord = () => {
         >
           <ChevronLeft className="text-primary text-[40px] leading-none cursor-pointer " />
         </button>
-        <h2 className="text-lg font-['Noto_Sans_TC', sans-serif]">Urine Record</h2>
+        <h2 className="text-lg font-['Noto_Sans_TC', sans-serif]">
+          Urine Record
+        </h2>
       </div>
 
       {/* date and view trend button */}
@@ -200,22 +228,31 @@ const UrineRecord = () => {
             {months[new Date().getMonth()]} {new Date().getDate()}
           </p>
         </div>
-        <CustomButton variant="outline" className="bg-white" onClick={handleViewTrend}>
+        <CustomButton
+          variant="outline"
+          className="bg-white"
+          onClick={handleViewTrend}
+        >
           View Trend
         </CustomButton>
       </div>
 
       {/* urine status */}
       <CustomHeading label="Urine Status" isRequired />
-      <div class="w-full max-w-md mx-auto mb-10">
-        <div class="relative">
+      <div className="w-full max-w-md mx-auto mb-10">
+        <div className="relative">
           <input
             type="range"
             min="0"
             max="100"
             value={urineStatusValue}
-            onChange={(e) => setUrineStatusValue(e.target.value)}
-            class="w-full h-10 appearance-none bg-gradient-to-r from-yellow-50 via-yellow-200 to-yellow-400 rounded-full outline-none"
+            onChange={(e) => {
+              setUrineStatusValue(e.target.value);
+              if (e.target.value < 33) setUrineColor("Transparent");
+              if (e.target.value < 66) setUrineColor("Light Yellow");
+              setUrineColor("Deep Yellow");
+            }}
+            className="w-full h-10 appearance-none bg-gradient-to-r from-yellow-50 via-yellow-200 to-yellow-400 rounded-full outline-none"
           />
 
           <style>
@@ -232,13 +269,13 @@ const UrineRecord = () => {
           </style>
         </div>
 
-        <div class="flex justify-between mt-2 text-sm text-gray-600">
+        <div className="flex justify-between mt-2 text-sm text-gray-600">
           <span>Transp</span>
           <span>Pale</span>
           <span>Deep</span>
         </div>
 
-        <p class="mt-3 text-center text-gray-400 text-sm">
+        <p className="mt-3 text-center text-gray-400 text-sm">
           Selected: {getStatus(urineStatusValue)}
         </p>
       </div>

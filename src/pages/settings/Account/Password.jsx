@@ -103,7 +103,7 @@ const Password = () => {
             placeholder="Re-enter new password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className={`w-full bg-white rounded-[8px] px-4 py-3 placeholder-custom-12 text-sm ${confirmPasswordError ? "border border-[#d32f2f]" : "border border-[#ccc]"}`}
+            className={`w-full bg-white rounded-[8px] px-4 py-3 placeholder-custom-12 text-sm ${confirmPasswordError ? "border border-[#d32f2f]" : "border border-[#ccc]"} mt-4`}
           // style={{ ...input, border: confirmPasswordError ? "1px solid #e36b6b" : input.border }}
           />
           {confirmPasswordError ? (

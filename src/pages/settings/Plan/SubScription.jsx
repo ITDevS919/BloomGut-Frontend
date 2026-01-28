@@ -1,11 +1,14 @@
 import { ChevronLeft, Info } from "lucide-react";
 import { Crown } from "lucide-react";
 import { FaCrown } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const SubScription = () => {
   const expiry = "Sep 9, 2025";
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const trendType = searchParams.get("trendType");
+  const plan = searchParams.get("plan");
 
   return (
     <div className="bg-ivory min-h-full p-6 text-primary font-['Noto_Sans_TC', sans-serif]">
@@ -49,7 +52,23 @@ const SubScription = () => {
           <button
             // onClick={() => navigate("/trend-analysis")}
             className="w-[159px] px-3 py-2 mx-auto bg-ivory rounded-md shadow-sm text-sm text-secondary flex items-center justify-center mb-[31px]"
-            onClick={() => navigate("/trend-analysis?plan=intermediate")}
+            onClick={() => {
+              // If Pro plan subscription, redirect to bowel intermediate monthly with subscribed flag
+              if (plan === "premium" && trendType === "bowel") {
+                navigate("/trend-analysis?plan=intermediate", { 
+                  state: { 
+                    trendType: "bowel", 
+                    viewMode: "month",
+                    subscribed: true 
+                  } 
+                });
+              } else {
+                const url = trendType 
+                  ? `/trend-analysis?plan=intermediate`
+                  : "/trend-analysis?plan=intermediate";
+                navigate(url, { state: { trendType: trendType || "bowel" } });
+              }
+            }}
           >
             Go to Trend Analysis
           </button>

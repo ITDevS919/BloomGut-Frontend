@@ -16,10 +16,10 @@ const Upgrade = () => {
         </div>
         <div className="text-base font-['Aleo'] mb-[14px] text-custom-12">Upgrade to Unlock</div>
         <div className="text-xs text-secondary font-['Noto Sans TC'] mb-5">
-          Track Bowel health and g et personalized tips
+          Track Bowel health and get personalized tips
         </div>
         <button className="bg-[#FBC52D] text-white px-6 py-2 rounded-full shadow-md cursor-pointer"
-          onClick={() => navigate("/setting/upgrade-plan?plan=standard")}
+          onClick={() => navigate("/setting/upgrade-plan?plan=standard&trendType=urine")}
         >
           Upgrade Now
         </button>

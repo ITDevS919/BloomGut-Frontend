@@ -82,7 +82,7 @@ const TrendHeader = (props) => {
         </button>
       </div>
 
-      {plan !== "premium" && (
+      {/* {plan !== "premium" && ( */}
         <div className="mt-[60px]">
           {/* icons row */}
           <div className="flex items-center justify-between px-3 py-2">
@@ -116,7 +116,7 @@ const TrendHeader = (props) => {
             </div>
           </div>
         </div>
-      )}
+      {/* )} */}
     </div>
   );
 };

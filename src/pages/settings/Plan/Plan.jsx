@@ -6,6 +6,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 const Plan = () => {
   const [searchParams] = useSearchParams();
   const planParam = searchParams.get("plan");
+  const trendTypeParam = searchParams.get("trendType");
   
   // Initialize currentPlan based on URL parameter
   const getInitialPlan = (param) => {
@@ -211,7 +212,12 @@ const Plan = () => {
               <button
                 type="button"
                 className="w-[183px] flex items-center justify-center mx-auto py-2 rounded-lg text-secondary text-sm bg-[#FBB667] shadow-sm mb-[52px]"
-                onClick={() => navigate("/setting/upgrade-plan/subscription")}
+                onClick={() => {
+                  const url = trendTypeParam 
+                    ? `/setting/upgrade-plan/subscription?trendType=${trendTypeParam}`
+                    : "/setting/upgrade-plan/subscription";
+                  navigate(url);
+                }}
               >
                 Subscribe
               </button>
@@ -269,7 +275,12 @@ const Plan = () => {
               <button
                 type="button"
                 className="w-[172px] flex items-center justify-center mx-auto py-2 rounded-lg text-secondary text-sm bg-white shadow-sm mb-[52px]"
-                onClick={() => navigate("/trend-analysis?plan=premium")}
+                onClick={() => {
+                  const url = trendTypeParam 
+                    ? `/setting/upgrade-plan/subscription?trendType=${trendTypeParam}&plan=premium`
+                    : "/setting/upgrade-plan/subscription?plan=premium";
+                  navigate(url);
+                }}
               >
                 Subscribe
               </button>

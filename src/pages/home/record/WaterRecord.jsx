@@ -9,6 +9,7 @@ import { FaBottleWater, FaGlassWater, FaMugHot } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
 
 const WaterRecord = () => {
+  const navigate = useNavigate();
   const days = [
     "Sunday",
     "Monday",
@@ -45,6 +46,9 @@ const WaterRecord = () => {
     { label: "Fitness Bottle(650ml)", value: "650ml" },
     { label: "Stainless Steel Straw Insulated Cup(1000ml)", value: "1000ml" },
   ];
+  const handleViewTrend = () => {
+    navigate("/trend-analysis", { state: { trendType: "water" } });
+  };
   return (
     <div className="bg-ivory min-h-full p-6 text-secondary flex flex-col">
       {/* header */}
@@ -70,7 +74,9 @@ const WaterRecord = () => {
             {months[new Date().getMonth()]} {new Date().getDate()}
           </p>
         </div>
-        <CustomButton variant="outline" className="bg-white cursor-pointer">
+        <CustomButton variant="outline" className="bg-white cursor-pointer"
+          onClick={handleViewTrend}
+        >
           View Trend
         </CustomButton>
       </div>
@@ -285,9 +291,9 @@ function SpecialCollapse() {
 }
 
 function TodaysRecord() {
-  
+
   const navigate = useNavigate();
-  
+
   const records = [
     { time: "09:00", volume: "250ml" },
     { time: "12:00", volume: "500ml" },

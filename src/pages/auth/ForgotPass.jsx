@@ -44,7 +44,7 @@ const ForgotPass = () => {
       </p>
 
       {/* Form */}
-      <div className="my-auto">
+      <div className="mt-40 ">
         <form
           className="flex flex-col gap-4 mt-auto"
           onSubmit={handleSubmit(onSubmit)}

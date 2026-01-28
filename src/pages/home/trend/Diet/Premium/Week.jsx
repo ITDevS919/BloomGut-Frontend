@@ -3,9 +3,11 @@ import { useNavigate } from "react-router-dom";
 
 ChartJS.register(LinearScale, PointElement, Tooltip);
 import { Scatter } from "react-chartjs-2";
+import { useState } from "react";
 
 const Week = () => {
   const navigate = useNavigate();
+  const [showDetailedAnalysis, setShowDetailedAnalysis] = useState(false);
   const xLabels = ["Breakfast", "Lunch", "Dinner"];
   const yLabels = ["Normal", "Undefined", "Constipation"];
 
@@ -84,7 +86,11 @@ const Week = () => {
 
         {/* Chart */}
         <div className="h-44">
-          <Scatter data={data} options={options} />
+          <Scatter data={data} options={options}
+            onClick={ (events,a) => {
+              console.log(a);
+            }}
+          />
         </div>
 
         {/* Legend */}
@@ -94,6 +100,49 @@ const Week = () => {
           <Legend color="bg-orange-400" label="Mod-Strong" />
           <Legend color="bg-red-500" label="Strong" />
         </div>
+
+        {/* Tooltip */}
+        {showDetailedAnalysis && (
+          <>
+            {/* Backdrop */}
+            {/* Modal */}
+            <div
+              className="bg-[#eff6ff] rounded-[12px] border-2 border-[#ededef] p-5 pointer-events-auto relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-base font-medium text-primary">Detailed Analysis</h3>
+                <button
+                  onClick={() => setShowDetailedAnalysis(false)}
+                  className="text-[#808080] hover:text-[#4A3E35] transition-colors"
+                  aria-label="Close"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="space-y-2 text-sm text-[#554B40]">
+                <p>Fiber lunch / Smooth 3× (65%)</p>
+                <p>Veggies at lunch help digestion</p>
+              </div>
+            </div>
+          </>
+        )}
 
         {/* High Risk */}
         <div className="rounded-[12px] bg-[#fef2f2] p-4 text-sm border-2 border-[#ededef]">
