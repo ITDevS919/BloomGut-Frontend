@@ -3,9 +3,7 @@ import DateRangeSelector from "@/components/custom/DateRangeSelector";
 import { Doughnut, Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import { useSelector } from "react-redux";
-import useApiClient from "@/hooks/useApiClient";
+import { useNavigate, useLocation } from "react-router-dom";
 import Upgrade from "./Upgrade";
 import DateRangeSelectorYellowUpdate from "@/components/custom/DateRangeSelectorYellow(Update)";
 import DateRangeSelectorYellow from "@/components/custom/DateRangeSelectorYellow";
@@ -38,10 +36,6 @@ function Progress({ value, color }) {
 const Intermediate = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchParams] = useSearchParams();
-  const plan = searchParams.get("plan");
-  const auth = useSelector((state) => state.auth);
-  const api = useApiClient();
 
   const [weeklyData, setWeeklyData] = useState({
     labels: ["Hard", "Firm", "Normal", "Soft"],
