@@ -9,11 +9,12 @@ import {
 import SegmentedControl from "@/components/custom/SegmentedControl";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useEffect, useState } from "react";
-import { IoIosArrowBack } from "react-icons/io";
+import { IoIosArrowBack, IoIosArrowUp } from "react-icons/io";
 import { IoIosArrowDown } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
 import { MdEditNotifications } from "react-icons/md";
-
+import { useSelector } from "react-redux";
+import useApiClient from "@/hooks/useApiClient";
 import StoolType1 from "@/assets/Images/stool-types/Stool type 1.png";
 import StoolType2 from "@/assets/Images/stool-types/Stool type 2.png";
 import StoolType3 from "@/assets/Images/stool-types/Stool type 3.png";
@@ -28,11 +29,28 @@ import Type4 from "@/assets/Images/stool-types/Type 4.png";
 import Type5 from "@/assets/Images/stool-types/Type 5.png";
 import Type6 from "@/assets/Images/stool-types/Type 6.png";
 import Type7 from "@/assets/Images/stool-types/Type 7.png";
+import { toast } from "sonner";
 
 const StoolPage = () => {
+
+  const auth = useSelector((state) => state.auth);
+  const api = useApiClient();
   const navigate = useNavigate();
+
+  // params
+  const [shapeValue, setShapeValue] = useState("");
+  const [colorValue, setColorValue] = useState("");
+  const [amountValue, setAmountValue] = useState("medium");
   const [timeValue, setTimeValue] = useState("");
   const [frequencyValue, setFrequencyValue] = useState("");
+  const [timeOfDayValue, setTimeOfDayValue] = useState([]);
+  const [symptomValue, setSymptomValue] = useState([]);
+  const [mucusConditionValue, setMucusConditionValue] = useState([]);
+  const [textureConditionValue, setTextureConditionValue] = useState([]);
+  const [odorConditionValue, setOdorConditionValue] = useState([]);
+  const [otherSymptomsValue, setOtherSymptomsValue] = useState("");
+
+  // selected
   const [selectedStool, setSelectedStool] = useState(null);
   const [selectedStoolImage, setSelectedStoolImage] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
@@ -48,7 +66,13 @@ const StoolPage = () => {
   const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
 
-  const handleSaveRecord = () => {
+  // open
+  const [mucusOpen, setMucusOpen] = useState(false);
+  const [textureOpen, setTextureOpen] = useState(false);
+  const [odorOpen, setOdorOpen] = useState(false);
+  const [otherSymptomsOpen, setOtherSymptomsOpen] = useState(false);
+
+  const handleSaveRecord = async () => {
     // Reset validation errors
     setValidationErrors({});
 
@@ -88,8 +112,34 @@ const StoolPage = () => {
       return;
     }
 
-    console.log("Save Record clicked");
-    // TODO: submit record to backend
+    if (!auth?.user?.id) {
+      toast.error("You must be logged in to save stool records.");
+      return;
+    }
+
+    const param = {
+      userId: auth.user.id,
+      shape: shapeValue,
+      color: colorValue,
+      amount: amountValue,
+      time: timeValue,
+      frequency: frequencyValue,
+      timeOfday: timeOfDayValue,
+      symptomLog: symptomValue,
+      mucusCondition: mucusConditionValue,
+      textureCondition: textureConditionValue,
+      odorCondition: odorConditionValue,
+      otherSymptoms: otherSymptomsValue,
+    };
+
+    try {
+      const response = await api.put("/record/bowel", param);
+      toast.success(response.data.data);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("Error saving stool record:", error);
+      toast.error("Failed to save stool record. Please try again.");
+    }
   };
 
   const handleConfirmSave = () => {
@@ -109,6 +159,7 @@ const StoolPage = () => {
       label: "Hard Lumps",
       image: StoolType1,
       onclick: () => {
+        setShapeValue("Hard Lumps");
         setSelectedStool(Type1);
         setSelectedStoolImage("Hard Lumps");
       },
@@ -117,6 +168,7 @@ const StoolPage = () => {
       label: "Lumpy",
       image: StoolType2,
       onclick: () => {
+        setShapeValue("Lumpy");
         setSelectedStool(Type2);
         setSelectedStoolImage("Lumpy");
       }
@@ -126,6 +178,7 @@ const StoolPage = () => {
       label: "Firm",
       image: StoolType3,
       onclick: () => {
+        setShapeValue("Firm");
         setSelectedStool(Type3);
         setSelectedStoolImage("Firm");
       }
@@ -134,6 +187,7 @@ const StoolPage = () => {
       label: "Smooth",
       image: StoolType4,
       onclick: () => {
+        setShapeValue("Smooth");
         setSelectedStool(Type4);
         setSelectedStoolImage("Smooth");
       }
@@ -142,6 +196,7 @@ const StoolPage = () => {
       label: "Soft",
       image: StoolType5,
       onclick: () => {
+        setShapeValue("Soft");
         setSelectedStool(Type5);
         setSelectedStoolImage("Soft");
       }
@@ -150,6 +205,7 @@ const StoolPage = () => {
       label: "Mushy",
       image: StoolType6,
       onclick: () => {
+        setShapeValue("Mushy");
         setSelectedStool(Type6);
         setSelectedStoolImage("Mushy");
       }
@@ -158,6 +214,7 @@ const StoolPage = () => {
       label: "Watery",
       image: StoolType7,
       onclick: () => {
+        setShapeValue("Watery");
         setSelectedStool(Type7);
         setSelectedStoolImage("Watery");
       }
@@ -165,11 +222,11 @@ const StoolPage = () => {
   ];
 
   const colorOptions = [
-    { label: "Brown", colorCode: "#8b4513", onclick: () => { setSelectedColor("Brown"); } },
-    { label: "Black", colorCode: "#000000", onclick: () => { setSelectedColor("Black"); } },
-    { label: "Yellow", colorCode: "#daa520", onclick: () => { setSelectedColor("Yellow"); } },
-    { label: "Red", colorCode: "#990000", onclick: () => { setSelectedColor("Red"); } },
-    { label: "Green", colorCode: "#556b2f", onclick: () => { setSelectedColor("Green"); } },
+    { label: "Brown", colorCode: "#8b4513", onclick: () => { setColorValue("Brown"); setSelectedColor("Brown"); } },
+    { label: "Black", colorCode: "#000000", onclick: () => { setColorValue("Black"); setSelectedColor("Black"); } },
+    { label: "Yellow", colorCode: "#daa520", onclick: () => { setColorValue("Yellow"); setSelectedColor("Yellow"); } },
+    { label: "Red", colorCode: "#990000", onclick: () => { setColorValue("Red"); setSelectedColor("Red"); } },
+    { label: "Green", colorCode: "#556b2f", onclick: () => { setColorValue("Green"); setSelectedColor("Green"); } },
   ];
 
   const timeOfTheDayOptions = [
@@ -305,7 +362,15 @@ const StoolPage = () => {
         <CustomHeading label="Amount" isRequired className="mb-[11px]" />
         <SegmentedControl
           labels={["Small", "Medium", "Large"]}
-          onChange={(value) => console.log("Selected amount:", value)}
+          onChange={(value) => {
+            if (value === 0) {
+              setAmountValue("Small");
+            } else if (value === 1) {
+              setAmountValue("Medium");
+            } else if (value === 2) {
+              setAmountValue("Large");
+            }
+          }}
         />
       </div>
 
@@ -380,6 +445,11 @@ const StoolPage = () => {
                 key={i}
                 checked={timeOfDayChecked[time.value] || false}
                 onCheckedChange={(checked) => {
+                  if (checked) {
+                    setTimeOfDayValue(prev => [...prev, time.value]);
+                  } else {
+                    setTimeOfDayValue(prev => prev.filter(v => v !== time.value));
+                  }
                   setTimeOfDayChecked(prev => ({ ...prev, [time.value]: checked }));
                   if (checked && validationErrors.timeOfDay) {
                     setValidationErrors(prev => ({ ...prev, timeOfDay: false }));
@@ -409,6 +479,11 @@ const StoolPage = () => {
                 key={i}
                 checked={symptomChecked[symptom.value] || false}
                 onCheckedChange={(checked) => {
+                  if (checked) {
+                    setSymptomValue(prev => [...prev, symptom.value]);
+                  } else {
+                    setSymptomValue(prev => prev.filter(v => v !== symptom.value));
+                  }
                   setSymptomChecked(prev => ({ ...prev, [symptom.value]: checked }));
                   if (checked && validationErrors.symptom) {
                     setValidationErrors(prev => ({ ...prev, symptom: false }));
@@ -435,71 +510,195 @@ const StoolPage = () => {
       </div>
 
       <div className="px-6.5 flex flex-col gap-[20px] mb-[49px]">
-        <AccordionItem
-          title="Mucus Condition"
-          options={[
-            { label: "Mucus (clear/white)", value: "mucus_clear" },
-            { label: "Black Clots", value: "black_clots" },
-          ]}
-          selected={mucusChecked}
-          onSelectionChange={(newSelected) => {
-            setMucusChecked(newSelected);
-            const hasAny = Object.values(newSelected).some(v => v) ||
-              Object.values(textureChecked).some(v => v) ||
-              Object.values(odorChecked).some(v => v);
-            if (hasAny && validationErrors.additionalStatus) {
-              setValidationErrors(prev => ({ ...prev, additionalStatus: false }));
-            }
-          }}
-          hasError={validationErrors.additionalStatus}
-        />
+        <div className="bg-white rounded-[8px] shadow-sm overflow-hidden border border-custom-8">
+          <button
+            className="w-full flex items-center justify-between p-4 cursor-pointer"
+            onClick={() => setMucusOpen(!mucusOpen)}
+            type="button"
+            aria-expanded={mucusOpen}
+          >
+            <span className="text-sm text-secondary">Mucus Condition</span>
+            <IoIosArrowDown
+              className="text-secondary"
+              style={{
+                transform: mucusOpen ? "rotate(180deg)" : "rotate(0deg)",
+                transition: "transform 180ms",
+              }}
+              size={20}
+            />
+          </button>
+        </div>
+        {
+          mucusOpen && (
+            <div className="grid grid-cols-2 gap-3 ml-[20px]">
+              {mucusConditionOptions.map((mucus, index) => (
+                <CustomCheckbox
+                  key={index}
+                  label={mucus.label}
+                  value={mucus.value}
+                  checked={mucusChecked[mucus.value] || false}
+                  onCheckedChange={(checked) => {
+                    setMucusChecked(prev => ({ ...prev, [mucus.value]: checked }));
+                    if (checked) {
+                      setMucusConditionValue(prev => [...prev, mucus.value]);
+                    } else {
+                      setMucusConditionValue(prev => prev.filter(v => v !== mucus.value));
+                    }
+                    if (checked && validationErrors.mucusCondition) {
+                      setValidationErrors(prev => ({ ...prev, mucusCondition: false }));
+                    }
+                  }}
+                  borderColor={validationErrors.mucusCondition ? "#ef4444" : undefined}
+                />
+              ))}
+            </div>
+          )
+        }
 
-        <AccordionItem
-          title="Texture Condition"
-          options={[
-            { label: "Viscous", value: "viscous" },
-            { label: "Undigested Food", value: "undigested_food" },
-          ]}
-          selected={textureChecked}
-          onSelectionChange={(newSelected) => {
-            setTextureChecked(newSelected);
-            const hasAny = Object.values(mucusChecked).some(v => v) ||
-              Object.values(newSelected).some(v => v) ||
-              Object.values(odorChecked).some(v => v);
-            if (hasAny && validationErrors.additionalStatus) {
-              setValidationErrors(prev => ({ ...prev, additionalStatus: false }));
-            }
-          }}
-          hasError={validationErrors.additionalStatus}
-        />
+        <div className="bg-white rounded-[8px] shadow-sm overflow-hidden border border-custom-8">
+          <button
+            className="w-full flex items-center justify-between p-4 cursor-pointer"
+            onClick={() => setTextureOpen(!textureOpen)}
+            type="button"
+            aria-expanded={textureOpen}
+          >
+            <span className="text-sm text-secondary">Texture Condition</span>
+            <IoIosArrowDown
+              className="text-secondary"
+              style={{
+                transform: textureOpen ? "rotate(180deg)" : "rotate(0deg)",
+                transition: "transform 180ms",
+              }}
+              size={20}
+            />
+          </button>
+        </div>
+        {
+          textureOpen && (
+            <div className="grid grid-cols-2 gap-3 ml-[20px]">
+              {textureConditionOptions.map((texture, index) => (
+                <CustomCheckbox
+                  key={index}
+                  label={texture.label}
+                  value={texture.value}
 
-        <AccordionItem
-          title="Odor Condition"
-          options={[
-            { label: "Yellow (Normal Odor)", value: "odor_yellow" },
-            { label: "Metallic", value: "odor_metallic" },
-            { label: "Foul", value: "odor_foul" },
-          ]}
-          selected={odorChecked}
-          onSelectionChange={(newSelected) => {
-            setOdorChecked(newSelected);
-            const hasAny = Object.values(mucusChecked).some(v => v) ||
-              Object.values(textureChecked).some(v => v) ||
-              Object.values(newSelected).some(v => v);
-            if (hasAny && validationErrors.additionalStatus) {
-              setValidationErrors(prev => ({ ...prev, additionalStatus: false }));
-            }
-          }}
-          hasError={validationErrors.additionalStatus}
-        />
+                  checked={textureChecked[texture.value] || false}
+                  onCheckedChange={(checked) => {
+                    setTextureChecked(prev => ({ ...prev, [texture.value]: checked }));
+                    if (checked) {
+                      setTextureConditionValue(prev => [...prev, texture.value]);
+                    } else {
+                      setTextureConditionValue(prev => prev.filter(v => v !== texture.value));
+                    }
+                    if (checked && validationErrors.textureCondition) {
+                      setValidationErrors(prev => ({ ...prev, textureCondition: false }));
+                    }
+                  }}
+                  borderColor={validationErrors.textureCondition ? "#ef4444" : undefined}
+                />
+              ))}
+            </div>
+          )
+        }
 
-        <AccordionItem title="Other Symptoms" showTextarea />
-        {validationErrors.additionalStatus && (
+        <div className="bg-white rounded-[8px] shadow-sm overflow-hidden border border-custom-8">
+          <button
+            className="w-full flex items-center justify-between p-4 cursor-pointer"
+            onClick={() => setOdorOpen(!odorOpen)}
+            type="button"
+            aria-expanded={odorOpen}
+          >
+            <span className="text-sm text-secondary">Odor Condition</span>
+            <IoIosArrowDown
+              className="text-secondary"
+              style={{
+                transform: odorOpen ? "rotate(180deg)" : "rotate(0deg)",
+                transition: "transform 180ms",
+              }}
+              size={20}
+            />
+          </button>
+        </div>
+        {
+          odorOpen && (
+            <div className="grid grid-cols-2 gap-3 ml-[20px]">
+              {odorConditionOptions.map((odor, index) => (
+                <CustomCheckbox
+                  key={index}
+                  label={odor.label}
+                  value={odor.value}
+                  checked={odorChecked[odor.value] || false}
+                  onCheckedChange={(checked) => {
+                    setOdorChecked(prev => ({ ...prev, [odor.value]: checked }));
+                    if (checked) {
+                      setOdorConditionValue(prev => [...prev, odor.value]);
+                    } else {
+                      setOdorConditionValue(prev => prev.filter(v => v !== odor.value));
+                    }
+
+                    if (checked && validationErrors.odorCondition) {
+                      setValidationErrors(prev => ({ ...prev, odorCondition: false }));
+                    }
+                  }}
+                  borderColor={validationErrors.odorCondition ? "#ef4444" : undefined}
+                />
+              ))}
+            </div>
+          )
+        }
+
+        <div className="bg-white rounded-[8px] shadow-sm overflow-hidden border border-custom-8">
+          <button
+            className="w-full flex items-center justify-between p-4 cursor-pointer"
+            onClick={() => setOtherSymptomsOpen(!otherSymptomsOpen)}
+            type="button"
+            aria-expanded={otherSymptomsOpen}
+          >
+            <span className="text-sm text-secondary">Other Symptoms</span>
+            <IoIosArrowDown
+              className="text-secondary"
+              style={{
+                transform: otherSymptomsOpen ? "rotate(180deg)" : "rotate(0deg)",
+                transition: "transform 180ms",
+              }}
+              size={20}
+            />
+          </button>
+        </div>
+        {
+          otherSymptomsOpen && (
+            <div className="w-full">
+              <textarea
+                value={otherSymptomsValue}
+                onChange={(e) => setOtherSymptomsValue(e.target.value)}
+                placeholder="Describe other symptoms (e.g., night)Max 20 characters, no symbols"
+                className="w-full min-h-[48px] text-sm text-secondary rounded-[8px] p-3 mb-[13px] placeholder:text-custom-12 placeholder:font-medium cursor-pointer focus:outline-none"
+                style={{
+                  backgroundColor: 'white',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'grey',
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = 'grey';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = 'grey';
+                }}
+                rows={3}
+              />
+              <p className="text-xs text-[#9e9e9e] font-medium flex items-center justify-center">Info for reference only; consult doctor if unsure</p>
+            </div>
+          )
+        }
+      </div >
+      {
+        validationErrors.additionalStatus && (
           <p className="text-red-500 text-xs mb-2 text-center mt-2">Additional Status required</p>
-        )}
-      </div>
+        )
+      }
 
-      <div className="px-6.5 pb-6 flex justify-center">
+      <div className="px-6.5 pb-6 flex justify-center" >
         <button
           onClick={handleSaveRecord}
           aria-label="Save Record"
@@ -510,15 +709,16 @@ const StoolPage = () => {
       </div>
 
       {/* Unsaved Confirmation Modal */}
-      {showUnsavedModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/20"
-            onClick={handleCancelSave}
-          />
-          {/* Modal */}
-          <div className="bg-ivory rounded-[8px] shadow-[0_4px_8px_rgba(0,0,0,0.25)] pb-6 px-6 max-w-xs w-full pointer-events-auto relative">
+      {
+        showUnsavedModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+            {/* Backdrop */}
+            <div
+              className="absolute inset-0 bg-black/20"
+              onClick={handleCancelSave}
+            />
+            {/* Modal */}
+            <div className="bg-ivory rounded-[8px] shadow-[0_4px_8px_rgba(0,0,0,0.25)] pb-6 px-6 max-w-xs w-full pointer-events-auto relative">
               {/* Icon */}
               <div className="flex justify-center -mt-4 mb-4">
                 <div className="relative">
@@ -551,10 +751,11 @@ const StoolPage = () => {
                   Confirm
                 </button>
               </div>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 };
 

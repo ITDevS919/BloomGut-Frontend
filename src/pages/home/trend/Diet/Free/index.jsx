@@ -9,7 +9,9 @@ import { Bar, Line } from "react-chartjs-2";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import { Wheat, Beef, Salad, Milk, MoreHorizontal, UtensilsCrossed } from "lucide-react";
 import Upgrade from "./Upgrade";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import useApiClient from "@/hooks/useApiClient";
 import GrainsImage from "@/assets/Images/diet-types/Grains.png";
 import ProteinImage from "@/assets/Images/diet-types/Protein.png";
 import FruitsVegImage from "@/assets/Images/diet-types/Fruits.png";
@@ -28,6 +30,73 @@ ChartJS.register(
 
 const Free = ({ showUpgrade = true }) => {
   const [selectedDate, setSelectedDate] = useState("3/16");
+
+  // Urine health summary (reused on Diet Free screen)
+  const auth = useSelector((state) => state.auth);
+  const api = useApiClient();
+  const [weekScore, setWeekScore] = useState(0);
+  const [beforeWeekScore, setBeforeWeekScore] = useState(0);
+  const [clarityRate, setClarityRate] = useState(0);
+  const [clearCount, setClearCount] = useState(0);
+  const [yellowCount, setYellowCount] = useState(0);
+  const [abnormalCount, setAbnormalCount] = useState(0);
+
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchWeeklyScores = async () => {
+      try {
+        const response = await api.get("/trend/urine/compareWeeklyScore", {
+          params: { userId: auth.user.id },
+        });
+        const payload = response.data?.data || response.data;
+        if (!payload) return;
+        setBeforeWeekScore(payload.beforeWeekScore ?? 0);
+        setWeekScore(payload.weekScore ?? 0);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load urine weekly scores:", error);
+      }
+    };
+
+    const fetchWeeklyDots = async () => {
+      try {
+        const response = await api.get("/trend/urine/weeklyScore", {
+          params: { userId: auth.user.id },
+        });
+        const payload = response.data?.data || response.data;
+        if (!Array.isArray(payload)) return;
+
+        let clarity = 0;
+        let clear = 0;
+        let yellow = 0;
+        let abnormal = 0;
+
+        payload.forEach((item) => {
+          const score = item.score ?? 0;
+          clarity += score;
+          if (score >= 66) clear += 1;
+          else if (score >= 33) yellow += 1;
+          else abnormal += 1;
+        });
+
+        const daysCount = payload.length || 1;
+        const avgScore = clarity / daysCount;
+        const maxTotal = 100;
+
+        setClarityRate(Math.round((avgScore / maxTotal) * 100));
+        setClearCount(clear);
+        setYellowCount(yellow);
+        setAbnormalCount(abnormal);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load urine weekly report:", error);
+      }
+    };
+
+    fetchWeeklyScores();
+    fetchWeeklyDots();
+  }, [api, auth?.user?.id]);
 
   // Dietary breakdown data
   const dailyTypeValues = [35, 25, 20, 10, 5];
@@ -305,14 +374,25 @@ const Free = ({ showUpgrade = true }) => {
 
   return (
     <div className="pr-[15px] pl-[15px]">
-      {/* Score Card */}
+      {/* Score Card (uses urine weekly score) */}
       <div className="bg-white rounded-[27px] p-[32px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[29px]">
         <div className="flex items-center justify-between">
           <div className="pl-[50px]">
-            <div className="text-3xl font-medium text-[#B5A6D2]">82</div>
-            <div className="text-sm text-custom-12">Good</div>
+            <div className="text-3xl font-medium text-[#B5A6D2]">{weekScore}</div>
+            <div className="text-sm text-custom-12">
+              {weekScore > 75
+                ? "Excellent"
+                : weekScore > 50
+                ? "Good"
+                : weekScore > 25
+                ? "Fair"
+                : "Poor"}
+            </div>
           </div>
-          <div className="text-base text-[#B5A6D2]">+7% vs Last</div>
+          <div className="text-base text-[#B5A6D2]">
+            {beforeWeekScore > weekScore ? "-" : "+"}
+            {Math.abs(Math.round(beforeWeekScore - weekScore))}% vs Last
+          </div>
         </div>
 
         <div className="mt-4">
@@ -330,6 +410,25 @@ const Free = ({ showUpgrade = true }) => {
               style={{ width: "25%" }}
             />
             <div className="absolute left-[44%] -top-2 w-3 h-3 rounded-full bg-white border-2 border-emerald-300" />
+          </div>
+        </div>
+
+        {/* Weekly Urine Report summary */}
+        <div className="mt-4 text-xs text-secondary flex flex-col gap-1">
+          <div>
+            <span className="font-medium">Weekly Urine Clarity: </span>
+            <span>{Number.isNaN(clarityRate) ? "-" : `${clarityRate}%`}</span>
+          </div>
+          <div className="flex gap-3 flex-wrap">
+            <span className="text-[#3fb96e]">
+              Clear: {clearCount} {clearCount === 1 ? "day" : "days"}
+            </span>
+            <span className="text-[#fbc02d]">
+              Yellowish: {yellowCount} {yellowCount === 1 ? "day" : "days"}
+            </span>
+            <span className="text-[#f66b6b]">
+              Abnormal: {abnormalCount} {abnormalCount === 1 ? "day" : "days"}
+            </span>
           </div>
         </div>
       </div>

@@ -8,12 +8,11 @@ import { CustomRadioButtonRed } from "@/components/custom/CustomRadioButton(Red)
 import { CustomRadioButtonPink } from "@/components/custom/CustomRadioButton(Pink)";
 import { MdEditNotifications } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { useSelector } from "react-redux";
 import { set } from "react-hook-form";
 import { toast } from "sonner";
+import useApiClient from "@/hooks/useApiClient";
 
-const backendUrl = import.meta.env.VITE_API_ENDPOINT;
 const EstimatedUrinationTimeOptions = [
   {
     id: "short",
@@ -95,6 +94,7 @@ const NocturnalUrinationOptions = [
 const UrineRecord = () => {
   const navigate = useNavigate();
   const auth = useSelector((state) => state.auth);
+  const api = useApiClient();
 
   const days = [
     "Sunday",
@@ -131,9 +131,11 @@ const UrineRecord = () => {
   const [showMissingFieldsModal, setShowMissingFieldsModal] = useState("");
 
   const getStatus = (v) => {
-    if (v < 33) return "Transparent (Over Hydrated)";
-    if (v < 66) return "Light Yellow (Well Hydrated)";
-    return "Deep Yellow (Dehydrated)";
+    if (v < 33) return "Transparent";
+    else if (v < 55) return "Pale Yellow";
+    else if (v < 77) return "Light Yellow";
+    else if (v < 88) return "Dark Yellow";
+    return "Amber/Brown";
   };
 
   const validateForm = () => {
@@ -158,7 +160,7 @@ const UrineRecord = () => {
     return missingFields;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const missingFields = validateForm();
 
     if (missingFields.length > 0) {
@@ -176,24 +178,24 @@ const UrineRecord = () => {
       };
       console.log("Saving data:", auth);
 
-      axios
-        .put(`${backendUrl}/record/urine`, {
+      try {
+        const response = await api.put("/record/urine", {
           userId: auth.user.id,
           ...param,
-        })
-        .then((response) => {
-          setUrineStatusValue(50);
-          setUrineColor("Light Yellow");
-          setEstimatedUrinationTimeValue("");
-          setClarityValue("");
-          setOdorValue("");
-          setUrinationFrequencyValue("");
-          setNocturnalUrinationValue("");
-          toast.success(response.data.data);
-        })
-        .catch((error) => {
-          console.error("Error saving data:", error);
         });
+
+        setUrineStatusValue(50);
+        setUrineColor("Light Yellow");
+        setEstimatedUrinationTimeValue("");
+        setClarityValue("");
+        setOdorValue("");
+        setUrinationFrequencyValue("");
+        setNocturnalUrinationValue("");
+        toast.success(response.data.data);
+      } catch (error) {
+        console.error("Error saving data:", error);
+        toast.error("Failed to save urine record. Please try again.");
+      }
     }
   };
 
@@ -249,10 +251,13 @@ const UrineRecord = () => {
             onChange={(e) => {
               setUrineStatusValue(e.target.value);
               if (e.target.value < 33) setUrineColor("Transparent");
-              if (e.target.value < 66) setUrineColor("Light Yellow");
+              else if (e.target.value < 55) setUrineColor("Pale Yellow");
+              else if (e.target.value < 77) setUrineColor("Light Yellow");
+              else if (e.target.value < 88) setUrineColor("Dark Yellow");
+              else setUrineColor("Amber/Brown");
               setUrineColor("Deep Yellow");
             }}
-            className="w-full h-10 appearance-none bg-gradient-to-r from-yellow-50 via-yellow-200 to-yellow-400 rounded-full outline-none"
+            className="w-full h-10 appearance-none bg-linear-to-r from-yellow-50 via-yellow-200 to-yellow-800 rounded-full outline-none"
           />
 
           <style>

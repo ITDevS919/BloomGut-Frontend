@@ -28,8 +28,10 @@ import {
   TrendingDown,
 } from "lucide-react";
 import Free from "../Free";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import useApiClient from "@/hooks/useApiClient";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { MdErrorOutline, MdOutlineErrorOutline } from "react-icons/md";
 import Upgrade from "./Upgrade";
@@ -37,29 +39,85 @@ import Upgrade from "./Upgrade";
 const Month = () => {
   const navigate = useNavigate();
   const [showAnalysis, setShowAnalysis] = useState(false);
-  const labels = [
-    "1st",
-    "3rd",
-    "5th",
-    "7th",
-    "9th",
-    "11th",
-    "13th",
-    "15th",
-    "17th",
-    "19th",
-    "21st",
-    "23rd",
-    "25th",
-    "27th",
-    "29th",
-    "31st",
-  ];
+  const auth = useSelector((state) => state.auth);
+  const api = useApiClient();
 
-  const values = [
-    2300, 1900, 2100, 1800, 1200, 1100, 1300, 1600, 1500, 1800, 2000, 1850,
-    2100, 3000, 3300, 3600,
-  ];
+  const [dailyVolumes, setDailyVolumes] = useState([]);
+
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchMonthlyVolumes = async () => {
+      try {
+        const response = await api.get("/trend/urine/weeklyScore", {
+          // For now, reuse weeklyScore as a placeholder;
+          // if a dedicated monthly endpoint is added, switch to it.
+          params: { userId: auth.user.id },
+        });
+        const payload = response.data?.data || response.data;
+        if (!Array.isArray(payload)) return;
+
+        const aggregated = {};
+        payload.forEach((item) => {
+          const date = new Date(item.records?.createdAt || item.createdAt);
+          const day = date.getDate();
+          const key = `${day}`;
+          const volume = item.records?.estimatedTimeVolumeMl || 0;
+          aggregated[key] = (aggregated[key] || 0) + volume;
+        });
+
+        const days = Object.keys(aggregated)
+          .map((d) => parseInt(d, 10))
+          .sort((a, b) => a - b);
+
+        const series = days.map((day) => ({
+          day,
+          label: `${day}th`,
+          volume: aggregated[day] || 0,
+        }));
+
+        setDailyVolumes(series);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load urine monthly volumes:", error);
+      }
+    };
+
+    fetchMonthlyVolumes();
+  }, [api, auth?.user?.id]);
+
+  const labels = useMemo(
+    () => (dailyVolumes.length ? dailyVolumes.map((d) => d.label) : [
+      "1st",
+      "3rd",
+      "5th",
+      "7th",
+      "9th",
+      "11th",
+      "13th",
+      "15th",
+      "17th",
+      "19th",
+      "21st",
+      "23rd",
+      "25th",
+      "27th",
+      "29th",
+      "31st",
+    ]),
+    [dailyVolumes]
+  );
+
+  const values = useMemo(
+    () =>
+      dailyVolumes.length
+        ? dailyVolumes.map((d) => d.volume)
+        : [
+            2300, 1900, 2100, 1800, 1200, 1100, 1300, 1600, 1500, 1800, 2000,
+            1850, 2100, 3000, 3300, 3600,
+          ],
+    [dailyVolumes]
+  );
 
   const data = {
     labels,
@@ -140,29 +198,35 @@ const Month = () => {
             <StatCard
               icon={<TrendingUp className="h-4 w-4 text-blue-500" />}
               title="Avg Volume"
-              value="1823 ml"
+              value={
+                values.length
+                  ? `${Math.round(
+                      values.reduce((sum, v) => sum + v, 0) / values.length
+                    )} ml`
+                  : "-"
+              }
               sub="Within Normal Range"
             />
 
             <StatCard
               icon={<FaExclamationTriangle className="h-4 w-4 text-[#f09129]" />}
               title="Abnormal"
-              value="9 Day"
-              sub="Low 2 | High 7"
+              value="-"
+              sub="Low | High"
             />
 
             <StatCard
               icon={<TrendingUp className="h-4 w-4 text-[#f15a5a]" />}
               title="Highest Day"
-              value="May 31"
-              sub="2755 ml"
+              value="-"
+              sub="-"
             />
 
             <StatCard
               icon={<TrendingDown className="h-4 w-4 text-yellow-500" />}
               title="Lowest Day"
-              value="May 8"
-              sub="1101 ml"
+              value="-"
+              sub="-"
             />
           </div>
         </div>

@@ -81,6 +81,9 @@ const DateRangeSelector = (props) => {
       newDate.setMonth(newDate.getMonth() - 1);
     }
     setCurrentDate(newDate);
+    if (props.onDateChange) {
+      props.onDateChange(newDate, viewMode);
+    }
   };
 
   const handleNext = () => {
@@ -91,6 +94,9 @@ const DateRangeSelector = (props) => {
       newDate.setMonth(newDate.getMonth() + 1);
     }
     setCurrentDate(newDate);
+    if (props.onDateChange) {
+      props.onDateChange(newDate, viewMode);
+    }
   };
 
   return (
@@ -131,7 +137,12 @@ const DateRangeSelector = (props) => {
             checked={viewMode === "week"}
             onChange={() => {
               setViewMode("week");
-              props.setViewMode("week");
+              if (props.setViewMode) {
+                props.setViewMode("week");
+              }
+              if (props.onDateChange) {
+                props.onDateChange(currentDate, "week");
+              }
             }}
             className="w-4 h-4 appearance-none border-2 border-white outline-1 outline-gray-300 rounded-sm checked:bg-[#C69C6D] checked:border-white cursor-pointer"
           />
@@ -145,7 +156,12 @@ const DateRangeSelector = (props) => {
             checked={viewMode === "month"}
             onChange={() => {
               setViewMode("month");
-              props.setViewMode("month");
+              if (props.setViewMode) {
+                props.setViewMode("month");
+              }
+              if (props.onDateChange) {
+                props.onDateChange(currentDate, "month");
+              }
             }}
             className="w-4 h-4 appearance-none border-2 border-white outline-1 outline-gray-300 rounded-sm checked:bg-[#C69C6D] checked:border-white cursor-pointer bg-white"
           />

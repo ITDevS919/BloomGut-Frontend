@@ -9,6 +9,9 @@ import {
 import { Bar, Doughnut } from "react-chartjs-2";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import Upgrade from "./Upgrade";
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import useApiClient from "@/hooks/useApiClient";
 
 ChartJS.register(
   BarElement,
@@ -72,11 +75,11 @@ const options = {
   },
 };
 
-const data = {
-  labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+const buildChartData = (labels, values) => ({
+  labels,
   datasets: [
     {
-      data: [1600, 1850, 2100, 2300, 2200, 2450, 1900],
+      data: values,
       backgroundColor: [
         "#bae6fd",
         "#3b82f6",
@@ -89,7 +92,7 @@ const data = {
       borderRadius: 10,
     },
   ],
-};
+});
 
 const CircleStat = ({ value, label, color, showUpgrade = true }) => {
   const data = {
@@ -128,15 +131,54 @@ const CircleStat = ({ value, label, color, showUpgrade = true }) => {
 };
 
 const Free = ({ showUpgrade = true }) => {
+  const auth = useSelector((state) => state.auth);
+  const api = useApiClient();
+
+  const [labels, setLabels] = useState(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]);
+  const [mlPerDay, setMlPerDay] = useState([1600, 1850, 2100, 2300, 2200, 2450, 1900]);
+
+  const totalWeekMl = mlPerDay.reduce((sum, v) => sum + v, 0);
+  const avgMl = Math.round(totalWeekMl / (mlPerDay.length || 1));
+  const maxMl = mlPerDay.length ? Math.max(...mlPerDay) : 0;
+  const minMl = mlPerDay.length ? Math.min(...mlPerDay) : 0;
+
+  const goal = 2000;
+  const toPercent = (ml) => Math.max(0, Math.min(100, Math.round((ml / goal) * 100)));
+
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchDailyWater = async () => {
+      try {
+        const response = await api.get("/trend/water/dailyMl", {
+          params: { userId: auth.user.id },
+        });
+        const payload = response.data?.data || response.data;
+        if (payload?.days && payload?.mlPerDay) {
+          setLabels(payload.days);
+          setMlPerDay(payload.mlPerDay);
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load water daily ml:", error);
+      }
+    };
+
+    fetchDailyWater();
+  }, [api, auth?.user?.id]);
   return (
     <div className="pl-[15px] pr-[15px]">
       <div className="bg-white rounded-[27px] p-[32px] shadow-md mb-[36px]">
         <div className="flex items-center justify-between">
           <div className="pl-[50px]">
-            <div className="text-3xl font-medium text-[#4682B4]">78</div>
-            <div className="text-sm text-custom-12">Good</div>
+            <div className="text-3xl font-medium text-[#4682B4]">
+              {toPercent(avgMl)}
+            </div>
+            <div className="text-sm text-custom-12">Hydration Score</div>
           </div>
-          <div className="text-sm text-[#4682B4] pr-[50px]">+5% vs Last</div>
+          <div className="text-sm text-[#4682B4] pr-[50px]">
+            Weekly Avg: {avgMl}ml
+          </div>
         </div>
 
         <div className="mt-4">
@@ -158,21 +200,21 @@ const Free = ({ showUpgrade = true }) => {
         </div>
       </div>
 
-      {/* daily types */}
+      {/* daily intake */}
       <div className="text-base font-medium mb-5 text-primary">
-        Daily Types(ml)
+        Daily Intake (ml)
       </div>
       <div className="bg-white rounded-[12px] shadow p-6 mb-[39px]">
-        <Bar data={data} options={options} plugins={[goalLine]} />
+        <Bar data={buildChartData(labels, mlPerDay)} options={options} plugins={[goalLine]} />
       </div>
 
       <div className="text-base font-medium mb-[9px] text-primary">
         Daily Intake Rate
       </div>
       <div className="bg-white rounded-[27px] shadow p-6 flex gap-8 justify-center mb-5">
-        <CircleStat value={80} label="Avg" color="#1d4ed8" />
-        <CircleStat value={100} label="Max" color="#1d4ed8" />
-        <CircleStat value={65} label="Min" color="#7dd3fc" />
+        <CircleStat value={toPercent(avgMl)} label="Avg" color="#1d4ed8" />
+        <CircleStat value={toPercent(maxMl)} label="Max" color="#1d4ed8" />
+        <CircleStat value={toPercent(minMl)} label="Min" color="#7dd3fc" />
       </div>
 
       {showUpgrade && <Upgrade />}

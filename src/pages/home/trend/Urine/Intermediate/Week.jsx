@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 import { Sun, Moon } from "lucide-react";
+import { useSelector } from "react-redux";
+import useApiClient from "@/hooks/useApiClient";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 import Free from "../Free";
@@ -9,11 +11,43 @@ import { MdQueryBuilder } from "react-icons/md";
 import Upgrade from "./Upgrade";
 
 const Week = () => {
+  const auth = useSelector((state) => state.auth);
+  const api = useApiClient();
+
+  const [daytimePercent, setDaytimePercent] = useState(75);
+  const [nightPercent, setNightPercent] = useState(25);
+  const [daytimeEpisodes, setDaytimeEpisodes] = useState(0);
+  const [nightEpisodes, setNightEpisodes] = useState(0);
+
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchDayNight = async () => {
+      try {
+        const response = await api.get("/trend/urine/weeklyDayNight", {
+          params: { userId: auth.user.id },
+        });
+        const payload = response.data?.data || response.data;
+        if (!payload) return;
+
+        setDaytimePercent(payload.daytimePercent ?? 0);
+        setNightPercent(payload.nightPercent ?? 0);
+        setDaytimeEpisodes(payload.daytimeEpisodes ?? 0);
+        setNightEpisodes(payload.nightEpisodes ?? 0);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load urine day/night distribution:", error);
+      }
+    };
+
+    fetchDayNight();
+  }, [api, auth?.user?.id]);
+
   const data = {
     labels: ["Daytime", "Nighttime"],
     datasets: [
       {
-        data: [75, 25],
+        data: [daytimePercent, nightPercent],
         backgroundColor: ["#FCD34D", "#818CF8"],
         borderColor: "#FFFFFF",
         borderWidth: 1,
@@ -31,7 +65,7 @@ const Week = () => {
           label: (ctx) => `${ctx.label}: ${ctx.raw}%`,
         },
       },
-      datalabels: { display: true, fomatValue: (value) => `${value}%`, color: 'white' },
+      datalabels: { display: true, fomatValue: (value) => `${value}%`, color: "white" },
     },
   };
 
@@ -85,9 +119,15 @@ const Week = () => {
 
         {/* Stat cards */}
         <div className="grid grid-cols-3 gap-3 mb-5">
-          <StatCard title="Daily Volume" value="1943ml" />
-          <StatCard title="Nighttime %" value="71%" />
-          <StatCard title="Urination Avg" value="6.3/day" />
+          <StatCard
+            title="Episodes"
+            value={`${daytimeEpisodes + nightEpisodes}/week`}
+          />
+          <StatCard title="Nighttime %" value={`${nightPercent}%`} />
+          <StatCard
+            title="Day/Night"
+            value={`${daytimeEpisodes}:${nightEpisodes}`}
+          />
         </div>
 
         {/* Analysis & Advice */}

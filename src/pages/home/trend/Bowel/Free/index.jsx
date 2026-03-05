@@ -11,6 +11,9 @@ import {
 } from "chart.js";
 import { Bar, Line } from "react-chartjs-2";
 import ChartDataLabels from "chartjs-plugin-datalabels";
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import useApiClient from "@/hooks/useApiClient";
 import Type1Image from "@/assets/Images/bowel-types/Type 1.png";
 import Type2Image from "@/assets/Images/bowel-types/Type 2.png";
 import Type3Image from "@/assets/Images/bowel-types/Type 3.png";
@@ -29,10 +32,95 @@ ChartJS.register(
   ChartDataLabels
 );
 
-const Free = ({ showUpgrade = true }) => {
+const Free = ({ showUpgrade = true, referenceDate }) => {
+  const auth = useSelector((state) => state.auth);
+  const api = useApiClient();
+
   // Daily bowel count data
-  const dailyData = [1, 2, 3, 1, 2, 0, 1];
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const [dailyData, setDailyData] = useState([1, 2, 3, 1, 2, 0, 1]);
+  const [days, setDays] = useState([
+    "Mon",
+    "Tue",
+    "Wed",
+    "Thu",
+    "Fri",
+    "Sat",
+    "Sun",
+  ]);
+
+  // Weekly bowel health summary
+  const [score, setScore] = useState(78);
+  const [status, setStatus] = useState("Good");
+  const [change, setChange] = useState("+0% vs Last");
+  const [scorePosition, setScorePosition] = useState(45);
+  const [dailyTypeValues, setDailyTypeValues] = useState([15, 30, 35, 20, 0]);
+
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const referenceDateParam =
+      referenceDate instanceof Date
+        ? referenceDate.toISOString()
+        : referenceDate || undefined;
+
+    const fetchDailyCounts = async () => {
+      try {
+        const response = await api.get("/trend/bowel/dailyCount", {
+          params: {
+            userId: auth.user.id,
+            ...(referenceDateParam ? { referenceDate: referenceDateParam } : {}),
+          },
+        });
+        const payload = response.data?.data || response.data;
+        if (payload?.dailyCounts && payload?.days) {
+          setDailyData(payload.dailyCounts);
+          setDays(payload.days);
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load bowel daily counts:", error);
+      }
+    };
+
+    const fetchWeeklySummary = async () => {
+      try {
+        const response = await api.get("/trend/bowel/weeklySummary", {
+          params: {
+            userId: auth.user.id,
+            ...(referenceDateParam ? { referenceDate: referenceDateParam } : {}),
+          },
+        });
+        const payload = response.data?.data || response.data;
+        if (!payload) return;
+
+        if (typeof payload.score === "number") {
+          const rounded = Math.round(payload.score);
+          setScore(rounded);
+          const clamped = Math.max(0, Math.min(100, rounded));
+          setScorePosition(clamped);
+        }
+
+        if (typeof payload.changePercent === "number") {
+          const sign = payload.changePercent > 0 ? "+" : "";
+          setChange(`${sign}${payload.changePercent}% vs Last`);
+        }
+
+        if (payload.status) {
+          setStatus(payload.status);
+        }
+
+        if (Array.isArray(payload.typeDistribution)) {
+          setDailyTypeValues(payload.typeDistribution);
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load bowel weekly summary:", error);
+      }
+    };
+
+    fetchDailyCounts();
+    fetchWeeklySummary();
+  }, [api, auth?.user?.id, referenceDate]);
 
   // Tooltip data for each day
   const tooltipData = [
@@ -52,7 +140,6 @@ const Free = ({ showUpgrade = true }) => {
     return "#10b981"; // Green (for 1-2)
   };
 
-  const dailyTypeValues = [15, 30, 35, 20, 0];
   const dailyTypeLabels = [
     {
       color: '#9AD0A1',
@@ -191,11 +278,6 @@ const Free = ({ showUpgrade = true }) => {
       },
     },
   };
-
-  const score = 78;
-  const status = "Good";
-  const change = "+5% vs Last";
-  const scorePosition = 45; // Position of indicator (percentage)
 
   return (
     <div className="pr-[15px] pl-[15px]">

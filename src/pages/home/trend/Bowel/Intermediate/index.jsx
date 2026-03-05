@@ -4,6 +4,8 @@ import { Doughnut, Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { useSelector } from "react-redux";
+import useApiClient from "@/hooks/useApiClient";
 import Upgrade from "./Upgrade";
 import DateRangeSelectorYellowUpdate from "@/components/custom/DateRangeSelectorYellow(Update)";
 import DateRangeSelectorYellow from "@/components/custom/DateRangeSelectorYellow";
@@ -38,12 +40,14 @@ const Intermediate = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const plan = searchParams.get("plan");
+  const auth = useSelector((state) => state.auth);
+  const api = useApiClient();
 
-  const weeklydata = {
+  const [weeklyData, setWeeklyData] = useState({
     labels: ["Hard", "Firm", "Normal", "Soft"],
     datasets: [
       {
-        data: [20, 10, 30, 40],
+        data: [0, 0, 0, 0],
         backgroundColor: [
           "#8B5E3C", // Hard
           "#C07A2D", // Firm
@@ -54,7 +58,7 @@ const Intermediate = () => {
         borderWidth: 2,
       },
     ],
-  };
+  });
 
   const weeklyoptions = {
     responsive: true,
@@ -73,10 +77,20 @@ const Intermediate = () => {
     },
   };
 
+  const [monthlyTime, setMonthlyTime] = useState({
+    morningPercent: 58,
+    noonPercent: 32,
+    eveningPercent: 10,
+  });
+
   const monthlyData = {
     datasets: [
       {
-        data: [58, 32, 10],
+        data: [
+          monthlyTime.morningPercent,
+          monthlyTime.noonPercent,
+          monthlyTime.eveningPercent,
+        ],
         backgroundColor: [
           "#C4B0F0", // Morning (purple)
           "#63C174", // Green
@@ -98,6 +112,7 @@ const Intermediate = () => {
   };
 
   const [viewMode, setViewMode] = useState(location.state?.viewMode || "week");
+  const [referenceDate, setReferenceDate] = useState(new Date());
   const isSubscribed = location.state?.subscribed || false;
 
   useEffect(() => {
@@ -107,10 +122,82 @@ const Intermediate = () => {
     }
   }, [location.state]);
 
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchWeeklySummary = async () => {
+      try {
+        const response = await api.get("/trend/bowel/weeklySummary", {
+          params: {
+            userId: auth.user.id,
+            referenceDate: referenceDate.toISOString(),
+          },
+        });
+        const payload = response.data?.data || response.data;
+        if (!payload || !Array.isArray(payload.typeDistribution)) return;
+
+        const types = payload.typeDistribution;
+        const t1 = types[0] || 0;
+        const t2 = types[1] || 0;
+        const t3 = types[2] || 0;
+        const t4 = types[3] || 0;
+        const t5 = types[4] || 0;
+
+        const hard = t1;
+        const firm = t2;
+        const normal = t3;
+        const soft = t4 + t5;
+
+        setWeeklyData((prev) => ({
+          ...prev,
+          datasets: [
+            {
+              ...prev.datasets[0],
+              data: [hard, firm, normal, soft],
+            },
+          ],
+        }));
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load bowel weekly stats:", error);
+      }
+    };
+    const fetchMonthlyTime = async () => {
+      try {
+        const response = await api.get("/trend/bowel/monthlyTime", {
+          params: {
+            userId: auth.user.id,
+            referenceDate: referenceDate.toISOString(),
+          },
+        });
+        const payload = response.data?.data || response.data;
+        if (!payload) return;
+        setMonthlyTime({
+          morningPercent: payload.morningPercent ?? 0,
+          noonPercent: payload.noonPercent ?? 0,
+          eveningPercent: payload.eveningPercent ?? 0,
+        });
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error(
+          "Failed to load bowel monthly time distribution:",
+          error
+        );
+      }
+    };
+
+    fetchWeeklySummary();
+    fetchMonthlyTime();
+  }, [api, auth?.user?.id, referenceDate]);
+
   return (
     <div>
       {/* Date Range Selector Header */}
-      <DateRangeSelector setViewMode={setViewMode} initialViewMode={viewMode} />
+      <DateRangeSelector
+        setViewMode={setViewMode}
+        initialViewMode={viewMode}
+        onDateChange={(date) => setReferenceDate(date)}
+      />
       <Free showUpgrade={false} />
       <div className="pl-[15px] pr-[15px]">
         {/* Content */}
@@ -124,22 +211,22 @@ const Intermediate = () => {
             <div className="flex items-center gap-6 rounded-[27px] bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[20px]">
               {/* Pie */}
               <div className="w-40 h-40">
-                <Pie data={weeklydata} options={weeklyoptions} />
+                <Pie data={weeklyData} options={weeklyoptions} />
               </div>
 
               {/* Legend */}
               <div className="space-y-3 text-sm">
-                {weeklydata.labels.map((label, i) => (
+                {weeklyData.labels.map((label, i) => (
                   <div key={label} className="flex items-center gap-2">
                     <span
                       className="h-3 w-3 rounded-full"
                       style={{
                         backgroundColor:
-                          weeklydata.datasets[0].backgroundColor[i],
+                          weeklyData.datasets[0].backgroundColor[i],
                       }}
                     />
                     <span className="text-secondary">
-                      {label} ({weeklydata.datasets[0].data[i]}%)
+                      {label} ({weeklyData.datasets[0].data[i]}%)
                     </span>
                   </div>
                 ))}
@@ -165,7 +252,7 @@ const Intermediate = () => {
                   {/* Center text */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <span className="text-lg font-semibold text-gray-900">
-                      58%
+                      {monthlyTime.morningPercent}%
                     </span>
                     <span className="text-xs text-gray-500">Morning</span>
                   </div>
@@ -191,9 +278,9 @@ const Intermediate = () => {
                 Stool Time %
               </div>
               <div className="space-y-3">
-                <Progress value={58} color="bg-[#C4B0F0]" />
-                <Progress value={32} color="bg-[#63C174]" />
-                <Progress value={10} color="bg-[#FFD43B]" />
+                <Progress value={monthlyTime.morningPercent} color="bg-[#C4B0F0]" />
+                <Progress value={monthlyTime.noonPercent} color="bg-[#63C174]" />
+                <Progress value={monthlyTime.eveningPercent} color="bg-[#FFD43B]" />
               </div>
             </div>
 

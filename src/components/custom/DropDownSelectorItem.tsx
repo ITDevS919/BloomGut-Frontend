@@ -7,11 +7,13 @@ export const DropDownSelectorItem = ({
   options,
   showTextarea,
   variant = "common",
+  onChangeSelected,
 }: {
   title: string;
   options?: { label: string; value: string }[];
   showTextarea?: boolean;
   variant?: "common" | "special";
+  onChangeSelected?: (values: string[]) => void;
 }) => {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
@@ -22,10 +24,26 @@ export const DropDownSelectorItem = ({
     const init: Record<string, boolean> = {};
     (options || []).forEach((o) => (init[o.value] = false));
     setSelected(init);
-  }, [options]);
+    // We intentionally do not call onChangeSelected here to avoid
+    // triggering parent state updates on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options?.length]);
 
   const toggle = (val: string) => {
-    setSelected((s) => ({ ...s, [val]: !s[val] }));
+    setSelected((s) => {
+      const next = { ...s, [val]: !s[val] };
+      if (onChangeSelected) {
+        const values = Object.entries(next)
+          .filter(([, checked]) => checked)
+          .map(([key]) => key);
+        // Defer parent state update to avoid updating WaterRecord
+        // while DropDownSelectorItem is rendering.
+        setTimeout(() => {
+          onChangeSelected(values);
+        }, 0);
+      }
+      return next;
+    });
   };
 
   const onOtherChange = (v: string) => {

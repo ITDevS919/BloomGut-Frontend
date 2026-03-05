@@ -7,9 +7,14 @@ import { useState } from "react";
 import { FaGlassWhiskey, FaPencilAlt } from "react-icons/fa";
 import { FaBottleWater, FaGlassWater, FaMugHot } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { toast } from "sonner";
+import useApiClient from "@/hooks/useApiClient";
 
 const WaterRecord = () => {
   const navigate = useNavigate();
+  const auth = useSelector((state) => state.auth);
+  const api = useApiClient();
   const days = [
     "Sunday",
     "Monday",
@@ -46,8 +51,69 @@ const WaterRecord = () => {
     { label: "Fitness Bottle(650ml)", value: "650ml" },
     { label: "Stainless Steel Straw Insulated Cup(1000ml)", value: "1000ml" },
   ];
+  const [selectedCommonValues, setSelectedCommonValues] = useState([]);
+  const [selectedSpecialValues, setSelectedSpecialValues] = useState([]);
+
   const handleViewTrend = () => {
     navigate("/trend-analysis", { state: { trendType: "water" } });
+  };
+
+  const parseMl = (value) => {
+    if (!value) return 0;
+    const numeric = parseInt(value, 10);
+    return Number.isNaN(numeric) ? 0 : numeric;
+  };
+
+  const calculateTotalAmount = () => {
+    let total = 0;
+
+    selectedCommonValues.forEach((val) => {
+      const opt = commonOptions.find((o) => o.value === val);
+      if (opt) {
+        total += parseMl(opt.value);
+      }
+    });
+
+    selectedSpecialValues.forEach((val) => {
+      const opt = specialOptions.find((o) => o.value === val);
+      if (opt) {
+        total += parseMl(opt.value);
+      }
+    });
+
+    return total;
+  };
+
+  const handleSave = async () => {
+    if (!auth?.user?.id) {
+      toast.error("You must be logged in to save water records.");
+      return;
+    }
+
+    const totalAmount = calculateTotalAmount();
+
+    if (totalAmount <= 0) {
+      toast.error("Please select at least one container amount before saving.");
+      return;
+    }
+
+    const containerType = selectedCommonValues[0] || null;
+    const specialContainerType = selectedSpecialValues[0] || null;
+
+    try {
+      const response = await api.put("/record/water", {
+        userId: auth.user.id,
+        containerType,
+        specialContainerType,
+        amount: totalAmount,
+      });
+
+      toast.success(response.data.data);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("Error saving water record:", error);
+      toast.error("Failed to save water record. Please try again.");
+    }
   };
   return (
     <div className="bg-ivory min-h-full p-6 text-secondary flex flex-col">
@@ -122,6 +188,7 @@ const WaterRecord = () => {
         <DropDownSelectorItem
           title="Common"
           options={commonOptions}
+          onChangeSelected={setSelectedCommonValues}
         />
 
         <CustomHeading label="Special" isRequired className="mt-5 mb-5" />
@@ -129,6 +196,7 @@ const WaterRecord = () => {
           title="Special"
           options={specialOptions}
           variant="special"
+          onChangeSelected={setSelectedSpecialValues}
         />
 
         {/* Today's Record */}
@@ -137,7 +205,7 @@ const WaterRecord = () => {
         <button
           type="button"
           className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)] mt-5"
-          onClick={() => alert(`Saved language: ${selected}`)}
+          onClick={handleSave}
         >
           Save
         </button>

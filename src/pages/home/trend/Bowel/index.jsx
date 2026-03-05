@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Free from "./Free";
 import Intermediate from "./Intermediate";
@@ -6,8 +7,13 @@ import Premium from "./Premium";
 const Bowel = () => {
   const [searchParams] = useSearchParams();
   const plan = searchParams.get("plan");
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Determine which component to show based on plan parameter
+  useEffect(() => {
+    const timeout = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timeout);
+  }, []);
+
   const renderComponent = () => {
     switch (plan) {
       case "free":
@@ -17,15 +23,19 @@ const Bowel = () => {
       case "premium":
         return <Premium />;
       default:
-        return <Free />; // Default to Free if no plan specified
+        return <Free />;
     }
   };
 
-  return (
-    <>
-      {renderComponent()}
-    </>
-  );
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="h-8 w-8 border-4 border-amber-200 border-t-amber-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return <>{renderComponent()}</>;
 };
 
 export default Bowel;
