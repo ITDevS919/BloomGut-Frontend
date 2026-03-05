@@ -9,9 +9,14 @@ import { useNavigate } from "react-router-dom";
 import { FaAccessibleIcon, FaUtensils } from "react-icons/fa6";
 import { FaGlassWhiskey } from "react-icons/fa";
 import { CustomCheckboxWater } from "@/components/custom/CustomCheckbox(Water)";
+import { useSelector } from "react-redux";
+import useApiClient from "@/hooks/useApiClient";
+import { toast } from "sonner";
 
 const DietRecord = (props) => {
   const navigate = useNavigate();
+  const auth = useSelector((state) => state.auth);
+  const api = useApiClient();
   const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -19,25 +24,20 @@ const DietRecord = (props) => {
   const [state, setState] = useState("idle");
   const [clickedNutritionLabel, setClickedNutritionLabel] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [dietLoading, setDietLoading] = useState(false);
+  const [nutritionSummary, setNutritionSummary] = useState(null);
+  const [gutAnalysis, setGutAnalysis] = useState("");
+  const [eatTips, setEatTips] = useState([]);
+  const [drinkTips, setDrinkTips] = useState([]);
+  const [relaxTips, setRelaxTips] = useState([]);
+  const [dietItems, setDietItems] = useState([]);
+  const [saving, setSaving] = useState(false);
 
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-  // Sample data for color-coded dates (you can replace this with actual data)
-  const dateColors = {
-    1: "green",
-    4: "green",
-    11: "green",
-    5: "yellow",
-    6: "yellow",
-    10: "yellow",
-    7: "red",
-    9: "red",
-    2: "grey",
-    3: "grey",
-    8: "grey",
-    12: "pink"
-  };
+  const [dateColors, setDateColors] = useState({});
+  const [calendarLoading, setCalendarLoading] = useState(false);
 
   const getDaysInMonth = (date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -96,9 +96,141 @@ const DietRecord = (props) => {
     setSearchValue(props.recordResult);
   }, [props.recordResult]);
 
-  const handleSearch = (value) => {
-    console.log("Searching for:", value);
-    // Handle search logic here
+  // Load gut impact calendar colors from backend whenever month changes
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchCalendar = async () => {
+      setCalendarLoading(true);
+      try {
+        const response = await api.get("/trend/diet/gutImpactCalendar", {
+          params: {
+            userId: auth.user.id,
+            referenceDate: currentDate.toISOString(),
+          },
+        });
+        const payload = response.data?.data ?? response.data;
+        if (payload && payload.dateColors && typeof payload.dateColors === "object") {
+          setDateColors(payload.dateColors);
+        } else {
+          setDateColors({});
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load diet gut impact calendar:", error);
+        setDateColors({});
+      } finally {
+        setCalendarLoading(false);
+      }
+    };
+
+    fetchCalendar();
+  }, [api, auth?.user?.id, currentDate]);
+
+  const handleSearch = async (value) => {
+    const trimmed = (value || "").trim();
+    if (!trimmed) return;
+    setState("submitting");
+    setDietLoading(true);
+    try {
+      const response = await api.post("/third-party/diet", {
+        prompt: trimmed,
+      });
+      const payload = response.data?.data || response.data;
+      const items = Array.isArray(payload?.items) ? payload.items : [];
+      if (!items.length) {
+        setNutritionSummary(null);
+        setGutAnalysis("");
+        setEatTips([]);
+        setDrinkTips([]);
+        setRelaxTips([]);
+        return;
+      }
+
+      const totals = items.reduce(
+        (acc, item) => ({
+          calories: acc.calories + (item.calories || 0),
+          protein_g: acc.protein_g + (item.protein_g || 0),
+          fat_g: acc.fat_g + (item.fat_g || 0),
+          carb_g: acc.carb_g + (item.carb_g || 0),
+          fiber_g: acc.fiber_g + (item.fiber_g || 0),
+          sugar_g: acc.sugar_g + (item.sugar_g || 0),
+          sodium_mg: acc.sodium_mg + (item.sodium_mg || 0),
+        }),
+        {
+          calories: 0,
+          protein_g: 0,
+          fat_g: 0,
+          carb_g: 0,
+          fiber_g: 0,
+          sugar_g: 0,
+          sodium_mg: 0,
+        }
+      );
+
+      setNutritionSummary({
+        totals,
+        itemCount: items.length,
+      });
+      setDietItems(items);
+
+      // Simple gut impact heuristics based on totals
+      const gutMessages = [];
+      const eat = [];
+      const drink = [];
+      const relax = [];
+
+      if (totals.fiber_g < 20) {
+        gutMessages.push("Fiber intake looks on the low side for the day.");
+        eat.push("Add more vegetables, fruits, or whole grains to increase fiber for smoother digestion.");
+      } else {
+        gutMessages.push("Fiber intake is roughly within a gut‑friendly range.");
+      }
+
+      if (totals.sugar_g > 40) {
+        gutMessages.push("Added sugar is relatively high, which may upset blood sugar and gut balance.");
+        eat.push("Reduce sugary drinks and desserts; swap for fruit or unsweetened options where possible.");
+      }
+
+      if (totals.sodium_mg > 2300) {
+        gutMessages.push("Sodium is on the high side, which may increase bloating and water retention.");
+        eat.push("Limit processed or very salty foods at your next meals.");
+        drink.push("Drink extra water across the day to help flush excess sodium.");
+      }
+
+      if (totals.calories < 800) {
+        gutMessages.push("Total calories are quite low; make sure you are not under‑fueling.");
+        eat.push("Include a balanced meal with protein, complex carbs, and healthy fats.");
+      }
+
+      if (!gutMessages.length) {
+        gutMessages.push("Today’s foods look generally balanced for gut comfort.");
+      }
+
+      if (!drink.length) {
+        drink.push("Sip water regularly with meals and between them to support digestion and urine clarity.");
+      }
+
+      if (!relax.length) {
+        relax.push("Take 5–10 minutes after meals for gentle walking or deep breathing to support digestion.");
+      }
+
+      setGutAnalysis(gutMessages.join(" "));
+      setEatTips(eat);
+      setDrinkTips(drink);
+      setRelaxTips(relax);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("Failed to analyze diet:", error);
+      setNutritionSummary(null);
+      setGutAnalysis("");
+      setEatTips([]);
+      setDrinkTips([]);
+      setRelaxTips([]);
+    } finally {
+      setDietLoading(false);
+      setState("idle");
+    }
   };
 
   const handleVoiceInput = () => {
@@ -200,7 +332,32 @@ const DietRecord = (props) => {
       <div className={`bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.15)] p-6 text-custom-12 ${searchValue ? "mb-[10px]" : "mb-[28px]"}`}
         onClick={() => setClickedNutritionLabel(true)}
       >
-        No data yet, record your first meal
+        {dietLoading && (
+          <div className="text-sm text-secondary">Analyzing your meal…</div>
+        )}
+        {!dietLoading && nutritionSummary && (
+          <div className="text-sm space-y-2">
+            <div className="flex justify-between">
+              <span>Total calories</span>
+              <span>{Math.round(nutritionSummary.totals.calories)} kcal</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Protein</span>
+              <span>{Math.round(nutritionSummary.totals.protein_g)} g</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Carbs</span>
+              <span>{Math.round(nutritionSummary.totals.carb_g)} g</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Fat</span>
+              <span>{Math.round(nutritionSummary.totals.fat_g)} g</span>
+            </div>
+          </div>
+        )}
+        {!dietLoading && !nutritionSummary && (
+          <span>No data yet, record your first meal</span>
+        )}
       </div>
       {searchValue &&
         <div className="text-xs text-custom-12 text-center mb-[28px] italic">
@@ -212,10 +369,13 @@ const DietRecord = (props) => {
         Gut Impact Analysis
       </div>
       <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] p-6 text-custom-12 text-sm mb-[28px]">
-        No records yet, start your log
-        <div className="flex items-center space-x-4 text-xs text-custom-12 mt-3">
-
-        </div>
+        {dietLoading && <div className="text-sm text-secondary">Analyzing gut impact…</div>}
+        {!dietLoading && gutAnalysis && (
+          <p className="text-sm text-primary">{gutAnalysis}</p>
+        )}
+        {!dietLoading && !gutAnalysis && (
+          <p>No records yet, start your log</p>
+        )}
       </div>
 
       {searchValue &&
@@ -225,10 +385,17 @@ const DietRecord = (props) => {
             <FaUtensils color="#6aa84f" />
           </div>
           <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] p-6 text-custom-12 text-sm mb-[28px]">
-            <div className="flex items-center space-x-4 text-xs text-custom-12">
-              Eat high-fiber veggies & quality protein
-              <br />
-              Limit sodium & refined carbs
+            <div className="flex flex-col space-y-2 text-xs text-custom-12">
+              {dietLoading ? (
+                <p>Loading eating tips…</p>
+              ) : eatTips.length ? (
+                eatTips.map((tip, idx) => <p key={idx}>{tip}</p>)
+              ) : (
+                <>
+                  <p>Eat high-fiber veggies & quality protein.</p>
+                  <p>Limit sodium & refined carbs.</p>
+                </>
+              )}
             </div>
           </div>
         </>
@@ -241,10 +408,17 @@ const DietRecord = (props) => {
             <FaGlassWhiskey color="#6fa8dc" />
           </div>
           <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] p-6 text-custom-12 text-sm mb-[28px]">
-            <div className="flex items-center space-x-4 text-xs text-custom-12">
-              Drink 300ml water before 10 AM
-              <br />
-              Sip 2-3 times to prevent bloatingf
+            <div className="flex flex-col space-y-2 text-xs text-custom-12">
+              {dietLoading ? (
+                <p>Loading drinking tips…</p>
+              ) : drinkTips.length ? (
+                drinkTips.map((tip, idx) => <p key={idx}>{tip}</p>)
+              ) : (
+                <>
+                  <p>Drink 300ml water before 10 AM.</p>
+                  <p>Sip 2-3 times to prevent bloating.</p>
+                </>
+              )}
             </div>
           </div>
         </>
@@ -257,10 +431,17 @@ const DietRecord = (props) => {
             <MdAccessibilityNew size={24} color="#e69138" />
           </div>
           <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] p-6 text-custom-12 text-sm mb-[28px]">
-            <div className="flex items-center space-x-4 text-xs text-custom-12">
-              Drink 300ml water before 10 AM
-              <br />
-              Sip 2-3 times to prevent bloatingf
+            <div className="flex flex-col space-y-2 text-xs text-custom-12">
+              {dietLoading ? (
+                <p>Loading relaxation tips…</p>
+              ) : relaxTips.length ? (
+                relaxTips.map((tip, idx) => <p key={idx}>{tip}</p>)
+              ) : (
+                <>
+                  <p>Take short breaks for gentle stretching or a brief walk after meals.</p>
+                  <p>Practice slow breathing for 5 minutes to help your gut relax.</p>
+                </>
+              )}
             </div>
           </div>
         </>
@@ -288,122 +469,181 @@ const DietRecord = (props) => {
         Gut Impact Records
       </div>
 
-      {!clickedNutritionLabel ?
-        <>
-          <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.15)] p-6 text-custom-12 mb-[28px] text-sm">
-            No records found
-          </div>
-        </> :
+      {!clickedNutritionLabel ? (
+        <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.15)] p-6 text-custom-12 mb-[28px] text-sm">
+          {dietLoading ? "Analyzing diet records…" : "No records found"}
+        </div>
+      ) : (
         <>
           {searchValue ? (
             <div className="rounded-[27px]  p-2 mb-[28px]">
-              {/* Calendar Header */}
-              <div className="flex items-center justify-between mb-4">
-                <button
-                  onClick={() => navigateMonth('prev')}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                  aria-label="Previous month"
-                >
-                  <ChevronLeft className="w-5 h-5 text-primary" />
-                </button>
-                <h3 className="text-lg font-medium text-primary">
-                  {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-                </h3>
-                <button
-                  onClick={() => navigateMonth('next')}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                  aria-label="Next month"
-                >
-                  <ChevronRight className="w-5 h-5 text-primary" />
-                </button>
-              </div>
-
-              {/* Days of Week Header */}
-              <div className="grid grid-cols-7 gap-2 mb-2">
-                {dayNames.map((day) => (
-                  <div key={day} className="text-center text-xs text-gray-600 font-medium py-2">
-                    {day}
-                  </div>
-                ))}
-              </div>
-
-              {/* Calendar Grid */}
-              <div className="grid grid-cols-7 gap-2">
-                {renderCalendar().map((day, index) => {
-                  const color = day ? getDateColor(day) : null;
-                  return (
-                    <div
-                      key={index}
-                      className={`aspect-square flex items-center justify-center text-sm ${day ? "cursor-pointer hover:bg-gray-50 rounded-full" : ""
-                        }`}
+              {calendarLoading ? (
+                <div className="flex flex-col items-center justify-center py-8 text-xs text-secondary gap-2">
+                  <div className="h-6 w-6 border-2 border-amber-200 border-t-amber-500 rounded-full animate-spin" />
+                  <span>Loading gut impact calendar…</span>
+                </div>
+              ) : (
+                <>
+                  {/* Calendar Header */}
+                  <div className="flex items-center justify-between mb-4">
+                    <button
+                      onClick={() => navigateMonth("prev")}
+                      className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                      aria-label="Previous month"
                     >
-                      {day && (
-                        color === "pink" ? (
-                          <div
-                            className={`w-8 h-8 flex items-center justify-center ${getColorClass(color)} text-white`}
-                            style={{ clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }}
-                          >
-                            {day}
-                          </div>
-                        ) : (
-                          <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center ${color ? getColorClass(color) + " text-white" : "text-secondary"
-                              }`}
-                          >
-                            {day}
-                          </div>
-                        )
-                      )}
+                      <ChevronLeft className="w-5 h-5 text-primary" />
+                    </button>
+                    <h3 className="text-lg font-medium text-primary">
+                      {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+                    </h3>
+                    <button
+                      onClick={() => navigateMonth("next")}
+                      className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                      aria-label="Next month"
+                    >
+                      <ChevronRight className="w-5 h-5 text-primary" />
+                    </button>
+                  </div>
+
+                  {/* Days of Week Header */}
+                  <div className="grid grid-cols-7 gap-2 mb-2">
+                    {dayNames.map((day) => (
+                      <div
+                        key={day}
+                        className="text-center text-xs text-gray-600 font-medium py-2"
+                      >
+                        {day}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Calendar Grid */}
+                  <div className="grid grid-cols-7 gap-2">
+                    {renderCalendar().map((day, index) => {
+                      const color = day ? getDateColor(day) : null;
+                      return (
+                        <div
+                          key={index}
+                          className={`aspect-square flex items-center justify-center text-sm ${
+                            day ? "cursor-pointer hover:bg-gray-50 rounded-full" : ""
+                          }`}
+                        >
+                          {day && (
+                            color === "pink" ? (
+                              <div
+                                className={`w-8 h-8 flex items-center justify-center ${getColorClass(
+                                  color
+                                )} text-white`}
+                                style={{
+                                  clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
+                                }}
+                              >
+                                {day}
+                              </div>
+                            ) : (
+                              <div
+                                className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                  color
+                                    ? `${getColorClass(color)} text-white`
+                                    : "text-secondary"
+                                }`}
+                              >
+                                {day}
+                              </div>
+                            )
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Legend */}
+                  <div className="flex flex-wrap items-center justify-center gap-4 mt-6 text-xs text-secondary">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-[#66BB6A]" />
+                      <span>Beneficial</span>
                     </div>
-                  );
-                })}
-              </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-[#FFEB3B]" />
+                      <span>Neutral</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-[#EF5350]" />
+                      <span>Irritating</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-[#BDBDBD]" />
+                      <span>Unrecorded</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-[#F8C8C8]" />
+                      <span>Incomplete</span>
+                    </div>
+                  </div>
 
-              {/* Legend */}
-              <div className="flex flex-wrap items-center justify-center gap-4 mt-6 text-xs text-secondary">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#66BB6A]"></div>
-                  <span>Beneficial</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#FFEB3B]"></div>
-                  <span>Neutral</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#EF5350]"></div>
-                  <span>Irritating</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#BDBDBD]"></div>
-                  <span>Unrecorded</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#F8C8C8]"></div>
-                  <span>Incomplete</span>
-                </div>
-              </div>
-
-              {/* Instruction Text */}
-              <p className="text-xs text-gray-400 text-center mt-4 text-custom-12">
-                Click on calendar date/expand for details
-              </p>
+                  {/* Instruction Text */}
+                  <p className="text-xs text-custom-12 text-center mt-4">
+                    Click on calendar date/expand for details
+                  </p>
+                </>
+              )}
             </div>
           ) : (
-            <div className="mb-[40px] mt-[40px] text-sm text-custom-12">No records found</div>
+            <div className="mb-[40px] mt-[40px] text-sm text-custom-12">
+              No records found
+            </div>
           )}
-        </>}
+        </>
+      )}
 
       <div className="text-primary mt-5 mb-[63px]">
         <div className="font-medium">Gut Trends</div>
         <div className="flex justify-center bg-white rounded-[27px] shadow-[0_4px_12px_rgba(0,0,0,0.08)] p-6 mt-3">
           <div className="bg-gray-200 rounded-[24px] h-12 w-56 text-center flex items-center justify-center text-sm">
             Unlocks in 3 days &nbsp;&nbsp;&nbsp;&nbsp;
-            <MdHttps className="text-[#7f7f7f] w-[24px] h-[24px]" />
+            <MdHttps className="text-custom-9 w-[24px] h-[24px]" />
           </div>
         </div>
       </div>
 
-      <button className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)] mt-5">Save</button>
+      <button
+        type="button"
+        className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)] mt-5 disabled:opacity-60 disabled:cursor-not-allowed"
+        disabled={saving || !searchValue || !nutritionSummary}
+        onClick={async () => {
+          if (!auth?.user?.id) {
+            toast.error("You must be logged in to save diet records.");
+            return;
+          }
+          if (!searchValue || !nutritionSummary) {
+            toast.error("Please enter a meal description and analyze it first.");
+            return;
+          }
+          try {
+            setSaving(true);
+            const res = await api.post("/record/diet", {
+              userId: auth.user.id,
+              prompt: searchValue,
+              items: dietItems,
+              totals: nutritionSummary.totals,
+            });
+            const message = res.data?.data ?? res.data;
+            toast.success(
+              typeof message === "string"
+                ? message
+                : "Diet record saved successfully."
+            );
+          } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error("Failed to save diet record:", error);
+            toast.error("Failed to save diet record. Please try again.");
+          } finally {
+            setSaving(false);
+          }
+        }}
+      >
+        {saving ? "Saving..." : "Save"}
+      </button>
     </div>
   );
 };

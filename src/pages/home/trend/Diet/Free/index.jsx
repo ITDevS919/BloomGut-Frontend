@@ -28,7 +28,7 @@ ChartJS.register(
   ChartDataLabels
 );
 
-const Free = ({ showUpgrade = true }) => {
+const Free = ({ showUpgrade = true, referenceDate }) => {
   const [selectedDate, setSelectedDate] = useState("3/16");
 
   // Urine health summary (reused on Diet Free screen)
@@ -41,21 +41,60 @@ const Free = ({ showUpgrade = true }) => {
   const [yellowCount, setYellowCount] = useState(0);
   const [abnormalCount, setAbnormalCount] = useState(0);
 
+  const [dailyTypeValues, setDailyTypeValues] = useState([35, 25, 20, 10, 5]);
+  const [dietMacroLabels, setDietMacroLabels] = useState([
+    "3/11",
+    "3/12",
+    "3/13",
+    "3/14",
+    "3/15",
+    "3/16",
+  ]);
+  const [fiberSeries, setFiberSeries] = useState([70, 68, 72, 69, 71, 73]);
+  const [proteinSeries, setProteinSeries] = useState([60, 62, 63, 61, 64, 66]);
+  const [fatSeries, setFatSeries] = useState([45, 46, 47, 46, 48, 49]);
+  const [sugarSeries, setSugarSeries] = useState([35, 38, 37, 39, 36, 40]);
+  const [bowelLabels, setBowelLabels] = useState([
+    "Mon",
+    "Tue",
+    "Wed",
+    "Thu",
+    "Fri",
+    "Sat",
+    "Sun",
+  ]);
+  const [bowelFreq, setBowelFreq] = useState([60, 65, 68, 70, 75, 78, 85]);
+  const [bowelConsis, setBowelConsis] = useState([50, 55, 58, 60, 62, 64, 68]);
+  const [bowelEase, setBowelEase] = useState([40, 43, 46, 48, 52, 55, 60]);
+  const [bowelOverall, setBowelOverall] = useState([
+    30, 33, 35, 37, 40, 43, 48,
+  ]);
+
+  // Loading flags for cards/charts
+  const [scoreLoading, setScoreLoading] = useState(false);
+  const [dailyTypeLoading, setDailyTypeLoading] = useState(false);
+  const [dietTrendLoading, setDietTrendLoading] = useState(false);
+  const [bowelTrendLoading, setBowelTrendLoading] = useState(false);
+
   useEffect(() => {
     if (!auth?.user?.id) return;
 
-    const fetchWeeklyScores = async () => {
+    const fetchDietScores = async () => {
       try {
-        const response = await api.get("/trend/urine/compareWeeklyScore", {
-          params: { userId: auth.user.id },
+        const response = await api.get("/trend/diet/todayScore", {
+          params: {
+            userId: auth.user.id,
+            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+          },
         });
         const payload = response.data?.data || response.data;
         if (!payload) return;
-        setBeforeWeekScore(payload.beforeWeekScore ?? 0);
-        setWeekScore(payload.weekScore ?? 0);
+        setWeekScore(payload.todayScore ?? 0);
+        setBeforeWeekScore(payload.yesterdayScore ?? 0);
+        console.log("payload----------------",payload);
       } catch (error) {
         // eslint-disable-next-line no-console
-        console.error("Failed to load urine weekly scores:", error);
+        console.error("Failed to load diet today score:", error);
       }
     };
 
@@ -94,12 +133,96 @@ const Free = ({ showUpgrade = true }) => {
       }
     };
 
-    fetchWeeklyScores();
-    fetchWeeklyDots();
-  }, [api, auth?.user?.id]);
+    const run = async () => {
+      setScoreLoading(true);
+      try {
+        await Promise.all([fetchDietScores(), fetchWeeklyDots()]);
+      } finally {
+        setScoreLoading(false);
+      }
+    };
 
-  // Dietary breakdown data
-  const dailyTypeValues = [35, 25, 20, 10, 5];
+    run();
+  }, [api, auth?.user?.id, referenceDate]);
+
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchDietCategory = async () => {
+      try {
+        setDailyTypeLoading(true);
+        const res = await api.get("/trend/diet/category", {
+          params: {
+            userId: auth.user.id,
+            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+          },
+        });
+        const payload = res.data?.data ?? res.data;
+        if (payload && Array.isArray(payload.values) && payload.values.length === 5) {
+          setDailyTypeValues(payload.values);
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load diet category distribution:", error);
+      } finally {
+        setDailyTypeLoading(false);
+      }
+    };
+
+    const fetchDietMacroWeekly = async () => {
+      try {
+        setDietTrendLoading(true);
+        const res = await api.get("/trend/diet/macroWeekly", {
+          params: {
+            userId: auth.user.id,
+            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+          },
+        });
+        const payload = res.data?.data ?? res.data;
+        if (!payload || !Array.isArray(payload.labels)) return;
+
+        setDietMacroLabels(payload.labels);
+        if (Array.isArray(payload.fiber)) setFiberSeries(payload.fiber);
+        if (Array.isArray(payload.protein)) setProteinSeries(payload.protein);
+        if (Array.isArray(payload.fat)) setFatSeries(payload.fat);
+        if (Array.isArray(payload.sugar)) setSugarSeries(payload.sugar);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load diet macro weekly trend:", error);
+      } finally {
+        setDietTrendLoading(false);
+      }
+    };
+
+    const fetchBowelTrend = async () => {
+      try {
+        setBowelTrendLoading(true);
+        const res = await api.get("/trend/bowel/dailyTrendForDiet", {
+          params: {
+            userId: auth.user.id,
+            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+          },
+        });
+        const payload = res.data?.data ?? res.data;
+        if (!payload || !Array.isArray(payload.labels)) return;
+
+        setBowelLabels(payload.labels);
+        if (Array.isArray(payload.freq)) setBowelFreq(payload.freq);
+        if (Array.isArray(payload.consis)) setBowelConsis(payload.consis);
+        if (Array.isArray(payload.ease)) setBowelEase(payload.ease);
+        if (Array.isArray(payload.overall)) setBowelOverall(payload.overall);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load bowel daily trend for diet:", error);
+      } finally {
+        setBowelTrendLoading(false);
+      }
+    };
+
+    fetchDietCategory();
+    fetchDietMacroWeekly();
+    fetchBowelTrend();
+  }, [api, auth?.user?.id, referenceDate]);
   const dailyTypeLabels = [
     {
       color: '#d0ab7f',
@@ -183,14 +306,133 @@ const Free = ({ showUpgrade = true }) => {
     ],
   });
 
-  const dates = ["3/10", "3/11", "3/12", "3/13", "3/14", "3/15", "3/16"];
-  const chartDates = ["3/11", "3/12", "3/13", "3/14", "3/15", "3/16"];
+  const dates =
+    dietMacroLabels.length > 0
+      ? dietMacroLabels
+      : bowelLabels.length > 0
+      ? bowelLabels
+      : ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const chartDates = dates;
+
+  const monthNames = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const formatFullDateLabel = (label) => {
+    if (!label || typeof label !== "string") return label || "";
+    const parts = label.split("/");
+    if (parts.length !== 2) return label;
+    const month = parseInt(parts[0], 10);
+    const day = parseInt(parts[1], 10);
+    if (Number.isNaN(month) || Number.isNaN(day)) return label;
+    const monthIndex = month - 1;
+    if (monthIndex < 0 || monthIndex > 11) return label;
+    return `${monthNames[monthIndex]} ${day}`;
+  };
+
+  const externalTooltipHandler = (context) => {
+    // Hide if no tooltip
+    const { chart, tooltip } = context;
+    if (!chart || typeof window === "undefined") return;
+
+    let tooltipEl = chart.canvas.parentNode.querySelector(".diet-bowel-tooltip");
+
+    if (!tooltipEl) {
+      tooltipEl = document.createElement("div");
+      tooltipEl.className = "diet-bowel-tooltip";
+      tooltipEl.style.position = "absolute";
+      tooltipEl.style.pointerEvents = "none";
+      tooltipEl.style.zIndex = "40";
+
+      const card = document.createElement("div");
+      card.className =
+        "bg-white rounded-[16px] shadow-[0_8px_24px_rgba(15,23,42,0.18)] border border-[#f3e5d8] px-4 py-3 text-[12px] text-[#705d57] min-w-[160px]";
+      tooltipEl.appendChild(card);
+
+      chart.canvas.parentNode.appendChild(tooltipEl);
+    }
+
+    const card = tooltipEl.firstChild;
+
+    if (tooltip.opacity === 0) {
+      tooltipEl.style.opacity = 0;
+      return;
+    }
+
+    // Build content
+    while (card.firstChild) {
+      card.removeChild(card.firstChild);
+    }
+
+    const dataPoints = tooltip.dataPoints || [];
+    if (!dataPoints.length) {
+      tooltipEl.style.opacity = 0;
+      return;
+    }
+
+    const idx = dataPoints[0].dataIndex;
+    const rawLabel =
+      (chart.config.data && chart.config.data.labels && chart.config.data.labels[idx]) || "";
+    const fullLabel = formatFullDateLabel(rawLabel);
+
+    const title = document.createElement("div");
+    title.textContent = fullLabel;
+    title.className = "text-[13px] font-semibold text-[#705d57] mb-1";
+    card.appendChild(title);
+
+    const divider = document.createElement("div");
+    divider.className = "h-px bg-[#f3e5d8] my-1";
+    card.appendChild(divider);
+
+    dataPoints.forEach((dp) => {
+      const row = document.createElement("div");
+      row.className = "flex items-center gap-2 py-0.5";
+
+      const dot = document.createElement("span");
+      dot.className = "h-2.5 w-2.5 rounded-full";
+      const bg =
+        (Array.isArray(dp.dataset.backgroundColor)
+          ? dp.dataset.backgroundColor[dp.dataIndex]
+          : dp.dataset.backgroundColor) || dp.dataset.borderColor;
+      dot.style.background = bg || "#64748b";
+
+      const labelSpan = document.createElement("span");
+      labelSpan.className = "text-[12px]";
+      const value =
+        typeof dp.raw === "number"
+          ? Math.round(dp.raw)
+          : typeof dp.parsed?.y === "number"
+          ? Math.round(dp.parsed.y)
+          : dp.raw || "";
+      labelSpan.textContent = `${dp.dataset.label}: ${value}`;
+
+      row.appendChild(dot);
+      row.appendChild(labelSpan);
+      card.appendChild(row);
+    });
+
+    const { offsetLeft: positionX, offsetTop: positionY } = chart.canvas;
+    tooltipEl.style.opacity = 1;
+    tooltipEl.style.left = `${positionX + tooltip.caretX - card.offsetWidth / 2}px`;
+    tooltipEl.style.top = `${positionY + tooltip.caretY - card.offsetHeight - 16}px`;
+  };
   const dietTrendData = {
     labels: chartDates,
     datasets: [
       {
         label: "Fiber",
-        data: [70, 68, 72, 69, 71, 73],
+        data: fiberSeries,
         borderColor: "#22C55E",
         backgroundColor: "#22C55E",
         borderDash: [5, 5],
@@ -204,7 +446,7 @@ const Free = ({ showUpgrade = true }) => {
       },
       {
         label: "Protein",
-        data: [60, 62, 63, 61, 64, 66],
+        data: proteinSeries,
         borderColor: "#3B82F6",
         backgroundColor: "#3B82F6",
         borderDash: [5, 5],
@@ -218,7 +460,7 @@ const Free = ({ showUpgrade = true }) => {
       },
       {
         label: "Fat",
-        data: [45, 46, 47, 46, 48, 49],
+        data: fatSeries,
         borderColor: "#FACC15",
         backgroundColor: "#FACC15",
         borderDash: [5, 5],
@@ -232,7 +474,7 @@ const Free = ({ showUpgrade = true }) => {
       },
       {
         label: "Sugar",
-        data: [35, 38, 37, 39, 36, 40],
+        data: sugarSeries,
         borderColor: "#EF4444",
         backgroundColor: "#EF4444",
         borderDash: [5, 5],
@@ -257,9 +499,8 @@ const Free = ({ showUpgrade = true }) => {
         display: false,
       },
       tooltip: {
-        callbacks: {
-          label: (ctx) => `${ctx.dataset.label}: ${ctx.raw}`,
-        },
+        enabled: false,
+        external: externalTooltipHandler,
       },
     },
     scales: {
@@ -286,13 +527,12 @@ const Free = ({ showUpgrade = true }) => {
     datasets: [
       {
         label: "Freq",
-        data: [60, 65, 68, 70, 75, 78, 85],
+        data: bowelFreq,
         borderColor: "#14B8A6",
         backgroundColor: "#14B8A6",
         tension: 0.4,
-        pointRadius: (context) => {
-          return context.dataIndex === dates.length - 1 ? 6 : 3;
-        },
+        pointRadius: (context) =>
+          context.dataIndex === dates.length - 1 ? 6 : 3,
         pointBackgroundColor: "#14B8A6",
         pointBorderColor: "#14B8A6",
         pointBorderWidth: 2,
@@ -300,45 +540,42 @@ const Free = ({ showUpgrade = true }) => {
       },
       {
         label: "Consis",
-        data: [50, 55, 58, 60, 62, 64, 68],
+        data: bowelConsis,
         borderColor: "#A855F7",
         backgroundColor: "#A855F7",
         tension: 0.4,
-        pointRadius: (context) => {
-          return context.dataIndex === dates.length - 1 ? 6 : 3;
-        },
+        pointRadius: (context) =>
+          context.dataIndex === dates.length - 1 ? 6 : 3,
         pointBackgroundColor: "#A855F7",
         pointBorderColor: "#A855F7",
         pointBorderWidth: 2,
       },
       {
         label: "Ease",
-        data: [40, 43, 46, 48, 52, 55, 60],
+        data: bowelEase,
         borderColor: "#F59E0B",
         backgroundColor: "#F59E0B",
         tension: 0.4,
-        pointRadius: (context) => {
-          return context.dataIndex === dates.length - 1 ? 6 : 3;
-        },
+        pointRadius: (context) =>
+          context.dataIndex === dates.length - 1 ? 6 : 3,
         pointBackgroundColor: "#F59E0B",
         pointBorderColor: "#F59E0B",
         pointBorderWidth: 2,
       },
       {
         label: "Overall",
-        data: [30, 33, 35, 37, 40, 43, 48],
+        data: bowelOverall,
         borderColor: "#6B4F4F",
         backgroundColor: "#6B4F4F",
         tension: 0.4,
-        pointRadius: (context) => {
-          return context.dataIndex === dates.length - 1 ? 6 : 3;
-        },
+        pointRadius: (context) =>
+          context.dataIndex === dates.length - 1 ? 6 : 3,
         pointBackgroundColor: "#6B4F4F",
         pointBorderColor: "#6B4F4F",
         pointBorderWidth: 2,
       },
     ],
-  }
+  };
 
   const dietBowelOptions = {
     responsive: true,
@@ -346,9 +583,8 @@ const Free = ({ showUpgrade = true }) => {
     plugins: {
       legend: { display: false },
       tooltip: {
-        callbacks: {
-          label: (ctx) => `${ctx.dataset.label}`,
-        },
+        enabled: false,
+        external: externalTooltipHandler,
       },
       datalabels: { display: false },
     },
@@ -378,20 +614,39 @@ const Free = ({ showUpgrade = true }) => {
       <div className="bg-white rounded-[27px] p-[32px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[29px]">
         <div className="flex items-center justify-between">
           <div className="pl-[50px]">
-            <div className="text-3xl font-medium text-[#B5A6D2]">{weekScore}</div>
-            <div className="text-sm text-custom-12">
-              {weekScore > 75
-                ? "Excellent"
-                : weekScore > 50
-                ? "Good"
-                : weekScore > 25
-                ? "Fair"
-                : "Poor"}
-            </div>
+            {scoreLoading ? (
+              <div className="space-y-2">
+                <div className="h-7 w-16 rounded-full bg-slate-100 animate-pulse" />
+                <div className="h-3 w-20 rounded-full bg-slate-100 animate-pulse" />
+              </div>
+            ) : (
+              <>
+                <div className="text-3xl font-medium text-[#B5A6D2]">
+                  {weekScore}
+                </div>
+                <div className="text-sm text-custom-12">
+                  {weekScore > 75
+                    ? "Excellent"
+                    : weekScore > 50
+                    ? "Good"
+                    : weekScore > 25
+                    ? "Fair"
+                    : "Poor"}
+                </div>
+              </>
+            )}
           </div>
           <div className="text-base text-[#B5A6D2]">
-            {beforeWeekScore > weekScore ? "-" : "+"}
-            {Math.abs(Math.round(beforeWeekScore - weekScore))}% vs Last
+            {scoreLoading ? (
+              <span className="text-xs text-custom-12">
+                Loading weekly score…
+              </span>
+            ) : (
+              <>
+                {beforeWeekScore > weekScore ? "-" : "+"}
+                {Math.abs(Math.round(beforeWeekScore - weekScore))}% vs Last
+              </>
+            )}
           </div>
         </div>
 
@@ -412,70 +667,76 @@ const Free = ({ showUpgrade = true }) => {
             <div className="absolute left-[44%] -top-2 w-3 h-3 rounded-full bg-white border-2 border-emerald-300" />
           </div>
         </div>
-
-        {/* Weekly Urine Report summary */}
-        <div className="mt-4 text-xs text-secondary flex flex-col gap-1">
-          <div>
-            <span className="font-medium">Weekly Urine Clarity: </span>
-            <span>{Number.isNaN(clarityRate) ? "-" : `${clarityRate}%`}</span>
-          </div>
-          <div className="flex gap-3 flex-wrap">
-            <span className="text-[#3fb96e]">
-              Clear: {clearCount} {clearCount === 1 ? "day" : "days"}
-            </span>
-            <span className="text-[#fbc02d]">
-              Yellowish: {yellowCount} {yellowCount === 1 ? "day" : "days"}
-            </span>
-            <span className="text-[#f66b6b]">
-              Abnormal: {abnormalCount} {abnormalCount === 1 ? "day" : "days"}
-            </span>
-          </div>
-        </div>
       </div>
 
       {/* Daily Type Distribution */}
       <div className="text-base mb-3 font-medium pl-[15px] text-primary">Daily Types</div>
       <div className="bg-white rounded-[20px] p-6 shadow-[2px_0_10px_rgba(3,3,3,0.1)] mb-[34px]">
-        <div className="flex items-end justify-between gap-2">
-          {dailyTypeValues.map((value, index) => (
-            <div key={index} className="flex flex-col items-center flex-1">
-              {/* Colored Bar with Gray Background and Icon Inside */}
-              <div className="w-full bg-[#E6E6E6] rounded-lg relative overflow-hidden flex flex-col" style={{ height: '120px' }}>
-                {/* Circular Icon at Top */}
-                <div className="w-12 h-12 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center mx-auto mt-2 mb-2 z-10">
-                  <img
-                    src={[GrainsImage, ProteinImage, FruitsVegImage, DairyImage, OtherImage][index]}
-                    alt={`Type ${index + 1}`}
-                    className="w-12 h-12 object-contain"
-                  />
+        {dailyTypeLoading ? (
+          <div className="flex h-[120px] items-center justify-center text-xs text-secondary">
+            Loading daily type distribution…
+          </div>
+        ) : (
+          <div className="flex items-end justify-between gap-2">
+            {dailyTypeValues.map((value, index) => (
+              <div
+                // eslint-disable-next-line react/no-array-index-key
+                key={index}
+                className="flex flex-col items-center flex-1"
+                title={`${dailyTypeLabels[index].label}: ${value}% of this week's diet calories`}
+              >
+                {/* Colored Bar with Gray Background and Icon Inside */}
+                <div
+                  className="w-full bg-[#E6E6E6] rounded-lg relative overflow-hidden flex flex-col"
+                  style={{ height: "120px" }}
+                >
+                  {/* Circular Icon at Top */}
+                  <div className="w-12 h-12 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center mx-auto mt-2 mb-2 z-10">
+                    <img
+                      src={
+                        [
+                          GrainsImage,
+                          ProteinImage,
+                          FruitsVegImage,
+                          DairyImage,
+                          OtherImage,
+                        ][index]
+                      }
+                      alt={`Type ${index + 1}`}
+                      className="w-12 h-12 object-contain"
+                    />
+                  </div>
+                  {/* Colored Bar Fill */}
+                  {value > 0 ? (
+                    <div
+                      className="w-full rounded-lg flex items-center justify-center absolute bottom-0"
+                      style={{
+                        height: `${value}%`,
+                        backgroundColor: dailyTypeColors[index],
+                        minHeight: "20px",
+                      }}
+                    >
+                      <span className="text-white text-xs">{value}%</span>
+                    </div>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center absolute">
+                      <span className="text-custom-1 text-xs">0%</span>
+                    </div>
+                  )}
                 </div>
-                {/* Colored Bar Fill */}
-                {value > 0 ? (
-                  <div
-                    className="w-full rounded-lg flex items-center justify-center absolute bottom-0"
-                    style={{
-                      height: `${value}%`,
-                      backgroundColor: dailyTypeColors[index],
-                      minHeight: '20px',
-                    }}
+                {/* Label Below Bar */}
+                <div className="text-xs text-primary mt-2 text-center">
+                  <span
+                    className="whitespace-nowrap"
+                    style={{ color: "#705d57" }}
                   >
-                    <span className="text-white text-xs">
-                      {value}%
-                    </span>
-                  </div>
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center absolute">
-                    <span className="text-custom-1 text-xs">0%</span>
-                  </div>
-                )}
+                    {dailyTypeLabels[index].label}
+                  </span>
+                </div>
               </div>
-              {/* Label Below Bar */}
-              <div className="text-xs text-primary mt-2 text-center">
-                <span className="whitespace-nowrap" style={{ color: "#705d57" }}>{dailyTypeLabels[index].label}</span>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Diet Trends */}
@@ -513,7 +774,13 @@ const Free = ({ showUpgrade = true }) => {
             <span className="text-red-600">Sugar</span>
           </div>
           <div className="relative">
-            <Line data={dietTrendData} options={dietTrendOptions} />
+            {dietTrendLoading ? (
+              <div className="flex h-full items-center justify-center text-xs text-secondary">
+                Loading diet trends…
+              </div>
+            ) : (
+              <Line data={dietTrendData} options={dietTrendOptions} />
+            )}
           </div>
         </div>
 
@@ -562,7 +829,13 @@ const Free = ({ showUpgrade = true }) => {
 
           {/* CHART */}
           <div className="relative">
-            <Line data={dietBoweldata} options={dietBowelOptions} />
+            {bowelTrendLoading ? (
+              <div className="flex h-full items-center justify-center text-xs text-secondary">
+                Loading bowel trends…
+              </div>
+            ) : (
+              <Line data={dietBoweldata} options={dietBowelOptions} />
+            )}
           </div>
         </div>
 

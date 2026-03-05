@@ -1,6 +1,8 @@
 import { ChevronLeft } from "lucide-react";
-import React, { useState } from "react";
-import { set } from "react-hook-form";
+import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import useApiClient from "@/hooks/useApiClient";
+import { toast } from "sonner";
 
 const Switch = ({ checked, onChange }) => {
   const outer = {
@@ -40,14 +42,89 @@ const SectionDivider = () => (
 );
 
 const Notification = () => {
+  const auth = useSelector((state) => state.auth);
+  const api = useApiClient();
+
   const [oneClickOpen, setOneClickOpen] = useState(false);
   const [subUpdates, setSubUpdates] = useState(false);
   const [offers, setOffers] = useState(false);
   const [maintenance, setMaintenance] = useState(false);
   const [inApp, setInApp] = useState(false);
   const [email, setEmail] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const subtitle = { fontSize: 12, color: "#8b7a73", marginTop: 6 };
+
+  const syncOneClickFromToggles = (nextSub, nextOffers, nextMaint, nextInApp, nextEmail) => {
+    const allOn = nextSub && nextOffers && nextMaint && nextInApp && nextEmail;
+    setOneClickOpen(allOn);
+  };
+
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchSettings = async () => {
+      setLoading(true);
+      try {
+        const res = await api.get("/setting/app", {
+          params: { userId: auth.user.id },
+        });
+        const payload = res.data?.data ?? res.data;
+        if (!payload) return;
+
+        const notif = payload.notifications || {};
+        const method = payload.notificationMethod || {};
+
+        const nextSub = !!notif.subscriptionUpdates;
+        const nextOffers = !!notif.membershipOffers;
+        const nextMaint = !!notif.maintenanceUpdates;
+        const nextInApp = !!method.inApp;
+        const nextEmail = !!method.email;
+
+        setSubUpdates(nextSub);
+        setOffers(nextOffers);
+        setMaintenance(nextMaint);
+        setInApp(nextInApp);
+        setEmail(nextEmail);
+        syncOneClickFromToggles(nextSub, nextOffers, nextMaint, nextInApp, nextEmail);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load app notification settings:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSettings();
+  }, [api, auth?.user?.id]);
+
+  const persistSettings = async (nextState) => {
+    if (!auth?.user?.id) return;
+    setSaving(true);
+    try {
+      await api.post("/setting/app", {
+        userId: auth.user.id,
+        oneClickOpen: nextState.oneClickOpen,
+        notifications: {
+          subscriptionUpdates: nextState.subUpdates,
+          membershipOffers: nextState.offers,
+          maintenanceUpdates: nextState.maintenance,
+        },
+        notificationMethod: {
+          inApp: nextState.inApp,
+          email: nextState.email,
+        },
+      });
+      toast.success("Notification settings saved.");
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("Failed to save app notification settings:", error);
+      toast.error("Failed to save notification settings.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="bg-ivory min-h-full p-6 text-primary font-['Roboto', sans-serif]">
@@ -73,12 +150,28 @@ const Notification = () => {
           </div>
           <button
             onClick={() => {
-              setOneClickOpen(!oneClickOpen);
-              setSubUpdates(!oneClickOpen);
-              setOffers(!oneClickOpen);
-              setMaintenance(!oneClickOpen);
-              setInApp(!oneClickOpen);
-              setEmail(!oneClickOpen);
+              const nextOneClick = !oneClickOpen;
+              const nextSub = nextOneClick;
+              const nextOffers = nextOneClick;
+              const nextMaint = nextOneClick;
+              const nextInApp = nextOneClick;
+              const nextEmail = nextOneClick;
+
+              setOneClickOpen(nextOneClick);
+              setSubUpdates(nextSub);
+              setOffers(nextOffers);
+              setMaintenance(nextMaint);
+              setInApp(nextInApp);
+              setEmail(nextEmail);
+
+              persistSettings({
+                oneClickOpen: nextOneClick,
+                subUpdates: nextSub,
+                offers: nextOffers,
+                maintenance: nextMaint,
+                inApp: nextInApp,
+                email: nextEmail,
+              });
             }}
             aria-pressed={oneClickOpen}
             className={`w-12 h-7 flex items-center p-1 rounded-full transition-colors bg-custom-8 ${oneClickOpen ? "border border-[#705d57]" : ""}`}
@@ -99,10 +192,31 @@ const Notification = () => {
           <div className="text-sm text-primary">Subscription updates, payment</div>
           <button
             onClick={() => {
-              setSubUpdates(!subUpdates);
-              if (subUpdates || !offers || !maintenance || !inApp || !email)
-                setOneClickOpen(false);
-              else setOneClickOpen(true);
+              const nextSub = !subUpdates;
+              const nextState = {
+                subUpdates: nextSub,
+                offers,
+                maintenance,
+                inApp,
+                email,
+              };
+              syncOneClickFromToggles(
+                nextState.subUpdates,
+                nextState.offers,
+                nextState.maintenance,
+                nextState.inApp,
+                nextState.email
+              );
+              setSubUpdates(nextSub);
+              persistSettings({
+                oneClickOpen:
+                  nextState.subUpdates &&
+                  nextState.offers &&
+                  nextState.maintenance &&
+                  nextState.inApp &&
+                  nextState.email,
+                ...nextState,
+              });
             }}
             aria-pressed={subUpdates}
             className={`w-12 h-7 flex items-center p-1 rounded-full transition-colors bg-custom-8 ${subUpdates ? "border border-[#705d57]" : ""}`}
@@ -117,10 +231,31 @@ const Notification = () => {
           <div className="text-sm text-primary">Offers, membership upgrade</div>
           <button
             onClick={() => {
-              setOffers(!offers);
-              if (!subUpdates || offers || !maintenance || !inApp || !email)
-                setOneClickOpen(false);
-              else setOneClickOpen(true);
+              const nextOffers = !offers;
+              const nextState = {
+                subUpdates,
+                offers: nextOffers,
+                maintenance,
+                inApp,
+                email,
+              };
+              syncOneClickFromToggles(
+                nextState.subUpdates,
+                nextState.offers,
+                nextState.maintenance,
+                nextState.inApp,
+                nextState.email
+              );
+              setOffers(nextOffers);
+              persistSettings({
+                oneClickOpen:
+                  nextState.subUpdates &&
+                  nextState.offers &&
+                  nextState.maintenance &&
+                  nextState.inApp &&
+                  nextState.email,
+                ...nextState,
+              });
             }}
             aria-pressed={offers}
             className={`w-12 h-7 flex items-center p-1 rounded-full transition-colors bg-custom-8 ${offers ? "border border-[#705d57]" : ""}`}
@@ -135,10 +270,31 @@ const Notification = () => {
           <div className="text-sm text-primary">Maintenance, version updates</div>
           <button
             onClick={() => {
-              setMaintenance(!maintenance);
-              if (!subUpdates || !offers || maintenance || !inApp || !email)
-                setOneClickOpen(false);
-              else setOneClickOpen(true);
+              const nextMaint = !maintenance;
+              const nextState = {
+                subUpdates,
+                offers,
+                maintenance: nextMaint,
+                inApp,
+                email,
+              };
+              syncOneClickFromToggles(
+                nextState.subUpdates,
+                nextState.offers,
+                nextState.maintenance,
+                nextState.inApp,
+                nextState.email
+              );
+              setMaintenance(nextMaint);
+              persistSettings({
+                oneClickOpen:
+                  nextState.subUpdates &&
+                  nextState.offers &&
+                  nextState.maintenance &&
+                  nextState.inApp &&
+                  nextState.email,
+                ...nextState,
+              });
             }}
             aria-pressed={maintenance}
             className={`w-12 h-7 flex items-center p-1 rounded-full transition-colors bg-custom-8 ${maintenance ? "border border-[#705d57]" : ""}`}
@@ -161,10 +317,31 @@ const Notification = () => {
           <div className="text-sm text-primary">In-app Notifications</div>
           <button
             onClick={() => {
-              setInApp(!inApp);
-              if (!subUpdates || !offers || !maintenance || inApp || !email)
-                setOneClickOpen(false);
-              else setOneClickOpen(true);
+              const nextInApp = !inApp;
+              const nextState = {
+                subUpdates,
+                offers,
+                maintenance,
+                inApp: nextInApp,
+                email,
+              };
+              syncOneClickFromToggles(
+                nextState.subUpdates,
+                nextState.offers,
+                nextState.maintenance,
+                nextState.inApp,
+                nextState.email
+              );
+              setInApp(nextInApp);
+              persistSettings({
+                oneClickOpen:
+                  nextState.subUpdates &&
+                  nextState.offers &&
+                  nextState.maintenance &&
+                  nextState.inApp &&
+                  nextState.email,
+                ...nextState,
+              });
             }}
             aria-pressed={inApp}
             className={`w-12 h-7 flex items-center p-1 rounded-full transition-colors bg-custom-8 ${inApp ? "border border-[#705d57]" : ""}`}
@@ -179,10 +356,31 @@ const Notification = () => {
           <div className="text-sm text-primary">Email Notifications</div>
           <button
             onClick={() => {
-              setEmail(!email);
-              if (!subUpdates || !offers || !maintenance || !inApp || email)
-                setOneClickOpen(false);
-              else setOneClickOpen(true);
+              const nextEmail = !email;
+              const nextState = {
+                subUpdates,
+                offers,
+                maintenance,
+                inApp,
+                email: nextEmail,
+              };
+              syncOneClickFromToggles(
+                nextState.subUpdates,
+                nextState.offers,
+                nextState.maintenance,
+                nextState.inApp,
+                nextState.email
+              );
+              setEmail(nextEmail);
+              persistSettings({
+                oneClickOpen:
+                  nextState.subUpdates &&
+                  nextState.offers &&
+                  nextState.maintenance &&
+                  nextState.inApp &&
+                  nextState.email,
+                ...nextState,
+              });
             }}
             aria-pressed={email}
             className={`w-12 h-7 flex items-center p-1 rounded-full transition-colors bg-custom-8 ${email ? "border border-[#705d57]" : ""}`}
@@ -194,6 +392,12 @@ const Notification = () => {
           </button>
         </div>
       </div>
+
+      {saving && (
+        <div className="mt-4 text-xs text-custom-12 text-center">
+          Saving…
+        </div>
+      )}
     </div>
   );
 };

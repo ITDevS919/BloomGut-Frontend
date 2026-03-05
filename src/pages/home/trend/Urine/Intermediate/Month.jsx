@@ -36,55 +36,96 @@ import { FaExclamationTriangle } from "react-icons/fa";
 import { MdErrorOutline, MdOutlineErrorOutline } from "react-icons/md";
 import Upgrade from "./Upgrade";
 
-const Month = () => {
+const Month = ({ referenceDate }) => {
   const navigate = useNavigate();
   const [showAnalysis, setShowAnalysis] = useState(false);
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
 
   const [dailyVolumes, setDailyVolumes] = useState([]);
+  const [monthlyAdvice, setMonthlyAdvice] = useState(null);
+  const [adviceLoading, setAdviceLoading] = useState(false);
+  const [chartLoading, setChartLoading] = useState(false);
 
   useEffect(() => {
     if (!auth?.user?.id) return;
 
     const fetchMonthlyVolumes = async () => {
+      setChartLoading(true);
       try {
-        const response = await api.get("/trend/urine/weeklyScore", {
-          // For now, reuse weeklyScore as a placeholder;
-          // if a dedicated monthly endpoint is added, switch to it.
-          params: { userId: auth.user.id },
+        const response = await api.get("/trend/urine/monthlyDailyVolume", {
+          params: {
+            userId: auth.user.id,
+            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+          },
         });
         const payload = response.data?.data || response.data;
-        if (!Array.isArray(payload)) return;
+        if (!payload || !Array.isArray(payload.days) || !Array.isArray(payload.volumes)) return;
 
-        const aggregated = {};
-        payload.forEach((item) => {
-          const date = new Date(item.records?.createdAt || item.createdAt);
-          const day = date.getDate();
-          const key = `${day}`;
-          const volume = item.records?.estimatedTimeVolumeMl || 0;
-          aggregated[key] = (aggregated[key] || 0) + volume;
-        });
-
-        const days = Object.keys(aggregated)
-          .map((d) => parseInt(d, 10))
-          .sort((a, b) => a - b);
-
-        const series = days.map((day) => ({
+        const { days, volumes } = payload;
+        const series = days.map((day, idx) => ({
           day,
           label: `${day}th`,
-          volume: aggregated[day] || 0,
+          volume: volumes[idx] || 0,
         }));
 
         setDailyVolumes(series);
+        console.log("series--------------------",series);
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Failed to load urine monthly volumes:", error);
+      } finally {
+        setChartLoading(false);
       }
     };
 
     fetchMonthlyVolumes();
-  }, [api, auth?.user?.id]);
+  }, [api, auth?.user?.id, referenceDate]);
+
+  useEffect(() => {
+    if (!auth?.user?.id || dailyVolumes.length === 0) return;
+
+    const fetchMonthlyAdvice = async () => {
+      setAdviceLoading(true);
+      try {
+        const total = dailyVolumes.reduce((s, d) => s + d.volume, 0);
+        const avgVolume = dailyVolumes.length ? Math.round(total / dailyVolumes.length) : 0;
+        const withVolume = dailyVolumes.map((d) => ({ day: d.day, volume: d.volume }));
+        const highest = dailyVolumes.length ? dailyVolumes.reduce((a, b) => (a.volume >= b.volume ? a : b)) : null;
+        const lowest = dailyVolumes.length ? dailyVolumes.reduce((a, b) => (a.volume <= b.volume ? a : b)) : null;
+        let normalCount = 0;
+        let lowCount = 0;
+        let highCount = 0;
+        dailyVolumes.forEach((d) => {
+          if (d.volume >= 1200 && d.volume <= 2400) normalCount += 1;
+          else if (d.volume < 1200) lowCount += 1;
+          else highCount += 1;
+        });
+
+        const res = await api.post("/trend/urine/monthlyAdvice", {
+          dailyVolumes: withVolume,
+          avgVolume,
+          highestDay: highest?.day ?? null,
+          highestVolume: highest?.volume ?? 0,
+          lowestDay: lowest?.day ?? null,
+          lowestVolume: lowest?.volume ?? 0,
+          normalCount,
+          lowCount,
+          highCount,
+          totalDays: dailyVolumes.length,
+        });
+        const data = res.data?.data ?? res.data;
+        if (data) setMonthlyAdvice(data);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load monthly urine advice:", err);
+      } finally {
+        setAdviceLoading(false);
+      }
+    };
+
+    fetchMonthlyAdvice();
+  }, [api, auth?.user?.id, dailyVolumes]);
 
   const labels = useMemo(
     () => (dailyVolumes.length ? dailyVolumes.map((d) => d.label) : [
@@ -118,6 +159,24 @@ const Month = () => {
           ],
     [dailyVolumes]
   );
+
+  const { avgVolume, highestDay, highestVolume, lowestDay, lowestVolume, abnormalCount } = useMemo(() => {
+    if (!dailyVolumes.length)
+      return { avgVolume: 0, highestDay: null, highestVolume: 0, lowestDay: null, lowestVolume: 0, abnormalCount: 0 };
+    const total = dailyVolumes.reduce((s, d) => s + d.volume, 0);
+    const avg = Math.round(total / dailyVolumes.length);
+    const high = dailyVolumes.reduce((a, b) => (a.volume >= b.volume ? a : b));
+    const low = dailyVolumes.reduce((a, b) => (a.volume <= b.volume ? a : b));
+    const abnormal = dailyVolumes.filter((d) => d.volume < 1200 || d.volume > 2400).length;
+    return {
+      avgVolume: avg,
+      highestDay: high.day,
+      highestVolume: high.volume,
+      lowestDay: low.day,
+      lowestVolume: low.volume,
+      abnormalCount: abnormal,
+    };
+  }, [dailyVolumes]);
 
   const data = {
     labels,
@@ -175,7 +234,13 @@ const Month = () => {
 
           {/* Chart */}
           <div className="h-56">
+          {chartLoading ? (
+            <div className="flex h-full items-center justify-center text-xs text-secondary">
+              Loading monthly urine volumes…
+            </div>
+          ) : (
             <Line data={data} options={options} />
+          )}
           </div>
 
           {/* Legend */}
@@ -198,35 +263,29 @@ const Month = () => {
             <StatCard
               icon={<TrendingUp className="h-4 w-4 text-blue-500" />}
               title="Avg Volume"
-              value={
-                values.length
-                  ? `${Math.round(
-                      values.reduce((sum, v) => sum + v, 0) / values.length
-                    )} ml`
-                  : "-"
-              }
+              value={dailyVolumes.length ? `${avgVolume} ml` : "-"}
               sub="Within Normal Range"
             />
 
             <StatCard
               icon={<FaExclamationTriangle className="h-4 w-4 text-[#f09129]" />}
               title="Abnormal"
-              value="-"
+              value={dailyVolumes.length ? String(abnormalCount) : "-"}
               sub="Low | High"
             />
 
             <StatCard
               icon={<TrendingUp className="h-4 w-4 text-[#f15a5a]" />}
               title="Highest Day"
-              value="-"
-              sub="-"
+              value={highestDay != null ? `${highestDay}th` : "-"}
+              sub={highestVolume ? `${highestVolume} ml` : "-"}
             />
 
             <StatCard
               icon={<TrendingDown className="h-4 w-4 text-yellow-500" />}
               title="Lowest Day"
-              value="-"
-              sub="-"
+              value={lowestDay != null ? `${lowestDay}th` : "-"}
+              sub={lowestVolume ? `${lowestVolume} ml` : "-"}
             />
           </div>
         </div>
@@ -253,12 +312,19 @@ const Month = () => {
                 </h3>
 
                 <div className="rounded-[8px] bg-blue-50 p-4 text-sm text-secondary">
-                  <ul className="list-disc space-y-2 pl-4 text-secondary">
-                    <li>5/1–5/7: volume normal.</li>
-                    <li>5/8–5/12: urine drop, likely low intake.</li>
-                    <li>5/13–5/18: back to normal.</li>
-                    <li>5/25–5/31: spike, likely habit/diet change.</li>
-                  </ul>
+                  {adviceLoading ? (
+                    <p className="text-secondary">Loading analysis…</p>
+                  ) : monthlyAdvice?.monthlyNotes?.length ? (
+                    <ul className="list-disc space-y-2 pl-4 text-secondary">
+                      {monthlyAdvice.monthlyNotes.map((note, i) => (
+                        <li key={i}>{note}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <ul className="list-disc space-y-2 pl-4 text-secondary">
+                      <li>Review your monthly urine volume trend.</li>
+                    </ul>
+                  )}
                 </div>
               </div>
 
@@ -274,17 +340,21 @@ const Month = () => {
                   <div className="flex-1 h-2 rounded-full bg-gray-200 relative">
                     <div
                       className="h-2 rounded-full bg-blue-300"
-                      style={{ width: "71%" }}
+                      style={{ width: `${monthlyAdvice?.hydrationBalancePercent ?? 0}%` }}
                     />
                   </div>
-                  <span className="text-[#3b82f6] font-medium whitespace-nowrap">71%</span>
+                  <span className="text-[#3b82f6] font-medium whitespace-nowrap">
+                    {adviceLoading ? "…" : `${monthlyAdvice?.hydrationBalancePercent ?? 0}%`}
+                  </span>
                 </div>
 
                 <p className="text-sm text-secondary font-['Aleo']">
-                  Urine Normal Rate: <span className="font-medium">71%</span>
+                  Urine Normal Rate: <span className="font-medium">{monthlyAdvice?.normalRatePercent ?? 0}%</span>
                 </p>
 
-                <p className="text-sm text-secondary">+8% vs last month</p>
+                <p className="text-sm text-secondary">
+                  {adviceLoading ? "…" : (monthlyAdvice?.vsLastMonthText ?? "No prior month data")}
+                </p>
               </div>
 
               {/* Personalized Suggestions */}
@@ -293,12 +363,22 @@ const Month = () => {
                   <h3 className="mb-2 text-sm font-medium text-secondary">
                     Personalized Suggestions
                   </h3>
-                  <ul className="list-disc space-y-2 pl-4 text-secondary">
-                    <li>Daily target: 1800–2400 ml</li>
-                    <li>Drink 300 ml after waking and before meals.</li>
-                    <li>Avoid large amounts within 10 min before bed.</li>
-                    <li>Increase intake during exercise or heat.</li>
-                  </ul>
+                  {adviceLoading ? (
+                    <p className="text-secondary">Loading suggestions…</p>
+                  ) : monthlyAdvice?.suggestions?.length ? (
+                    <ul className="list-disc space-y-2 pl-4 text-secondary">
+                      {monthlyAdvice.suggestions.map((s, i) => (
+                        <li key={i}>{s}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <ul className="list-disc space-y-2 pl-4 text-secondary">
+                      <li>Daily target: 1800–2400 ml</li>
+                      <li>Drink 300 ml after waking and before meals.</li>
+                      <li>Avoid large amounts within 10 min before bed.</li>
+                      <li>Increase intake during exercise or heat.</li>
+                    </ul>
+                  )}
                 </div>
               </div>
             </div>

@@ -1,10 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import useApiClient from "@/hooks/useApiClient";
 
 const PremiumMonth = () => {
   const navigate = useNavigate();
   const [tooltip, setTooltip] = useState(null);
   const [hoveredCell, setHoveredCell] = useState(null);
+  const auth = useSelector((state) => state.auth);
+  const api = useApiClient();
+  const [aiTooltipMap, setAiTooltipMap] = useState({});
+  const [summaryTips, setSummaryTips] = useState([]);
+  const [aiLoading, setAiLoading] = useState(false);
 
   // Function to get background color based on percentage (updated thresholds)
   const getCellColor = (percentage) => {
@@ -23,8 +30,15 @@ const PremiumMonth = () => {
     { food: "Nuts", week1: 60, week2: 50, week3: 30, week4: 20 },
   ];
 
-  // Tooltip data for each food/week combination
   const getTooltipData = (food, week, percentage) => {
+    const aiFood = aiTooltipMap?.[food]?.[week];
+    if (aiFood && aiFood.note && aiFood.tip) {
+      return {
+        note: aiFood.note,
+        tip: aiFood.tip,
+      };
+    }
+
     const tooltipMap = {
       "Milk": {
         "Week 1": { note: "High sensitivity observed.", tip: "Reduce intake or try alternatives." },
@@ -92,6 +106,31 @@ const PremiumMonth = () => {
     setHoveredCell(null);
   };
 
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchPremiumMonthAdvice = async () => {
+      setAiLoading(true);
+      try {
+        const res = await api.post("/trend/bowel/premiumMonthAdvice", {
+          foods: foodData,
+        });
+        const data = res.data?.data ?? res.data;
+        if (data) {
+          setAiTooltipMap(data.tooltipMap || {});
+          setSummaryTips(Array.isArray(data.summaryTips) ? data.summaryTips : []);
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load PremiumMonth bowel advice:", err);
+      } finally {
+        setAiLoading(false);
+      }
+    };
+
+    fetchPremiumMonthAdvice();
+  }, [api, auth?.user?.id]);
+
   return (
     <div className="pl-[15px] pr-[15px] mb-[93px] relative">
       <div className="text-base pl-[15px] font-medium mb-[11px] text-primary">
@@ -156,13 +195,34 @@ const PremiumMonth = () => {
         <div className="mt-[19px] rounded-[8px] bg-[#FFFDF6] p-4 shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
           <div className="flex items-center gap-3 mb-2">
             <span className="text-xs text-gray-500 whitespace-nowrap">Sensit</span>
-            <div className="h-5 flex-1 rounded-full bg-gradient-to-r from-green-300 via-yellow-200 to-red-300" />
+            <div className="h-5 flex-1 rounded-full bg-linear-to-r from-green-300 via-yellow-200 to-red-300" />
           </div>
           <div className="flex items-center gap-3">
             <span className="text-xs text-gray-500 whitespace-nowrap ml-[50px]">Low</span>
             <div className="flex-1" />
             <span className="text-xs text-gray-500 whitespace-nowrap">High</span>
           </div>
+        </div>
+
+        {/* AI Summary Tips */}
+        <div className="mt-[16px] rounded-[8px] bg-white p-4 shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-primary">AI Insights</span>
+            {aiLoading && (
+              <span className="text-xs text-gray-400">Loading…</span>
+            )}
+          </div>
+          {summaryTips && summaryTips.length > 0 ? (
+            <ul className="list-disc pl-4 space-y-1 text-xs text-secondary">
+              {summaryTips.map((tip, idx) => (
+                <li key={idx}>{tip}</li>
+              ))}
+            </ul>
+          ) : !aiLoading ? (
+            <p className="text-xs text-secondary">
+              Monthly AI insights will appear here based on your food–sensitivity pattern.
+            </p>
+          ) : null}
         </div>
       </div>
 

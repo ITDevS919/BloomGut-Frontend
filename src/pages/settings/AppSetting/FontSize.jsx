@@ -1,12 +1,54 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronLeft } from "lucide-react";
+import { useSelector } from "react-redux";
+import useApiClient from "@/hooks/useApiClient";
+import { toast } from "sonner";
 
 const FontSize = () => {
   const [value, setValue] = useState(100);
   const [selected, setSelected] = useState("100");
+  const auth = useSelector((state) => state.auth);
+  const api = useApiClient();
 
-  const handleSave = () => {
-    alert(`Saved font size: ${selected}%`);
+  useEffect(() => {
+    const fetchSettings = async () => {
+      if (!auth?.user?.id) return;
+      try {
+        const res = await api.get("/setting/app", {
+          params: { userId: auth.user.id },
+        });
+        const payload = res.data?.data ?? res.data;
+        if (!payload || typeof payload.fontSize !== "number") return;
+        const size = String(payload.fontSize);
+        if (size === "75" || size === "100" || size === "125") {
+          setSelected(size);
+          setValue(Number(size));
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load font size setting:", error);
+      }
+    };
+
+    fetchSettings();
+  }, [api, auth?.user?.id]);
+
+  const handleSave = async () => {
+    if (!auth?.user?.id) {
+      toast.error("You need to be signed in to update settings.");
+      return;
+    }
+    try {
+      await api.post("/setting/app", {
+        userId: auth.user.id,
+        fontSize: Number(selected),
+      });
+      toast.success("Font size saved.");
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("Failed to save font size:", error);
+      toast.error("Failed to save font size.");
+    }
   };
 
   return (
@@ -101,7 +143,11 @@ const FontSize = () => {
           </div>
         </div>
 
-        <button className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)]">
+        <button
+          type="button"
+          onClick={handleSave}
+          className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)]"
+        >
           Save Settings
         </button>
       </div>

@@ -4,17 +4,225 @@ import { FaGlassWhiskey } from "react-icons/fa";
 import { MdWaterDrop } from "react-icons/md";
 import { FaChevronRight } from "react-icons/fa6";
 
+import { useEffect, useState } from "react";
 import { useClerk } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 
 import { useSelector } from "react-redux";
+import useApiClient from "@/hooks/useApiClient";
 
 const Dashboard = () => {
   const { signOut } = useClerk();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const auth = useSelector((state) => state.auth);
-  console.log(auth)
+  const api = useApiClient();
+
+  const [bowelLoading, setBowelLoading] = useState(false);
+  const [bowelScore, setBowelScore] = useState(0);
+  const [bowelStatus, setBowelStatus] = useState("Not Recorded");
+  const [bowelChangePercent, setBowelChangePercent] = useState(0);
+  const [bowelSegments, setBowelSegments] = useState(0);
+
+  const [dietLoading, setDietLoading] = useState(false);
+  const [dietIntakePercent, setDietIntakePercent] = useState(0);
+  const [dietStatus, setDietStatus] = useState("Not Recorded");
+  const [waterLoading, setWaterLoading] = useState(false);
+  const [waterIntakePercent, setWaterIntakePercent] = useState(0);
+  const [waterStatus, setWaterStatus] = useState("Not Recorded");
+  const [urineLoading, setUrineLoading] = useState(false);
+  const [urineSegments, setUrineSegments] = useState(0);
+  const [urineStatus, setUrineStatus] = useState("Not Recorded");
+
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchBowelWeeklySummary = async () => {
+      setBowelLoading(true);
+      try {
+        const res = await api.get("/trend/bowel/weeklySummary", {
+          params: { userId: auth.user.id },
+        });
+        const payload = res.data?.data ?? res.data;
+        if (!payload) return;
+
+        const score = Number(payload.score || 0);
+        const changePercent = Number(payload.changePercent || 0);
+        const typeDistribution = Array.isArray(payload.typeDistribution)
+          ? payload.typeDistribution
+          : [];
+        const hasAnyType = typeDistribution.some((v) => (v || 0) > 0);
+
+        setBowelScore(score);
+        setBowelChangePercent(changePercent);
+
+        if (!hasAnyType && score === 0) {
+          setBowelStatus("Not Recorded");
+          setBowelSegments(0);
+          return;
+        }
+
+        setBowelStatus(
+          typeof payload.status === "string" && payload.status.trim()
+            ? payload.status
+            : "Good"
+        );
+
+        // Map 0–100 score into 0–5 filled segments (at least 1 if there is data)
+        const rawSegments = Math.round(score / 20);
+        const clampedSegments = Math.max(1, Math.min(5, rawSegments));
+        setBowelSegments(clampedSegments);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load bowel weekly summary for dashboard:", error);
+        setBowelStatus("Not Recorded");
+        setBowelSegments(0);
+      } finally {
+        setBowelLoading(false);
+      }
+    };
+
+    fetchBowelWeeklySummary();
+  }, [api, auth?.user?.id]);
+
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchDietToday = async () => {
+      setDietLoading(true);
+      try {
+        const res = await api.get("/trend/diet/dailySummary", {
+          params: { userId: auth.user.id },
+        });
+        const payload = res.data?.data ?? res.data;
+        if (!payload) {
+          setDietIntakePercent(0);
+          setDietStatus("Not Recorded");
+          return;
+        }
+
+        const calories = Number(payload.calories || 0);
+        const hasData =
+          calories > 0 ||
+          Number(payload.protein_g || 0) > 0 ||
+          Number(payload.fat_g || 0) > 0 ||
+          Number(payload.carb_g || 0) > 0;
+
+        if (!hasData) {
+          setDietIntakePercent(0);
+          setDietStatus("Not Recorded");
+          return;
+        }
+
+        const CAL_TARGET = 2100;
+        const rawPct = Math.round((calories / CAL_TARGET) * 100);
+        const clampedPct = Math.max(0, Math.min(100, rawPct));
+        setDietIntakePercent(clampedPct);
+
+        let statusText = "";
+        if (rawPct < 60) statusText = "Low Intake";
+        else if (rawPct <= 120) statusText = "On Track";
+        else statusText = "High Intake";
+        setDietStatus(statusText);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load diet daily summary for dashboard:", error);
+        setDietIntakePercent(0);
+        setDietStatus("Not Recorded");
+      } finally {
+        setDietLoading(false);
+      }
+    };
+
+    fetchDietToday();
+  }, [api, auth?.user?.id]);
+
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchWaterToday = async () => {
+      setWaterLoading(true);
+      try {
+        const res = await api.get("/trend/water/dailyMl", {
+          params: { userId: auth.user.id },
+        });
+        const payload = res.data?.data ?? res.data;
+        const mlPerDay = Array.isArray(payload?.mlPerDay) ? payload.mlPerDay : [];
+        if (!mlPerDay.length) {
+          setWaterIntakePercent(0);
+          setWaterStatus("Not Recorded");
+          return;
+        }
+
+        // Assume last entry corresponds to the latest day in the selected week
+        const todayMl = mlPerDay[mlPerDay.length - 1] || 0;
+        const DAILY_TARGET_ML = 2000;
+        const rawPct = Math.round((todayMl / DAILY_TARGET_ML) * 100);
+        const clampedPct = Math.max(0, Math.min(100, rawPct));
+        setWaterIntakePercent(clampedPct);
+
+        let statusText = "";
+        if (rawPct < 60) statusText = "Low Intake";
+        else if (rawPct <= 120) statusText = "On Track";
+        else statusText = "High Intake";
+        setWaterStatus(statusText);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load water daily intake for dashboard:", error);
+        setWaterIntakePercent(0);
+        setWaterStatus("Not Recorded");
+      } finally {
+        setWaterLoading(false);
+      }
+    };
+
+    fetchWaterToday();
+  }, [api, auth?.user?.id]);
+
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchUrineWeek = async () => {
+      setUrineLoading(true);
+      try {
+        const res = await api.get("/trend/urine/weeklyScore", {
+          params: { userId: auth.user.id },
+        });
+        const payload = res.data?.data ?? res.data;
+        const scores = Array.isArray(payload) ? payload : [];
+        if (!scores.length) {
+          setUrineSegments(0);
+          setUrineStatus("Not Recorded");
+          return;
+        }
+
+        const avg = Math.round(
+          scores.reduce((sum, item) => sum + (Number(item.score || 0)), 0) /
+            scores.length
+        );
+
+        // Map average score 0–100 to segments 1–5
+        const rawSegments = Math.round(avg / 20);
+        const clampedSegments = Math.max(1, Math.min(5, rawSegments));
+        setUrineSegments(clampedSegments);
+
+        let statusText = "";
+        if (avg < 40) statusText = "Needs attention";
+        else if (avg < 70) statusText = "Fair";
+        else statusText = "Good";
+        setUrineStatus(statusText);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load urine weekly score for dashboard:", error);
+        setUrineSegments(0);
+        setUrineStatus("Not Recorded");
+      } finally {
+        setUrineLoading(false);
+      }
+    };
+
+    fetchUrineWeek();
+  }, [api, auth?.user?.id]);
   return (
     <div className="flex flex-col relative h-full p-4">
       {/* Upper Scrollable Area */}
@@ -44,14 +252,37 @@ const Dashboard = () => {
                     Bowel Status
                   </span>
                   <div className="flex gap-2">
-                    {[1, 2, 3, 4, 5].map((_, index) => (
-                      <p
-                        key={index}
-                        className={`h-6 rounded-full transition-all duration-300 w-6 bg-[#dfe1db]`}
-                      />
-                    ))}
+                    {Array.from({ length: 5 }).map((_, index) => {
+                      const isActive = index < bowelSegments;
+                      const baseClass =
+                        "h-6 w-6 rounded-full transition-all duration-300";
+                      if (bowelLoading) {
+                        return (
+                          <p
+                            // eslint-disable-next-line react/no-array-index-key
+                            key={index}
+                            className={`${baseClass} bg-custom-8 animate-pulse`}
+                          />
+                        );
+                      }
+                      return (
+                        <p
+                          // eslint-disable-next-line react/no-array-index-key
+                          key={index}
+                          className={
+                            isActive
+                              ? `${baseClass} bg-custom-13`
+                              : `${baseClass} bg-[#dfe1db]`
+                          }
+                        />
+                      );
+                    })}
                   </div>
-                  <p className="text-primary-muted text-xs">Not Recorded</p>
+                  <p className="text-primary-muted text-xs">
+                    {bowelLoading
+                      ? "Loading…"
+                      : bowelStatus}
+                  </p>
                 </div>
                 <div className="flex items-center">
                   <FaChevronRight className="text-primary" size={24} />
@@ -80,16 +311,18 @@ const Dashboard = () => {
                       Today's Intake
                     </span>
                     <span className="text-primary text-sm ">
-                      0%
+                      {dietLoading ? "…" : `${dietIntakePercent}%`}
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3 shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
                     <div
                       className="bg-[#ac95cc] h-3 rounded-full transition-all"
-                      style={{ width: `0%` }}
+                      style={{ width: `${dietIntakePercent}%` }}
                     />
                   </div>
-                  <p className="text-primary text-sm">Not Recorded</p>
+                  <p className="text-primary text-sm">
+                    {dietLoading ? "Loading…" : dietStatus}
+                  </p>
                 </div>
                 <div className="flex items-center">
                   <FaChevronRight className="text-primary" size={24} />
@@ -116,16 +349,18 @@ const Dashboard = () => {
                       Today's Intake
                     </span>
                     <span className="text-primary text-sm ">
-                      0%
+                      {waterLoading ? "…" : `${waterIntakePercent}%`}
                     </span>
                   </div>
                   <div className="w-full bg-white rounded-full h-3 shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
                     <div
-                      className="bg-[#79b6e2] h-3 rounded-full transition-all"
-                      style={{ width: `${0}%` }}
+                      className="bg-custom-13 h-3 rounded-full transition-all"
+                      style={{ width: `${waterIntakePercent}%` }}
                     />
                   </div>
-                  <p className="text-primary-muted text-xs">Not Recorded</p>
+                  <p className="text-primary-muted text-xs">
+                    {waterLoading ? "Loading…" : waterStatus}
+                  </p>
                 </div>
                 <div className="flex items-center">
                   <FaChevronRight className="text-primary" size={24} />
@@ -153,14 +388,35 @@ const Dashboard = () => {
                     Urine Status
                   </span>
                   <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((_, index) => (
-                      <p
-                        key={index}
-                        className={`h-6 rounded-full transition-all duration-300 w-6 bg-[#dfe1db]`}
-                      />
-                    ))}
+                    {Array.from({ length: 5 }).map((_, index) => {
+                      const baseClass =
+                        "h-6 w-6 rounded-full transition-all duration-300";
+                      if (urineLoading) {
+                        return (
+                          // eslint-disable-next-line react/no-array-index-key
+                          <p
+                            key={index}
+                            className={`${baseClass} bg-custom-8 animate-pulse`}
+                          />
+                        );
+                      }
+                      const isActive = index < urineSegments;
+                      return (
+                        // eslint-disable-next-line react/no-array-index-key
+                        <p
+                          key={index}
+                          className={
+                            isActive
+                              ? `${baseClass} bg-[#facc15]`
+                              : `${baseClass} bg-[#dfe1db]`
+                          }
+                        />
+                      );
+                    })}
                   </div>
-                  <p className="text-primary-muted text-xs">Not Recorded</p>
+                  <p className="text-primary-muted text-xs">
+                    {urineLoading ? "Loading…" : urineStatus}
+                  </p>
                 </div>
                 <div className="flex items-center">
                   <FaChevronRight className="text-primary" size={24} />

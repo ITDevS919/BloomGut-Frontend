@@ -1,8 +1,51 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronLeft } from "lucide-react";
+import { useSelector } from "react-redux";
+import useApiClient from "@/hooks/useApiClient";
+import { toast } from "sonner";
 
 const LanguageSetting = () => {
   const [selected, setSelected] = useState("en-US");
+  const auth = useSelector((state) => state.auth);
+  const api = useApiClient();
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      if (!auth?.user?.id) return;
+      try {
+        const res = await api.get("/setting/app", {
+          params: { userId: auth.user.id },
+        });
+        const payload = res.data?.data ?? res.data;
+        if (!payload) return;
+        const lang = payload.language || "en-US";
+        setSelected(lang === "en" ? "en-US" : lang);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load language setting:", error);
+      }
+    };
+
+    fetchSettings();
+  }, [api, auth?.user?.id]);
+
+  const handleSave = async () => {
+    if (!auth?.user?.id) {
+      toast.error("You need to be signed in to update settings.");
+      return;
+    }
+    try {
+      await api.post("/setting/app", {
+        userId: auth.user.id,
+        language: selected,
+      });
+      toast.success("Language setting saved.");
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("Failed to save language setting:", error);
+      toast.error("Failed to save language setting.");
+    }
+  };
 
   return (
     <div className="bg-ivory min-h-full p-6 text-primary">
@@ -51,7 +94,7 @@ const LanguageSetting = () => {
         <button
           type="button"
           className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)]"
-          onClick={() => alert(`Saved language: ${selected}`)}
+          onClick={handleSave}
         >
           Save Settings
         </button>

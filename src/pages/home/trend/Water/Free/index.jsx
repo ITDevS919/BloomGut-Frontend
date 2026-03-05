@@ -130,7 +130,7 @@ const CircleStat = ({ value, label, color, showUpgrade = true }) => {
   );
 };
 
-const Free = ({ showUpgrade = true }) => {
+const Free = ({ showUpgrade = true, referenceDate }) => {
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
 
@@ -150,8 +150,12 @@ const Free = ({ showUpgrade = true }) => {
 
     const fetchDailyWater = async () => {
       try {
+        const ref =
+          referenceDate && referenceDate.toISOString
+            ? referenceDate.toISOString()
+            : undefined;
         const response = await api.get("/trend/water/dailyMl", {
-          params: { userId: auth.user.id },
+          params: { userId: auth.user.id, referenceDate: ref },
         });
         const payload = response.data?.data || response.data;
         if (payload?.days && payload?.mlPerDay) {
@@ -165,7 +169,7 @@ const Free = ({ showUpgrade = true }) => {
     };
 
     fetchDailyWater();
-  }, [api, auth?.user?.id]);
+  }, [api, auth?.user?.id, referenceDate]);
   return (
     <div className="pl-[15px] pr-[15px]">
       <div className="bg-white rounded-[27px] p-[32px] shadow-md mb-[36px]">

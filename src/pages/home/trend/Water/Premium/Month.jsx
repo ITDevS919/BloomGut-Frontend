@@ -10,7 +10,9 @@ import {
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
 import { Sun, AlertTriangle, Moon, Clock } from "lucide-react";
-import { useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useSelector } from "react-redux";
+import useApiClient from "@/hooks/useApiClient";
 
 ChartJS.register(
   BarElement,
@@ -22,11 +24,137 @@ ChartJS.register(
   Legend
 );
 
-const Month = () => {
+const Month = ({ referenceDate }) => {
   const chartRef = useRef(null);
   const [tooltip, setTooltip] = useState({ visible: false, x: 0, y: 0, data: null });
+  const auth = useSelector((state) => state.auth);
+  const api = useApiClient();
+  const [labels, setLabels] = useState(["Week 1", "Week 2", "Week 3", "Week 4"]);
+  const [weeks, setWeeks] = useState([
+    {
+      label: "Week 1",
+      morningMl: 260,
+      noonMl: 230,
+      afternoonMl: 200,
+      eveningMl: 170,
+      totalMl: 860,
+      avgDailyMl: 270,
+      morningPercent: 0,
+      noonPercent: 0,
+      afternoonPercent: 0,
+      eveningPercent: 0,
+    },
+    {
+      label: "Week 2",
+      morningMl: 320,
+      noonMl: 300,
+      afternoonMl: 220,
+      eveningMl: 150,
+      totalMl: 990,
+      avgDailyMl: 300,
+      morningPercent: 0,
+      noonPercent: 0,
+      afternoonPercent: 0,
+      eveningPercent: 0,
+    },
+    {
+      label: "Week 3",
+      morningMl: 230,
+      noonMl: 210,
+      afternoonMl: 260,
+      eveningMl: 180,
+      totalMl: 880,
+      avgDailyMl: 255,
+      morningPercent: 0,
+      noonPercent: 0,
+      afternoonPercent: 0,
+      eveningPercent: 0,
+    },
+    {
+      label: "Week 4",
+      morningMl: 240,
+      noonMl: 230,
+      afternoonMl: 250,
+      eveningMl: 170,
+      totalMl: 890,
+      avgDailyMl: 265,
+      morningPercent: 0,
+      noonPercent: 0,
+      afternoonPercent: 0,
+      eveningPercent: 0,
+    },
+  ]);
+  const [selectedWeekIndex, setSelectedWeekIndex] = useState(null);
+  const [aiAdviceByWeek, setAiAdviceByWeek] = useState({});
+  const [aiLoadingWeek, setAiLoadingWeek] = useState(null);
+  const [chartLoading, setChartLoading] = useState(true);
 
-  const labels = ["Week 1", "Week 2", "Week 3", "Week 4"];
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchMonthlyWeeks = async () => {
+      try {
+        setChartLoading(true);
+        const ref =
+          referenceDate && referenceDate.toISOString
+            ? referenceDate.toISOString()
+            : undefined;
+        const res = await api.get("/trend/water/monthlyWeeks", {
+          params: { userId: auth.user.id, referenceDate: ref },
+        });
+        const payload = res.data?.data ?? res.data;
+        if (!payload) return;
+        if (Array.isArray(payload.labels) && payload.labels.length === 4) {
+          setLabels(payload.labels);
+        }
+        if (Array.isArray(payload.weeks) && payload.weeks.length) {
+          setWeeks(
+            payload.weeks.map((w, idx) => ({
+              label: w.weekLabel ?? labels[idx] ?? `Week ${idx + 1}`,
+              morningMl: w.morningMl ?? 0,
+              noonMl: w.noonMl ?? 0,
+              afternoonMl: w.afternoonMl ?? 0,
+              eveningMl: w.eveningMl ?? 0,
+              totalMl: w.totalMl ?? 0,
+              avgDailyMl: w.avgDailyMl ?? 0,
+              morningPercent: w.morningPercent ?? 0,
+              noonPercent: w.noonPercent ?? 0,
+              afternoonPercent: w.afternoonPercent ?? 0,
+              eveningPercent: w.eveningPercent ?? 0,
+            }))
+          );
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load monthly water week distribution:", err);
+      } finally {
+        setChartLoading(false);
+      }
+    };
+
+    fetchMonthlyWeeks();
+  }, [api, auth?.user?.id, referenceDate]);
+
+  const morningData = useMemo(
+    () => weeks.map((w) => w.morningMl),
+    [weeks]
+  );
+  const noonData = useMemo(
+    () => weeks.map((w) => w.noonMl),
+    [weeks]
+  );
+  const afternoonData = useMemo(
+    () => weeks.map((w) => w.afternoonMl),
+    [weeks]
+  );
+  const eveningData = useMemo(
+    () => weeks.map((w) => w.eveningMl),
+    [weeks]
+  );
+  const trendData = useMemo(
+    () => weeks.map((w) => w.avgDailyMl),
+    [weeks]
+  );
 
   const data = {
     labels,
@@ -34,35 +162,35 @@ const Month = () => {
       {
         type: "bar",
         label: "Morning",
-        data: [260, 320, 230, 240],
+        data: morningData,
         backgroundColor: "#BAE6FD",
         borderRadius: 6,
       },
       {
         type: "bar",
         label: "Noon",
-        data: [230, 300, 210, 230],
+        data: noonData,
         backgroundColor: "#6AA8CF",
         borderRadius: 6,
       },
       {
         type: "bar",
         label: "Afternoon",
-        data: [200, 220, 260, 250],
+        data: afternoonData,
         backgroundColor: "#2C7DA0",
         borderRadius: 6,
       },
       {
         type: "bar",
         label: "Evening",
-        data: [170, 150, 180, 170],
+        data: eveningData,
         backgroundColor: "#2E5578",
         borderRadius: 6,
       },
       {
         type: "line",
-        label: "Monthly Trend",
-        data: [270, 300, 255, 265],
+        label: "Monthly Trend (avg ml/day)",
+        data: trendData,
         borderColor: "#60C7F2",
         backgroundColor: "#60C7F2",
         tension: 0.4,
@@ -114,12 +242,12 @@ const Month = () => {
           const hoveredDataset = tooltip.dataPoints?.[0];
           if (hoveredDataset && hoveredDataset.datasetIndex === 4) { // Line dataset is index 4
             const dataIndex = hoveredDataset.dataIndex;
-            const weekLabel = labels[dataIndex];
+            const chartData = chart.data;
+            const weekLabel = chartData.labels[dataIndex];
 
-            // Get values for Morning, Noon, Afternoon from bar datasets
-            const morning = data.datasets[0].data[dataIndex];
-            const noon = data.datasets[1].data[dataIndex];
-            const afternoon = data.datasets[2].data[dataIndex];
+            const morning = chartData.datasets[0].data[dataIndex];
+            const noon = chartData.datasets[1].data[dataIndex];
+            const afternoon = chartData.datasets[2].data[dataIndex];
 
             const chartPosition = chart.canvas.getBoundingClientRect();
             const x = chartPosition.left + tooltip.caretX;
@@ -136,8 +264,58 @@ const Month = () => {
                 afternoon,
               },
             });
+
+            // Trigger AI advice fetch for the hovered week
+            const week = weeks[dataIndex];
+            if (week) {
+              const existing = aiAdviceByWeek[dataIndex];
+              if (!existing && aiLoadingWeek !== dataIndex) {
+                const totalMl =
+                  week.totalMl ||
+                  week.morningMl + week.noonMl + week.afternoonMl + week.eveningMl;
+                setAiLoadingWeek(dataIndex);
+                api
+                  .post("/trend/water/weeklyAdvice", {
+                    morningMl: week.morningMl,
+                    noonMl: week.noonMl,
+                    afternoonMl: week.afternoonMl,
+                    eveningMl: week.eveningMl,
+                    totalMl,
+                    morningPercent: week.morningPercent ?? 0,
+                    noonPercent: week.noonPercent ?? 0,
+                    afternoonPercent: week.afternoonPercent ?? 0,
+                    eveningPercent: week.eveningPercent ?? 0,
+                  })
+                  .then((res) => {
+                    const payload = res.data?.data ?? res.data;
+                    if (payload) {
+                      setAiAdviceByWeek((prev) => ({
+                        ...prev,
+                        [dataIndex]: {
+                          message: payload.message ?? "",
+                          tip: payload.tip ?? "",
+                        },
+                      }));
+                    }
+                  })
+                  .catch(() => {
+                    setAiAdviceByWeek((prev) => ({
+                      ...prev,
+                      [dataIndex]: {
+                        message: "Review this week's intake pattern.",
+                        tip: "Aim for more balanced intake across the day.",
+                      },
+                    }));
+                  })
+                  .finally(() => {
+                    setAiLoadingWeek((prev) => (prev === dataIndex ? null : prev));
+                  });
+              }
+              setSelectedWeekIndex(dataIndex);
+            }
           } else {
             setTooltip({ visible: false, x: 0, y: 0, data: null });
+            setSelectedWeekIndex(null);
           }
         },
       },
@@ -146,7 +324,7 @@ const Month = () => {
     scales: {
       y: {
         min: 0,
-        max: 360,
+        max: 3000,
         ticks: { stepSize: 90 },
       },
     },
@@ -162,52 +340,60 @@ const Month = () => {
 
       {/* Chart */}
       <div className="relative h-60">
-        <Bar ref={chartRef} data={data} options={options} />
-
-        {/* Custom Tooltip */}
-        {tooltip.visible && tooltip.data && (
-          <div
-            className="fixed z-50 bg-white rounded-[15px] shadow-[0_2px_8px_rgba(0,0,0,0.16)] p-4 pointer-events-none"
-            style={{
-              left: `${tooltip.x}px`,
-              top: `${tooltip.y - 150}px`,
-              transform: 'translateX(-50%)',
-              minWidth: '200px',
-            }}
-          >
-            <h3 className="text-base font-medium text-primary mb-4">
-              {tooltip.data.week}
-            </h3>
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-4 h-4 rounded-full"
-                  style={{ backgroundColor: "#BAE6FD" }}
-                />
-                <span className="text-sm text-secondary">
-                  Morning: {tooltip.data.morning} ml
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-4 h-4 rounded-full"
-                  style={{ backgroundColor: "#6AA8CF" }}
-                />
-                <span className="text-sm text-secondary">
-                  Noon: {tooltip.data.noon} ml
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-4 h-4 rounded-full"
-                  style={{ backgroundColor: "#2C7DA0" }}
-                />
-                <span className="text-sm text-secondary">
-                  Afternoon: {tooltip.data.afternoon} ml
-                </span>
-              </div>
-            </div>
+        {chartLoading ? (
+          <div className="flex h-full items-center justify-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-400 border-t-transparent" />
           </div>
+        ) : (
+          <>
+            <Bar ref={chartRef} data={data} options={options} />
+
+            {/* Custom Tooltip */}
+            {tooltip.visible && tooltip.data && (
+              <div
+                className="fixed z-50 bg-white rounded-[15px] shadow-[0_2px_8px_rgba(0,0,0,0.16)] p-4 pointer-events-none"
+                style={{
+                  left: `${tooltip.x}px`,
+                  top: `${tooltip.y - 150}px`,
+                  transform: "translateX(-50%)",
+                  minWidth: "200px",
+                }}
+              >
+                <h3 className="text-base font-medium text-primary mb-4">
+                  {tooltip.data.week}
+                </h3>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-4 h-4 rounded-full"
+                      style={{ backgroundColor: "#BAE6FD" }}
+                    />
+                    <span className="text-sm text-secondary">
+                      Morning: {tooltip.data.morning} ml
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-4 h-4 rounded-full"
+                      style={{ backgroundColor: "#6AA8CF" }}
+                    />
+                    <span className="text-sm text-secondary">
+                      Noon: {tooltip.data.noon} ml
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-4 h-4 rounded-full"
+                      style={{ backgroundColor: "#2C7DA0" }}
+                    />
+                    <span className="text-sm text-secondary">
+                      Afternoon: {tooltip.data.afternoon} ml
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -219,10 +405,43 @@ const Month = () => {
         <IconBtn icon={Clock} color="text-gray-500" />
       </div>
 
+      {/* AI Weekly Advice card (for selected week) */}
+      {selectedWeekIndex != null && (
+        <div className="mt-4 flex justify-center">
+          <div className="flex items-start gap-3 rounded-[20px] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.16)] px-5 py-4 w-[300px]">
+            <div className="mt-1">
+              <AlertTriangle className="h-5 w-5 text-yellow-400" />
+            </div>
+            <div className="text-sm text-secondary">
+              <div className="font-medium text-primary mb-1">
+                {labels[selectedWeekIndex] ?? `Week ${selectedWeekIndex + 1}`}
+              </div>
+              {aiLoadingWeek === selectedWeekIndex ? (
+                <p className="text-xs text-custom-12">Loading weekly analysis…</p>
+              ) : (
+                <>
+                  {aiAdviceByWeek[selectedWeekIndex]?.message && (
+                    <p className="text-xs text-secondary mb-1">
+                      {aiAdviceByWeek[selectedWeekIndex].message}
+                    </p>
+                  )}
+                  {aiAdviceByWeek[selectedWeekIndex]?.tip && (
+                    <p className="text-xs text-custom-12">
+                      <span className="font-medium">Tip: </span>
+                      {aiAdviceByWeek[selectedWeekIndex].tip}
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
       <p className="mt-5 text-center text-xs text-custom-12 italic">
-          Tap icons for details
-        </p>
+        Hover trend line for weekly tips
+      </p>
       </div>
     </div>
   );

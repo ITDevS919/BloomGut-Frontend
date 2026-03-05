@@ -7,14 +7,25 @@ import Year from "./Year";
 
 const Premium = () => {
   const [viewMode, setViewMode] = useState("week");
+  const [referenceDate, setReferenceDate] = useState(new Date());
+
+  const handleDateChange = (date, mode) => {
+    setReferenceDate(date);
+    if (mode && mode !== viewMode) {
+      setViewMode(mode);
+    }
+  };
 
   return (
     <>
-      <DateRangeSelectorBlueUpdate setViewMode={setViewMode} />
+      <DateRangeSelectorBlueUpdate
+        setViewMode={setViewMode}
+        onDateChange={handleDateChange}
+      />
       {/* <Free /> */}
-      {viewMode === "week" && <Week />}
-      {viewMode === "month" && <Month />}
-      {viewMode === "year" && <Year />}
+      {viewMode === "week" && <Week referenceDate={referenceDate} />}
+      {viewMode === "month" && <Month referenceDate={referenceDate} />}
+      {viewMode === "year" && <Year referenceDate={referenceDate} />}
     </>
   );
 };

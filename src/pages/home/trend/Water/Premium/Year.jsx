@@ -7,43 +7,90 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import annotationPlugin from "chartjs-plugin-annotation";
 import { Line } from "react-chartjs-2";
 import { Droplet } from "lucide-react";
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSelector } from "react-redux";
+import useApiClient from "@/hooks/useApiClient";
 
-ChartJS.register(
-  LineElement,
-  PointElement,
-  CategoryScale,
-  LinearScale,
-  Tooltip,
-  Legend,
-  annotationPlugin
-);
+ChartJS.register(LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend);
 
-const Year = () => {
+const Year = ({ referenceDate }) => {
   const chartRef = useRef(null);
   const dropletRef = useRef(null);
   const [tooltip, setTooltip] = useState({ visible: false, x: 0, y: 0, data: null });
   const [dropletTooltip, setDropletTooltip] = useState({ visible: false, x: 0, y: 0 });
-
-  const labels = Array.from({ length: 12 }, (_, i) => i + 1);
+  const auth = useSelector((state) => state.auth);
+  const api = useApiClient();
+  const [yearAdvice, setYearAdvice] = useState({ title: "", message: "", tip: "" });
+  const [yearAdviceLoading, setYearAdviceLoading] = useState(false);
+  const [chartLoading, setChartLoading] = useState(true);
 
   const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
+
+  const [labels, setLabels] = useState(monthNames.map((_, i) => i + 1));
+  const [dailyAvg, setDailyAvg] = useState(
+    [2200, 2350, 2280, 2450, 2200, 1850, 2000, 2250, 2400, 2500, 2350, 2220]
+  );
+  const [regularity, setRegularity] = useState(
+    [85, 88, 86, 90, 84, 78, 82, 86, 90, 94, 92, 89]
+  );
+
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchYearly = async () => {
+      try {
+        const ref =
+          referenceDate && referenceDate.toISOString
+            ? referenceDate.toISOString()
+            : undefined;
+        setChartLoading(true);
+        const res = await api.get("/trend/water/yearlySummary", {
+          params: { userId: auth.user.id, referenceDate: ref },
+        });
+        const payload = res.data?.data ?? res.data;
+        if (!payload) return;
+        if (Array.isArray(payload.labels) && payload.labels.length === 12) {
+          // keep numeric 1..12 labels for chart but use payload labels for tooltips
+          setLabels(payload.labels.map((_, idx) => idx + 1));
+        }
+        if (Array.isArray(payload.dailyAvg) && payload.dailyAvg.length === 12) {
+          setDailyAvg(payload.dailyAvg);
+        }
+        if (Array.isArray(payload.regularity) && payload.regularity.length === 12) {
+          setRegularity(payload.regularity);
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load yearly water summary:", err);
+      } finally {
+        setChartLoading(false);
+      }
+    };
+
+    fetchYearly();
+  }, [api, auth?.user?.id, referenceDate]);
 
   const data = {
     labels,
     datasets: [
       {
         label: "Daily Avg",
-        data: [
-          2200, 2350, 2280, 2450, 2200, 1850, 2000, 2250, 2400, 2500, 2350,
-          2220,
-        ],
+        data: dailyAvg,
         borderColor: "#4DD0F1",
         backgroundColor: "#4DD0F1",
         yAxisID: "y",
@@ -53,7 +100,7 @@ const Year = () => {
       },
       {
         label: "Regularity",
-        data: [85, 88, 86, 90, 84, 78, 82, 86, 90, 94, 92, 89],
+        data: regularity,
         borderColor: "#4C78A8",
         backgroundColor: "#4C78A8",
         yAxisID: "y1",
@@ -74,19 +121,18 @@ const Year = () => {
   // Find the best performing month (highest Daily Avg and Regularity)
   const findBestMonth = () => {
     let bestIndex = 0;
-    let bestScore = 0;
-    
-    for (let i = 0; i < data.datasets[0].data.length; i++) {
-      const dailyAvg = data.datasets[0].data[i];
-      const regularity = data.datasets[1].data[i];
-      // Combined score: Daily Avg (weighted) + Regularity
-      const score = dailyAvg * 0.6 + regularity * 40;
+    let bestScore = -Infinity;
+
+    for (let i = 0; i < dailyAvg.length; i++) {
+      const avg = dailyAvg[i] ?? 0;
+      const reg = regularity[i] ?? 0;
+      const score = avg * 0.6 + reg * 40;
       if (score > bestScore) {
         bestScore = score;
         bestIndex = i;
       }
     }
-    
+
     return {
       month: monthNames[bestIndex],
       index: bestIndex,
@@ -127,16 +173,14 @@ const Year = () => {
             return;
           }
 
-          // Get data from both datasets at the hovered point
           const dataPoints = tooltip.dataPoints || [];
           if (dataPoints.length > 0) {
             const dataIndex = dataPoints[0].dataIndex;
             const monthName = monthNames[dataIndex] || `Month ${dataIndex + 1}`;
 
-            // Get Daily Avg value (first dataset)
-            const dailyAvg = data.datasets[0].data[dataIndex];
-            // Get Regularity/Consistency value (second dataset)
-            const consistency = data.datasets[1].data[dataIndex];
+            const chartData = chart.data;
+            const dailyAvgValue = chartData.datasets[0].data[dataIndex] || 0;
+            const consistency = chartData.datasets[1].data[dataIndex] || 0;
             const status = getStatus(consistency);
 
             const chartPosition = chart.canvas.getBoundingClientRect();
@@ -149,7 +193,7 @@ const Year = () => {
               y,
               data: {
                 month: monthName,
-                dailyAvg,
+                dailyAvg: dailyAvgValue,
                 consistency,
                 status,
               },
@@ -203,97 +247,162 @@ const Year = () => {
 
         {/* Chart */}
         <div className="relative h-72">
-          <Line ref={chartRef} data={data} options={options} />
-
-          {/* Tip icon */}
-          <div 
-            ref={dropletRef}
-            className="absolute right-4 top-1/2 -translate-y-1/2"
-            onMouseEnter={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              setDropletTooltip({
-                visible: true,
-                x: rect.left,
-                y: rect.top,
-              });
-            }}
-            onMouseLeave={() => {
-              setDropletTooltip({ visible: false, x: 0, y: 0 });
-            }}
-          >
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 shadow-md cursor-pointer">
-              <Droplet className="h-5 w-5 text-white" />
+          {chartLoading ? (
+            <div className="flex h-full items-center justify-center">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-400 border-t-transparent" />
             </div>
-          </div>
+          ) : (
+            <>
+              <Line ref={chartRef} data={data} options={options} />
 
-          {/* Droplet Tooltip */}
-          {dropletTooltip.visible && (
-            <div
-              className="fixed z-50 bg-white rounded-[15px] shadow-[0_2px_8px_rgba(0,0,0,0.16)] p-4 pointer-events-none"
-              style={{
-                left: `${dropletTooltip.x - 200}px`,
-                top: `${dropletTooltip.y}px`,
-                minWidth: '200px',
-                maxWidth: '250px',
-              }}
-            >
-              <h3 className="text-base font-medium text-primary mb-2">
-                {bestMonth.month}
-              </h3>
-              <p className="text-sm text-secondary mb-1">
-                Best Performance of the Year
-              </p>
-              <p className="text-xs text-secondary">
-                (Stable Lifestyle)
-              </p>
-            </div>
-          )}
-
-          {/* Custom Tooltip */}
-          {tooltip.visible && tooltip.data && (
-            <div
-              className="fixed z-50 bg-white rounded-[15px] shadow-[0_2px_8px_rgba(0,0,0,0.16)] p-4 pointer-events-none"
-              style={{
-                left: `${tooltip.x}px`,
-                top: `${tooltip.y - 180}px`,
-                transform: 'translateX(-50%)',
-                minWidth: '200px',
-              }}
-            >
-              <h3 className="text-base font-medium text-primary mb-4">
-                {tooltip.data.month}
-              </h3>
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-4 h-4 rounded-full"
-                    style={{ backgroundColor: "#4DD0F1" }}
-                  />
-                  <span className="text-sm text-secondary">
-                    Daily Avg: {tooltip.data.dailyAvg}ml
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-4 h-4 rounded-full"
-                    style={{ backgroundColor: "#4C78A8" }}
-                  />
-                  <span className="text-sm text-secondary">
-                    Consistency: {tooltip.data.consistency}%
-                  </span>
-                </div>
-                <div className="w-full h-px bg-gray-200 my-1"></div>
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-4 h-4 rounded-full"
-                    style={{ backgroundColor: "#FF6B6B" }}
-                  />
-                  <span className="text-sm text-secondary">
-                    Status: {tooltip.data.status}
-                  </span>
+              {/* Tip icon */}
+              <div
+                ref={dropletRef}
+                className="absolute right-4 top-1/2 -translate-y-1/2"
+                onMouseEnter={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  if (
+                    !yearAdvice.title &&
+                    !yearAdvice.message &&
+                    !yearAdvice.tip &&
+                    !yearAdviceLoading &&
+                    auth?.user?.id
+                  ) {
+                    setYearAdviceLoading(true);
+                    const ref =
+                      referenceDate && referenceDate.toISOString
+                        ? referenceDate.toISOString()
+                        : undefined;
+                    api
+                      .post("/trend/water/yearlyAdvice", {
+                        userId: auth.user.id,
+                        referenceDate: ref,
+                      })
+                      .then((res) => {
+                        const payload = res.data?.data ?? res.data;
+                        if (payload) {
+                          setYearAdvice({
+                            title: payload.title ?? "",
+                            message: payload.message ?? "",
+                            tip: payload.tip ?? "",
+                          });
+                        }
+                      })
+                      .catch(() => {
+                        setYearAdvice({
+                          title: "Annual Hydration Overview",
+                          message:
+                            "Review your yearly intake pattern and note which months felt best.",
+                          tip: "Repeat the routines from your best month and smooth out low-intake months.",
+                        });
+                      })
+                      .finally(() => {
+                        setYearAdviceLoading(false);
+                      });
+                  }
+                  setDropletTooltip({
+                    visible: true,
+                    x: rect.left,
+                    y: rect.top,
+                  });
+                }}
+                onMouseLeave={() => {
+                  setDropletTooltip({ visible: false, x: 0, y: 0 });
+                }}
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 shadow-md cursor-pointer">
+                  <Droplet className="h-5 w-5 text-white" />
                 </div>
               </div>
-            </div>
+
+              {/* Droplet Tooltip */}
+              {dropletTooltip.visible && (
+                <div
+                  className="fixed z-50 bg-white rounded-[15px] shadow-[0_2px_8px_rgba(0,0,0,0.16)] p-4 pointer-events-none"
+                  style={{
+                    left: `${dropletTooltip.x - 200}px`,
+                    top: `${dropletTooltip.y}px`,
+                    minWidth: "200px",
+                    maxWidth: "250px",
+                  }}
+                >
+                  <h3 className="text-base font-medium text-primary mb-2">
+                    {yearAdvice.title || bestMonth.month}
+                  </h3>
+                  {yearAdviceLoading ? (
+                    <p className="text-sm text-secondary mb-1">
+                      Loading annual analysis…
+                    </p>
+                  ) : (
+                    <>
+                      {yearAdvice.message && (
+                        <p className="text-sm text-secondary mb-1">
+                          {yearAdvice.message}
+                        </p>
+                      )}
+                      {yearAdvice.tip && (
+                        <p className="text-xs text-secondary">
+                          <span className="font-medium">Tip: </span>
+                          {yearAdvice.tip}
+                        </p>
+                      )}
+                      {!yearAdvice.message && !yearAdvice.tip && (
+                        <p className="text-xs text-secondary">
+                          Best Performance of the Year (Stable Lifestyle)
+                        </p>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Custom Tooltip */}
+              {tooltip.visible && tooltip.data && (
+                <div
+                  className="fixed z-50 bg-white rounded-[15px] shadow-[0_2px_8px_rgba(0,0,0,0.16)] p-4 pointer-events-none"
+                  style={{
+                    left: `${tooltip.x}px`,
+                    top: `${tooltip.y - 180}px`,
+                    transform: "translateX(-50%)",
+                    minWidth: "200px",
+                  }}
+                >
+                  <h3 className="text-base font-medium text-primary mb-4">
+                    {tooltip.data.month}
+                  </h3>
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-4 h-4 rounded-full"
+                        style={{ backgroundColor: "#4DD0F1" }}
+                      />
+                      <span className="text-sm text-secondary">
+                        Daily Avg: {tooltip.data.dailyAvg}ml
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-4 h-4 rounded-full"
+                        style={{ backgroundColor: "#4C78A8" }}
+                      />
+                      <span className="text-sm text-secondary">
+                        Consistency: {tooltip.data.consistency}%
+                      </span>
+                    </div>
+                    <div className="w-full h-px bg-gray-200 my-1"></div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-4 h-4 rounded-full"
+                        style={{ backgroundColor: "#FF6B6B" }}
+                      />
+                      <span className="text-sm text-secondary">
+                        Status: {tooltip.data.status}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
 

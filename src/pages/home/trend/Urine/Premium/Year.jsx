@@ -17,13 +17,20 @@ ChartJS.register(
   Legend
 );
 import { Radar } from "react-chartjs-2";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Wheat, Beef, Salad, Milk, MoreHorizontal, UtensilsCrossed } from "lucide-react";
 import { IoRestaurant } from "react-icons/io5";
 import { FaUtensils } from "react-icons/fa6";
+import { useSelector } from "react-redux";
+import useApiClient from "@/hooks/useApiClient";
 
-const Year = () => {
+const Year = ({ referenceDate }) => {
   const [showAnalysis, setShowAnalysis] = useState(false);
+  const auth = useSelector((state) => state.auth);
+  const api = useApiClient();
+
+  const [yearlyAdvice, setYearlyAdvice] = useState(null);
+  const [adviceLoading, setAdviceLoading] = useState(false);
 
   const data = {
     labels: [
@@ -109,12 +116,64 @@ const Year = () => {
     { title: "Fruits & Veg", yellow: 85, odor: 15 },
   ];
 
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchYearlyAdvice = async () => {
+      setAdviceLoading(true);
+      try {
+        const payload = {
+          categories: data.labels,
+          series: data.datasets.map((ds) => ({
+            name: ds.label,
+            values: ds.data,
+          })),
+          foods: items.map((f) => ({
+            name: f.title,
+            yellowPercent: f.yellow,
+            odorPercent: f.odor,
+          })),
+          year: referenceDate
+            ? referenceDate.getFullYear()
+            : new Date().getFullYear(),
+        };
+        const res = await api.post("/trend/urine/yearlyAdvice", payload);
+        const adv = res.data?.data ?? res.data;
+        setYearlyAdvice(adv || null);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load yearly urine advice:", error);
+        setYearlyAdvice(null);
+      } finally {
+        setAdviceLoading(false);
+      }
+    };
+
+    fetchYearlyAdvice();
+  }, [api, auth?.user?.id, referenceDate]);
+
+  const mainFoods =
+    yearlyAdvice?.mainFoods && yearlyAdvice.mainFoods.length
+      ? yearlyAdvice.mainFoods
+      : ["Banana", "Broccoli", "Tomato", "Apple"];
+
+  const ingredientSuggestions =
+    yearlyAdvice?.ingredientSuggestions && yearlyAdvice.ingredientSuggestions.length
+      ? yearlyAdvice.ingredientSuggestions
+      : ["Leafy", "Sweet Potato", "Broccoli", "Apple"];
+
   return (
     <div className="pl-[15px] pr-[15px] mt-[20px]">
       <div className="">
         <div className="w-full rounded-[20px] bg-white p-5 shadow-md mb-[32px]">
-          <div className="h-64">
-            <Radar data={data} options={options} />
+          <div className="h-64 flex items-center justify-center">
+            {adviceLoading ? (
+              <span className="text-xs text-secondary">
+                Loading yearly urine pattern…
+              </span>
+            ) : (
+              <Radar data={data} options={options} />
+            )}
           </div>
         </div>
 
@@ -148,7 +207,7 @@ const Year = () => {
           ))}
         </div>
 
-        {showAnalysis && (
+            {showAnalysis && (
           <div>
             {/* Fruits & Veg Impact */}
             <div className="w-full max-w-sm rounded-[12px] p-5 bg-white mt-8 space-y-4">
@@ -160,9 +219,14 @@ const Year = () => {
 
               {/* Main Food Items */}
               <div className="mb-5">
-                <p className="text-sm text-secondary mb-[9px]">Main Food Items</p>
+                <p className="text-sm text-secondary mb-[9px]">
+                  {adviceLoading
+                    ? "Loading main food items…"
+                    : yearlyAdvice?.fruitsVegImpact ||
+                      "Main Food Items"}
+                </p>
                 <div className="flex flex-wrap gap-2">
-                  {["Banana", "Broccoli", "Tomato", "Apple"].map((item, index) => (
+                  {mainFoods.map((item, index) => (
                     <span
                       key={index}
                       className="px-3 py-1.5 rounded-full text-xs bg-[#f3f4f6] text-secondary"
@@ -179,7 +243,7 @@ const Year = () => {
                   Dietary Ingredient Suggestions
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {["Leafy", "Sweet Potato", "Broccoli", "Apple"].map((item, index) => (
+                  {ingredientSuggestions.map((item, index) => (
                     <span
                       key={index}
                       className="px-3 py-1.5 rounded-full text-xs bg-white border border-[#d5fae3] text-[#60803d]"
@@ -196,7 +260,10 @@ const Year = () => {
                   Frequency Adjustment
                 </h3>
                 <p className="text-xs text-secondary">
-                  3-5 servings/day of fruits & veg helps urine clarity & health
+                  {adviceLoading
+                    ? "Loading frequency tip…"
+                    : yearlyAdvice?.frequencyText ||
+                      "3-5 servings/day of fruits & veg helps urine clarity & health"}
                 </p>
               </div>
             </div>

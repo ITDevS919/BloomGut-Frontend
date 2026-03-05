@@ -1,12 +1,28 @@
 import { ChevronLeft } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { FaTint } from "react-icons/fa";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { toast } from "sonner";
+import useApiClient from "@/hooks/useApiClient";
+
+const DEFAULT_VOLUME = 250;
 
 const CustomVolume = () => {
+    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const location = useLocation();
-    const initialVolume = 250;
+    const auth = useSelector((state) => state.auth);
+    const api = useApiClient();
+
+    const initialVolume = useMemo(() => {
+        const fromUrl = searchParams.get("initialVolume");
+        if (fromUrl != null) {
+            const n = parseInt(fromUrl, 10);
+            if (!Number.isNaN(n) && n >= 0) return Math.min(n, 5000);
+        }
+        return DEFAULT_VOLUME;
+    }, [searchParams]);
+
     const [volume, setVolume] = useState(initialVolume);
 
     const handleDecrease = () => {
@@ -19,9 +35,30 @@ const CustomVolume = () => {
         setVolume(volume + 10);
     };
 
-    const handleRecord = () => {
-        console.log("Record volume:", volume);
-        navigate("/water-record");
+    const handleRecord = async () => {
+        if (!auth?.user?.id) {
+            toast.error("You must be logged in to save water records.");
+            return;
+        }
+        if (volume <= 0) {
+            toast.error("Please set a volume greater than 0.");
+            return;
+        }
+        try {
+            const response = await api.put("/record/water", {
+                userId: auth.user.id,
+                containerType: "custom",
+                specialContainerType: null,
+                amount: volume,
+            });
+            const message = response.data?.data ?? response.data ?? "Water record saved.";
+            toast.success(message);
+            navigate("/water-record");
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error("Error saving custom water record:", error);
+            toast.error("Failed to save water record. Please try again.");
+        }
     };
 
     const handleCancel = () => {

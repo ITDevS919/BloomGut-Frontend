@@ -2,6 +2,8 @@ import { ChevronLeft, Pencil } from "lucide-react";
 import React, { useState, useRef, useEffect } from "react";
 import { FaPencilAlt } from "react-icons/fa";
 import { useSelector } from "react-redux";
+import useApiClient from "@/hooks/useApiClient";
+import { toast } from "sonner";
 
 const Profile = () => {
   const [username, setUsername] = useState("");
@@ -16,12 +18,6 @@ const Profile = () => {
   const [month, setMonth] = useState(months[0]);
   const [height, setHeight] = useState("");
   const [weight, setWeight] = useState("");
-
-  const submit = (e) => {
-    e.preventDefault();
-    // Placeholder submit handler
-    console.log({ username, email, gender, year, month, height, weight });
-  };
 
   const styles = {
     page: {
@@ -96,6 +92,7 @@ const Profile = () => {
   };
 
   const auth = useSelector((state) => state.auth);
+  const api = useApiClient();
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
   const fileInputRef = useRef(null);
   const [avatarUrl, setAvatarUrl] = useState(auth?.user?.imageUrl || "");
@@ -106,6 +103,73 @@ const Profile = () => {
         URL.revokeObjectURL(avatarUrl);
     };
   }, [avatarUrl]);
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get("/user/profile", {
+          params: { userId: auth.user.id },
+        });
+        const payload = res.data?.data ?? res.data;
+        if (!payload) {
+          // fall back to auth user
+          setUsername(auth?.user?.username || auth?.user?.firstName || "");
+          setEmail(
+            auth?.user?.primaryEmailAddress ||
+              auth?.user?.emailAddresses?.[0] ||
+              ""
+          );
+          return;
+        }
+
+        setUsername(payload.username || "");
+        setEmail(payload.email || "");
+        if (payload.gender) setGender(payload.gender);
+        if (payload.dob) {
+          const d = new Date(payload.dob);
+          if (!Number.isNaN(d.getTime())) {
+            setYear(String(d.getFullYear()));
+            setMonth(String(d.getMonth() + 1).padStart(2, "0"));
+          }
+        }
+        if (payload.height != null) setHeight(String(payload.height));
+        if (payload.weight != null) setWeight(String(payload.weight));
+        if (payload.avatar) setAvatarUrl(payload.avatar);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load user profile:", error);
+      }
+    };
+
+    fetchProfile();
+  }, [api, auth?.user?.emailAddresses, auth?.user?.firstName, auth?.user?.id, auth?.user?.primaryEmailAddress, auth?.user?.username]);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!auth?.user?.id) {
+      toast.error("You must be logged in to update your profile.");
+      return;
+    }
+    try {
+      const dobIso = `${year}-${month}-01T00:00:00.000Z`;
+      await api.post("/user/profile", {
+        userId: auth.user.id,
+        username,
+        email,
+        gender,
+        dob: dobIso,
+        height,
+        weight,
+      });
+      toast.success("Profile updated.");
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("Failed to update profile:", error);
+      toast.error("Failed to update profile. Please try again.");
+    }
+  };
+
   return (
     <>
       <style>{`

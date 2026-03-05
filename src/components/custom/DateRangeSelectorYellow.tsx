@@ -70,6 +70,9 @@ const DateRangeSelectorYellow = (props) => {
       newDate.setMonth(newDate.getMonth() - 1);
     }
     setCurrentDate(newDate);
+    if (props.onDateChange) {
+      props.onDateChange(newDate, viewMode);
+    }
   };
 
   const handleNext = () => {
@@ -80,6 +83,9 @@ const DateRangeSelectorYellow = (props) => {
       newDate.setMonth(newDate.getMonth() + 1);
     }
     setCurrentDate(newDate);
+    if (props.onDateChange) {
+      props.onDateChange(newDate, viewMode);
+    }
   };
 
   // Update viewMode when initialViewMode prop changes
@@ -132,6 +138,9 @@ const DateRangeSelectorYellow = (props) => {
             onChange={() => {
               setViewMode("week");
               props.setViewMode("week");
+              if (props.onDateChange) {
+                props.onDateChange(currentDate, "week");
+              }
             }}
             className="w-4 h-4 appearance-none border-2 border-white outline-1 outline-gray-300 rounded-sm checked:bg-[#FFD43B] checked:border-white cursor-pointer"
           />
@@ -146,6 +155,9 @@ const DateRangeSelectorYellow = (props) => {
             onChange={() => {
               setViewMode("month");
               props.setViewMode("month");
+              if (props.onDateChange) {
+                props.onDateChange(currentDate, "month");
+              }
             }}
             className="w-4 h-4 appearance-none border-2 border-white outline-1 outline-gray-300 rounded-sm checked:bg-[#FFD43B] checked:border-white cursor-pointer bg-white"
           />

@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { ChevronLeft, Clock, Trash2 } from "lucide-react";
+import { ChevronLeft, Clock } from "lucide-react";
 import { MdDeleteSweep } from "react-icons/md";
 import { FaBell } from "react-icons/fa6";
+import { loadWaterReminders, saveWaterReminders } from "@/utils/waterReminders";
 
 const Switch = ({ checked, onChange }) => {
     return (
@@ -200,11 +201,16 @@ const TimePickerModal = ({ isOpen, onClose, onConfirm, initialTime = "" }) => {
 };
 
 const Reminders = () => {
-    const [enabled, setEnabled] = useState(true);
-    const [frequency, setFrequency] = useState("custom");
+    const saved = loadWaterReminders();
+    const [enabled, setEnabled] = useState(saved?.enabled ?? true);
+    const [frequency, setFrequency] = useState(saved?.frequency ?? "custom");
     const [customTime, setCustomTime] = useState("");
-    const [reminders, setReminders] = useState(["09:00", "12:00"]);
+    const [reminders, setReminders] = useState(saved?.reminders?.length ? saved.reminders : ["09:00", "12:00"]);
     const [showTimePicker, setShowTimePicker] = useState(false);
+
+    useEffect(() => {
+        saveWaterReminders(enabled, frequency, reminders);
+    }, [enabled, frequency, reminders]);
 
     const handleAddReminder = () => {
         if (customTime && customTime.match(/^\d{2}:\d{2}$/)) {
@@ -261,7 +267,8 @@ const Reminders = () => {
                 </h2>
             </div>
 
-            <div className="text-lg text-secondary ml-2 mb-2">Reminder Time</div>
+            <div className="text-lg text-secondary ml-2 mb-2">Water reminder times</div>
+            <p className="text-sm text-secondary ml-2 mb-4">Set times to remind you to drink and log water.</p>
             {/* Enable Toggle */}
             <div className="flex items-center justify-between mb-6">
                 <span className="text-base text-primary">Enable</span>

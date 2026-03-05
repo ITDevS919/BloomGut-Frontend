@@ -1,18 +1,64 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import useApiClient from "@/hooks/useApiClient";
+import { toast } from "sonner";
 
 const AccountSecurity = () => {
   const auth = useSelector((state) => state.auth);
+  const api = useApiClient();
   const [twoStep, setTwoStep] = useState(false);
-  const securityPercent = 60; // placeholder - compute from actual bindings if available
+  const [securityPercent, setSecurityPercent] = useState(60);
   const navigate = useNavigate();
 
   const maskEmail = (email) => {
     const [username, domain] = email.split("@");
     const visible = username.slice(0, 3);
     return `${visible}****@${domain}`;
+  };
+
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchSecurity = async () => {
+      try {
+        const res = await api.get("/setting/app", {
+          params: { userId: auth.user.id },
+        });
+        const payload = res.data?.data ?? res.data;
+        if (!payload) return;
+        const enabled = !!payload.twoFAEnabled;
+        setTwoStep(enabled);
+        setSecurityPercent(enabled ? 90 : 60);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load account security settings:", error);
+      }
+    };
+
+    fetchSecurity();
+  }, [api, auth?.user?.id]);
+
+  const toggleTwoStep = async () => {
+    if (!auth?.user?.id) return;
+    const next = !twoStep;
+    setTwoStep(next);
+    setSecurityPercent(next ? 90 : 60);
+    try {
+      await api.post("/setting/app", {
+        userId: auth.user.id,
+        twoFAEnabled: next,
+      });
+      toast.success("Security settings updated.");
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("Failed to update two-step setting:", error);
+      toast.error("Failed to update security settings.");
+      // revert
+      setTwoStep(!next);
+      setSecurityPercent(!next ? 90 : 60);
+    }
   };
 
   return (
@@ -57,7 +103,7 @@ const AccountSecurity = () => {
         <div className="bg-white rounded-[8px] px-4 py-3 flex items-center justify-between shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
           <div className="text-sm text-primary">Two-Step</div>
           <button
-            onClick={() => setTwoStep((s) => !s)}
+            onClick={toggleTwoStep}
             aria-pressed={twoStep}
             className="w-12 h-7 flex items-center p-1 rounded-full transition-colors bg-custom-8"
           >

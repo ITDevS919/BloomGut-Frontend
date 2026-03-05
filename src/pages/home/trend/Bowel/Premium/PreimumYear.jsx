@@ -7,24 +7,26 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import annotationPlugin from "chartjs-plugin-annotation";
 import { Line } from "react-chartjs-2";
 import { Info } from "lucide-react";
 import { FaUserDoctor } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import useApiClient from "@/hooks/useApiClient";
+import { useSelector } from "react-redux";
 
-ChartJS.register(
-  LineElement,
-  PointElement,
-  LinearScale,
-  CategoryScale,
-  Tooltip,
-  Legend,
-  annotationPlugin
-);
+ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend);
 
 const PremiumYear = () => {
   const navigate = useNavigate();
+  const api = useApiClient();
+  const auth = useSelector((state) => state.auth);
+  const [analysis, setAnalysis] = useState({
+    foodTips: "",
+    seasonal: "",
+    actionPlan: "",
+  });
+  const [analysisLoading, setAnalysisLoading] = useState(false);
   const foods = [
     {
       rank: 1,
@@ -270,6 +272,50 @@ const PremiumYear = () => {
   };
   const seasonLabels = ["Loose", "Rare", "Best", "Hard"];
 
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchYearAdvice = async () => {
+      try {
+        setAnalysisLoading(true);
+        const payload = {
+          foods: foods.map((f) => ({
+            food: f.name,
+            sensit: f.sensit,
+            main: f.main,
+            second: f.second,
+          })),
+          gutIndex: overallData.datasets[0].data,
+          lastYearIndex: overallData.datasets[1].data,
+          seasonalTrend: seasonalData.datasets[0].data,
+        };
+        const res = await api.post("/trend/bowel/premiumYearAdvice", payload);
+        const data = res.data?.data ?? res.data;
+        if (data) {
+          setAnalysis({
+            foodTips: data.foodTips ?? "",
+            seasonal: data.seasonal ?? "",
+            actionPlan: data.actionPlan ?? "",
+          });
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load PremiumYear bowel advice:", err);
+        setAnalysis({
+          foodTips: "Milk, peanuts and seafood appear most associated with symptoms; adjust timing and portion or try alternatives.",
+          seasonal: "Gut index dips in colder months, likely from lower water intake and heavier foods.",
+          actionPlan:
+            "Consider moderating trigger foods and increasing hydration during your weakest seasons; seek medical advice if pain or diarrhea persists.",
+        });
+      } finally {
+        setAnalysisLoading(false);
+      }
+    };
+
+    fetchYearAdvice();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth?.user?.id]);
+
   return (
     <div className="pl-[15px] pr-[15px]">
       {/* Top 3 Gut-Sensitivity Foods Cards */}
@@ -402,18 +448,30 @@ const PremiumYear = () => {
 
         {/* Content Sections */}
         <div className="space-y-3 text-secondary text-sm mb-[12px]">
-          <div>
-            <span className="">Food Tips: </span>
-            <span>Use plant milk, lactase, mind timing</span>
-          </div>
-          <div>
-            <span className="text-primary">Seasonal: </span>
-            <span>Winter GI index lower, likely from low water and cold.</span>
-          </div>
-          <div>
-            <span className="text-primary">Action: </span>
-            <span>More water in winter, keep routines in autumn</span>
-          </div>
+          {analysisLoading ? (
+            <p className="text-xs text-secondary">Loading yearly analysis…</p>
+          ) : (
+            <>
+              <div>
+                <span className="">Food Tips: </span>
+                <span>{analysis.foodTips || "Use plant milk, lactase, and adjust portion timing for sensitive foods."}</span>
+              </div>
+              <div>
+                <span className="text-primary">Seasonal: </span>
+                <span>
+                  {analysis.seasonal ||
+                    "Winter GI index is slightly lower, likely from lower water intake and heavier foods."}
+                </span>
+              </div>
+              <div>
+                <span className="text-primary">Action: </span>
+                <span>
+                  {analysis.actionPlan ||
+                    "Increase hydration and fiber in colder months and monitor reactions to top trigger foods."}
+                </span>
+              </div>
+            </>
+          )}
         </div>
       </div>
       <div className="text-center text-xs text-custom-12 mt-[12px]">Based on past diet & bowel data, for reference only</div>

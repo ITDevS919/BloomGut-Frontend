@@ -1,15 +1,21 @@
 import { Chart as ChartJS, LinearScale, PointElement, Tooltip } from "chart.js";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import useApiClient from "@/hooks/useApiClient";
 
 ChartJS.register(LinearScale, PointElement, Tooltip);
 import { Scatter } from "react-chartjs-2";
-import { useState } from "react";
 
-const Week = () => {
+const Week = ({ referenceDate }) => {
   const navigate = useNavigate();
+  const auth = useSelector((state) => state.auth);
+  const api = useApiClient();
+
   const [showDetailedAnalysis, setShowDetailedAnalysis] = useState(false);
-  const xLabels = ["Breakfast", "Lunch", "Dinner"];
-  const yLabels = ["Normal", "Undefined", "Constipation"];
+  // X: meal time slots, Y: bowel status rows
+  const xLabels = ["Early", "Breakfast", "Lunch", "Dinner"];
+  const yLabels = ["Constipation", "Undefined", "Bloating", "Smooth"];
 
   const strength = {
     weak: { color: "#84CC16", r: 4 },
@@ -23,23 +29,105 @@ const Week = () => {
       {
         label: "Correlation",
         data: [
-          { x: 0, y: 0, ...strength.weak },
-          { x: 1, y: 0, ...strength.moderate },
-          { x: 2, y: 0, ...strength.modStrong },
+          // Smooth row (top)
+          { x: 0, y: 3, ...strength.weak },
+          { x: 1, y: 3, ...strength.moderate },
+          { x: 2, y: 3, ...strength.strong },
+          { x: 3, y: 3, ...strength.modStrong },
 
-          { x: 0, y: 1, ...strength.moderate },
-          { x: 1, y: 1, ...strength.weak },
-          { x: 2, y: 1, ...strength.strong },
-
-          { x: 0, y: 2, ...strength.strong },
+          // Bloating row
+          { x: 0, y: 2, ...strength.moderate },
           { x: 1, y: 2, ...strength.modStrong },
-          { x: 2, y: 2, ...strength.moderate },
+          { x: 2, y: 2, ...strength.strong },
+          { x: 3, y: 2, ...strength.moderate },
+
+          // Undefined / neutral row
+          { x: 0, y: 1, ...strength.weak },
+          { x: 1, y: 1, ...strength.moderate },
+          { x: 2, y: 1, ...strength.moderate },
+          { x: 3, y: 1, ...strength.weak },
+
+          // Constipation row (bottom)
+          { x: 0, y: 0, ...strength.strong },
+          { x: 1, y: 0, ...strength.weak },
+          { x: 2, y: 0, ...strength.moderate },
+          { x: 3, y: 0, ...strength.strong },
         ],
         pointBackgroundColor: (ctx) => ctx.raw.color,
         pointRadius: (ctx) => ctx.raw.r,
       },
     ],
   };
+
+  const [loadingAdvice, setLoadingAdvice] = useState(false);
+  const [aiAnalysis, setAiAnalysis] = useState([]);
+  const [aiRecommendations, setAiRecommendations] = useState([]);
+
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchWeeklyDietAdvice = async () => {
+      setLoadingAdvice(true);
+      try {
+        // Reuse weekly macro scores as the basis for premium analysis
+        const res = await api.get("/trend/diet/macroWeekly", {
+          params: {
+            userId: auth.user.id,
+            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+          },
+        });
+        const payload = res.data?.data ?? res.data;
+        if (!payload) return;
+
+        const avg = (arr) =>
+          Array.isArray(arr) && arr.length
+            ? Math.round(
+                arr.reduce((sum, v) => sum + (Number(v) || 0), 0) / arr.length
+              )
+            : 0;
+
+        const fiber = avg(payload.fiber);
+        const protein = avg(payload.protein);
+        const fat = avg(payload.fat);
+        const sugar = avg(payload.sugar);
+        const sodium = 60; // neutral placeholder – sodium not tracked explicitly
+
+        const overallScore = Math.round(
+          (fiber + protein + (100 - Math.max(0, fat - 60)) + (100 - sugar) + (100 - sodium)) /
+            5
+        );
+
+        const adviceRes = await api.post("/trend/diet/weeklyAdvice", {
+          fiberAvg: fiber,
+          proteinAvg: protein,
+          fatAvg: fat,
+          sugarAvg: sugar,
+          sodiumAvg: sodium,
+          overallScore,
+        });
+        const advicePayload = adviceRes.data?.data ?? adviceRes.data;
+        if (advicePayload) {
+          setAiAnalysis(
+            Array.isArray(advicePayload.analysis) ? advicePayload.analysis : []
+          );
+          setAiRecommendations(
+            Array.isArray(advicePayload.recommendations)
+              ? advicePayload.recommendations
+              : []
+          );
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load premium weekly diet advice:", error);
+        setAiAnalysis([]);
+        setAiRecommendations([]);
+      } finally {
+        setLoadingAdvice(false);
+      }
+    };
+
+    fetchWeeklyDietAdvice();
+  }, [api, auth?.user?.id, referenceDate]);
 
   const options = {
     responsive: true,
@@ -52,7 +140,7 @@ const Week = () => {
     scales: {
       x: {
         min: -0.5,
-        max: 2.5,
+        max: 3.5,
         ticks: {
           callback: (v) => xLabels[v],
           font: { size: 11 },
@@ -61,7 +149,7 @@ const Week = () => {
       },
       y: {
         min: -0.5,
-        max: 2.5,
+        max: 3.5,
         ticks: {
           callback: (v) => yLabels[v],
           font: { size: 11 },
@@ -101,7 +189,7 @@ const Week = () => {
           <Legend color="bg-red-500" label="Strong" />
         </div>
 
-        {/* Tooltip */}
+        {/* Tooltip / Detailed analysis */}
         {showDetailedAnalysis && (
           <>
             {/* Backdrop */}
@@ -137,8 +225,19 @@ const Week = () => {
 
               {/* Content */}
               <div className="space-y-2 text-sm text-[#554B40]">
-                <p>Fiber lunch / Smooth 3× (65%)</p>
-                <p>Veggies at lunch help digestion</p>
+                {loadingAdvice ? (
+                  <p>Analyzing weekly diet patterns…</p>
+                ) : aiAnalysis.length ? (
+                  aiAnalysis.map((row, index) => (
+                    // eslint-disable-next-line react/no-array-index-key
+                    <p key={index}>{row.text}</p>
+                  ))
+                ) : (
+                  <>
+                    <p>Not enough diet data this week for detailed insights.</p>
+                    <p>Add more diet records to improve premium analysis.</p>
+                  </>
+                )}
               </div>
             </div>
           </>
@@ -146,21 +245,40 @@ const Week = () => {
 
         {/* High Risk */}
         <div className="rounded-[12px] bg-[#fef2f2] p-4 text-sm border-2 border-[#ededef]">
-          <p className="font-medium mb-[10px] text-primary">High-Risk Period</p>
+          <p className="font-medium mb-[10px] text-primary">High-Risk Pattern</p>
           <p className="text-secondary">
-            Shortened: High-fat dinner links to constipation (70%). Reduce
-            fried/red meat; use steaming/boiling.
+            {loadingAdvice
+              ? "Analyzing which diet patterns are most stressful this week…"
+              : (aiAnalysis.find((row) => row.type === "warn") ||
+                  aiAnalysis[0] || { text: "Not enough diet data this week." }
+                ).text}
           </p>
         </div>
 
         {/* Overall Trend */}
         <div className="rounded-[12px] bg-[#f0fdf4] p-4 text-sm space-y-1 border-2 border-[#ededef]">
-          <p className="font-medium mb-[10px] text-primary">Overall Trend</p>
-          <p className="text-secondary">
-            Fiber breakfast → smooth stools (75%)
-          </p>
-          <p className="text-secondary">Sugary dinner → bloating (60%)</p>
-          <p className="text-secondary">Lunch → mild bowel impact</p>
+          <p className="font-medium mb-[10px] text-primary">Overall Diet Trend</p>
+          {loadingAdvice ? (
+            <p className="text-secondary">
+              Summarizing this week&apos;s fiber, protein, fat and sugar balance…
+            </p>
+          ) : aiRecommendations.length ? (
+            aiRecommendations.map((line, index) => (
+              // eslint-disable-next-line react/no-array-index-key
+              <p key={index} className="text-secondary">
+                {line}
+              </p>
+            ))
+          ) : (
+            <>
+              <p className="text-secondary">
+                Diet looks mostly balanced; keep fiber and protein steady.
+              </p>
+              <p className="text-secondary">
+                Reduce very fatty or sugary dinners on a few days.
+              </p>
+            </>
+          )}
         </div>
       </div>
       <div className="flex justify-center items-center text-custom-12 italic text-sm mt-3 text-center p-4">

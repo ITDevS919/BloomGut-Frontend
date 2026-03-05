@@ -7,6 +7,7 @@ import Month from "./Month";
 const Intermediate = () => {
   const location = useLocation();
   const [viewMode, setViewMode] = useState(location.state?.viewMode || "week");
+  const [referenceDate, setReferenceDate] = useState(new Date());
 
   useEffect(() => {
     // Update viewMode if it's passed via navigation state
@@ -15,11 +16,22 @@ const Intermediate = () => {
     }
   }, [location.state]);
 
+  const handleDateChange = (date, mode) => {
+    setReferenceDate(date);
+    if (mode && mode !== viewMode) {
+      setViewMode(mode);
+    }
+  };
+
   return (
     <>
-      <DateRangeSelectorYellow setViewMode={setViewMode} initialViewMode={viewMode} />
-      {viewMode === "week" && <Week />}
-      {viewMode === "month" && <Month />}
+      <DateRangeSelectorYellow
+        setViewMode={setViewMode}
+        initialViewMode={viewMode}
+        onDateChange={handleDateChange}
+      />
+      {viewMode === "week" && <Week referenceDate={referenceDate} />}
+      {viewMode === "month" && <Month referenceDate={referenceDate} />}
     </>
   );
 };

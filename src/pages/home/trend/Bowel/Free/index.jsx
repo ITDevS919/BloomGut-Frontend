@@ -32,9 +32,17 @@ ChartJS.register(
   ChartDataLabels
 );
 
-const Free = ({ showUpgrade = true, referenceDate }) => {
+const CardLoader = () => (
+  <div className="flex items-center justify-center py-8">
+    <div className="h-6 w-6 border-4 border-amber-200 border-t-amber-500 rounded-full animate-spin" />
+  </div>
+);
+
+const Free = ({ showUpgrade = true }) => {
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
+
+  const [loading, setLoading] = useState(true);
 
   // Daily bowel count data
   const [dailyData, setDailyData] = useState([1, 2, 3, 1, 2, 0, 1]);
@@ -58,17 +66,13 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
   useEffect(() => {
     if (!auth?.user?.id) return;
 
-    const referenceDateParam =
-      referenceDate instanceof Date
-        ? referenceDate.toISOString()
-        : referenceDate || undefined;
+    let isCancelled = false;
 
     const fetchDailyCounts = async () => {
       try {
         const response = await api.get("/trend/bowel/dailyCount", {
           params: {
             userId: auth.user.id,
-            ...(referenceDateParam ? { referenceDate: referenceDateParam } : {}),
           },
         });
         const payload = response.data?.data || response.data;
@@ -87,7 +91,6 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         const response = await api.get("/trend/bowel/weeklySummary", {
           params: {
             userId: auth.user.id,
-            ...(referenceDateParam ? { referenceDate: referenceDateParam } : {}),
           },
         });
         const payload = response.data?.data || response.data;
@@ -118,9 +121,23 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
       }
     };
 
-    fetchDailyCounts();
-    fetchWeeklySummary();
-  }, [api, auth?.user?.id, referenceDate]);
+    const loadAll = async () => {
+      setLoading(true);
+      try {
+        await Promise.all([fetchDailyCounts(), fetchWeeklySummary()]);
+      } finally {
+        if (!isCancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadAll();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [api, auth?.user?.id]);
 
   // Tooltip data for each day
   const tooltipData = [
@@ -347,86 +364,107 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
       `}</style>
       {/* Score Card */}
       <div className="bg-white rounded-[27px] p-[32px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[29px]">
-        <div className="flex items-center justify-between mb-4">
-          <div className="pl-[50px]">
-            <div className="text-3xl font-bold text-[#1abc9c]">{score}</div>
-            <div className="text-sm text-custom-12">{status}</div>
-          </div>
-          <div className="text-base pr-[50px] text-center text-[#1abc9c]">{change}</div>
-        </div>
+        {loading ? (
+          <CardLoader />
+        ) : (
+          <>
+            <div className="flex items-center justify-between mb-4">
+              <div className="pl-[50px]">
+                <div className="text-3xl font-bold text-[#1abc9c]">{score}</div>
+                <div className="text-sm text-custom-12">{status}</div>
+              </div>
+              <div className="text-base pr-[50px] text-center text-[#1abc9c]">
+                {change}
+              </div>
+            </div>
 
-        {/* Progress Bar */}
-        <div className="mt-4">
-          <div className="h-2 bg-gray-200 rounded-full relative overflow-hidden">
-            {/* Green/Teal segment */}
-            <div
-              className="absolute left-0 top-0 h-2 bg-teal-500 rounded-full"
-              style={{ width: "45%" }}
-            />
-            {/* Gold/Orange segment */}
-            <div
-              className="absolute left-[45%] top-0 h-2 bg-amber-400 rounded-full"
-              style={{ width: "30%" }}
-            />
-            {/* Red segment */}
-            <div
-              className="absolute left-[75%] top-0 h-2 bg-red-400 rounded-full"
-              style={{ width: "25%" }}
-            />
-            {/* White circular indicator */}
-            <div
-              className="absolute -top-2 w-3 h-3 rounded-full bg-white border-2 border-gray-300 shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
-              style={{
-                left: `${scorePosition}%`,
-                transform: "translateX(-50%)",
-              }}
-            />
-          </div>
-        </div>
+            {/* Progress Bar */}
+            <div className="mt-4">
+              <div className="h-2 bg-gray-200 rounded-full relative overflow-hidden">
+                {/* Green/Teal segment */}
+                <div
+                  className="absolute left-0 top-0 h-2 bg-teal-500 rounded-full"
+                  style={{ width: "45%" }}
+                />
+                {/* Gold/Orange segment */}
+                <div
+                  className="absolute left-[45%] top-0 h-2 bg-amber-400 rounded-full"
+                  style={{ width: "30%" }}
+                />
+                {/* Red segment */}
+                <div
+                  className="absolute left-[75%] top-0 h-2 bg-red-400 rounded-full"
+                  style={{ width: "25%" }}
+                />
+                {/* White circular indicator */}
+                <div
+                  className="absolute -top-2 w-3 h-3 rounded-full bg-white border-2 border-gray-300 shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+                  style={{
+                    left: `${scorePosition}%`,
+                    transform: "translateX(-50%)",
+                  }}
+                />
+              </div>
+            </div>
+          </>
+        )}
       </div>
       {/* Stool Type Cards */}
       <div className="text-base mb-3 font-medium pl-[15px] text-primary">Daily Types</div>
       <div className="bg-white rounded-[20px] p-6 shadow-[2px_0_10px_rgba(3,3,3,0.1)] mb-[34px]">
-        <div className="flex items-end justify-between gap-2">
-          {dailyTypeValues.map((value, index) => (
-            <div key={index} className="flex flex-col items-center flex-1">
-              {/* Colored Bar with Gray Background and Icon Inside */}
-              <div className="w-full bg-[#E6E6E6] rounded-lg relative overflow-hidden flex flex-col" style={{ height: '120px' }}>
-                {/* Circular Icon at Top */}
-                <div className="w-12 h-12 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center mx-auto mt-2 mb-2 z-10">
-                  <img
-                    src={[Type1Image, Type2Image, Type3Image, Type4Image, Type5Image][index]}
-                    alt={`Type ${index + 1}`}
-                    className="w-12 h-12 object-contain"
-                  />
+        {loading ? (
+          <CardLoader />
+        ) : (
+          <div className="flex items-end justify-between gap-2">
+            {dailyTypeValues.map((value, index) => (
+              <div key={index} className="flex flex-col items-center flex-1">
+                {/* Colored Bar with Gray Background and Icon Inside */}
+                <div
+                  className="w-full bg-[#E6E6E6] rounded-lg relative overflow-hidden flex flex-col"
+                  style={{ height: "120px" }}
+                >
+                  {/* Circular Icon at Top */}
+                  <div className="w-12 h-12 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center mx-auto mt-2 mb-2 z-10">
+                    <img
+                      src={[
+                        Type1Image,
+                        Type2Image,
+                        Type3Image,
+                        Type4Image,
+                        Type5Image,
+                      ][index]}
+                      alt={`Type ${index + 1}`}
+                      className="w-12 h-12 object-contain"
+                    />
+                  </div>
+                  {/* Colored Bar Fill */}
+                  {value > 0 ? (
+                    <div
+                      className="w-full rounded-lg flex items-center justify-center absolute bottom-0"
+                      style={{
+                        height: `${value}%`,
+                        backgroundColor: dailyTypeColors[index],
+                        minHeight: "20px",
+                      }}
+                    >
+                      <span className="text-white text-xs">{value}%</span>
+                    </div>
+                  ) : (
+                    <div className="w-full h-full flex items-end justify-center absolute bottom-0 pb-1">
+                      <span className="text-custom-1 text-xs">0%</span>
+                    </div>
+                  )}
                 </div>
-                {/* Colored Bar Fill */}
-                {value > 0 ? (
-                  <div
-                    className="w-full rounded-lg flex items-center justify-center absolute bottom-0"
-                    style={{
-                      height: `${value}%`,
-                      backgroundColor: dailyTypeColors[index],
-                      minHeight: '20px',
-                    }}
-                  >
-                    <span className="text-white text-xs">
-                      {value}%
-                    </span>
-                  </div>
-                ) : (
-                  <div className="w-full h-full flex items-end justify-center absolute bottom-0 pb-1">
-                    <span className="text-custom-1 text-xs">0%</span>
-                  </div>
-                )}
+                {/* Label Below Bar */}
+                <div className="text-xs text-primary mt-2 text-center">
+                  <span style={{ color: dailyTypeLabels[index].color }}>
+                    {dailyTypeLabels[index].label}
+                  </span>
+                </div>
               </div>
-              {/* Label Below Bar */}
-              <div className="text-xs text-primary mt-2 text-center">
-                <span style={{ color: dailyTypeLabels[index].color }}>{dailyTypeLabels[index].label}</span>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Daily Bowel Count */}
@@ -434,9 +472,13 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         Daily Bowel Count
       </div>
       <div className="bg-white rounded-[27px] p-6 shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[35px]">
-        <div className="h-50">
-          <Line data={dailyBowelChartData} options={dailyBowelChartOptions} />
-        </div>
+        {loading ? (
+          <CardLoader />
+        ) : (
+          <div className="h-50">
+            <Line data={dailyBowelChartData} options={dailyBowelChartOptions} />
+          </div>
+        )}
       </div>
 
       {showUpgrade && <Upgrade />}

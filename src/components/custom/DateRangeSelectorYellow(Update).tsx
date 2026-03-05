@@ -54,6 +54,9 @@ const DateRangeSelectorYellowUpdate = (props) => {
       newDate.setFullYear(newDate.getFullYear() - 1);
     }
     setCurrentDate(newDate);
+    if (props.onDateChange) {
+      props.onDateChange(newDate, viewMode);
+    }
   };
 
   const handleNext = () => {
@@ -66,12 +69,18 @@ const DateRangeSelectorYellowUpdate = (props) => {
       newDate.setFullYear(newDate.getFullYear() + 1);
     }
     setCurrentDate(newDate);
+    if (props.onDateChange) {
+      props.onDateChange(newDate, viewMode);
+    }
   };
 
   const handleViewModeChange = (mode) => {
     setViewMode(mode);
     if (props.setViewMode) {
       props.setViewMode(mode);
+    }
+    if (props.onDateChange) {
+      props.onDateChange(currentDate, mode);
     }
   };
 

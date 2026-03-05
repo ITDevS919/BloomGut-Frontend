@@ -7,6 +7,12 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { Radar } from "react-chartjs-2";
+import { AlertTriangle, CheckCircle } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
+import useApiClient from "@/hooks/useApiClient";
+import Free from "../Free";
 
 ChartJS.register(
   RadialLinearScale,
@@ -16,34 +22,128 @@ ChartJS.register(
   Tooltip,
   Legend
 );
-import { Radar } from "react-chartjs-2";
-import { AlertTriangle, CheckCircle } from "lucide-react";
-import { useState } from "react";
-import Free from "../Free";
 
-const Week = () => {
+const RECOMMENDED_SCORES = [80, 75, 60, 50, 55];
+
+const Week = ({ referenceDate }) => {
   const [showAnalysis, setShowAnalysis] = useState(false);
-  const data = {
-    labels: ["Fiber", "Protein", "Fat", "Sugar", "Sodium"],
-    datasets: [
-      {
-        label: "Recommended",
-        data: [80, 75, 60, 50, 55],
-        borderColor: "#22C55E",
-        backgroundColor: "rgba(34,197,94,0.15)",
-        pointBackgroundColor: "#22C55E",
-        pointRadius: 4,
-      },
-      {
-        label: "Actual",
-        data: [60, 70, 85, 80, 72],
-        borderColor: "#EF4444",
-        backgroundColor: "rgba(239,68,68,0.25)",
-        pointBackgroundColor: "#EF4444",
-        pointRadius: 4,
-      },
-    ],
-  };
+  const auth = useSelector((state) => state.auth);
+  const api = useApiClient();
+
+  const [fiberAvg, setFiberAvg] = useState(0);
+  const [proteinAvg, setProteinAvg] = useState(0);
+  const [fatAvg, setFatAvg] = useState(0);
+  const [sugarAvg, setSugarAvg] = useState(0);
+  const [sodiumAvg, setSodiumAvg] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  const [aiAnalysis, setAiAnalysis] = useState([]);
+  const [aiRecommendations, setAiRecommendations] = useState([]);
+  const [aiLoading, setAiLoading] = useState(false);
+
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchWeeklyMacrosAndAdvice = async () => {
+      setLoading(true);
+      try {
+        const res = await api.get("/trend/diet/macroWeekly", {
+          params: {
+            userId: auth.user.id,
+            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+          },
+        });
+        const payload = res.data?.data ?? res.data;
+        if (!payload) return;
+
+        const avg = (arr) =>
+          Array.isArray(arr) && arr.length
+            ? Math.round(
+                arr.reduce((sum, v) => sum + (Number(v) || 0), 0) / arr.length
+              )
+            : 0;
+
+        const fiber = avg(payload.fiber);
+        const protein = avg(payload.protein);
+        const fat = avg(payload.fat);
+        const sugar = avg(payload.sugar);
+        const sodium = 60; // neutral placeholder – sodium is not tracked in macroWeekly yet
+
+        setFiberAvg(fiber);
+        setProteinAvg(protein);
+        setFatAvg(fat);
+        setSugarAvg(sugar);
+        setSodiumAvg(sodium);
+
+        const overallScore = Math.round(
+          (fiber + protein + (100 - Math.max(0, fat - 60)) + (100 - sugar) + (100 - sodium)) /
+            5
+        );
+
+        setAiLoading(true);
+        try {
+          const adviceRes = await api.post("/trend/diet/weeklyAdvice", {
+            fiberAvg: fiber,
+            proteinAvg: protein,
+            fatAvg: fat,
+            sugarAvg: sugar,
+            sodiumAvg: sodium,
+            overallScore,
+          });
+          const advicePayload = adviceRes.data?.data ?? adviceRes.data;
+          if (advicePayload) {
+            setAiAnalysis(
+              Array.isArray(advicePayload.analysis) ? advicePayload.analysis : []
+            );
+            setAiRecommendations(
+              Array.isArray(advicePayload.recommendations)
+                ? advicePayload.recommendations
+                : []
+            );
+          }
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error("Failed to load diet weekly AI advice:", error);
+          setAiAnalysis([]);
+          setAiRecommendations([]);
+        } finally {
+          setAiLoading(false);
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load diet weekly macros:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWeeklyMacrosAndAdvice();
+  }, [api, auth?.user?.id, referenceDate]);
+
+  const radarData = useMemo(
+    () => ({
+      labels: ["Fiber", "Protein", "Fat", "Sugar", "Sodium"],
+      datasets: [
+        {
+          label: "Recommended",
+          data: RECOMMENDED_SCORES,
+          borderColor: "#22C55E",
+          backgroundColor: "rgba(34,197,94,0.15)",
+          pointBackgroundColor: "#22C55E",
+          pointRadius: 4,
+        },
+        {
+          label: "Actual",
+          data: [fiberAvg, proteinAvg, fatAvg, sugarAvg, sodiumAvg],
+          borderColor: "#EF4444",
+          backgroundColor: "rgba(239,68,68,0.25)",
+          pointBackgroundColor: "#EF4444",
+          pointRadius: 4,
+        },
+      ],
+    }),
+    [fiberAvg, proteinAvg, fatAvg, sugarAvg, sodiumAvg]
+  );
 
   const options = {
     responsive: true,
@@ -85,14 +185,14 @@ const Week = () => {
   };
   return (
     <>
-      <Free showUpgrade={false} />
+      <Free showUpgrade={false} referenceDate={referenceDate} />
 
       <div className="pl-[15px] pr-[15spx]">
         <div className="text-primary text-base pl-[15px] mb-3">Weekly Diet Analysis</div>
         <div className="w-full max-w-sm rounded-[20px] bg-white p-5 shadow-md space-y-4">
           {/* Header */}
           <div className="flex justify-between items-center text-sm">
-            <span className="text-primary text-sm">March 10 – March 16</span>
+            <span className="text-primary text-sm">This Week</span>
             <button
               className="text-blue-500"
               onClick={() => setShowAnalysis(!showAnalysis)}
@@ -103,7 +203,13 @@ const Week = () => {
 
           {/* Radar Chart */}
           <div className="h-56">
-            <Radar data={data} options={options} />
+            {loading ? (
+              <div className="flex items-center justify-center h-full text-xs text-secondary">
+                Loading weekly diet data…
+              </div>
+            ) : (
+              <Radar data={radarData} options={options} />
+            )}
           </div>
 
           {/* Diet Analysis */}
@@ -111,24 +217,48 @@ const Week = () => {
             <>
               <div className="rounded-[8px] bg-blue-50 p-4 text-sm space-y-2 shadow-[2px_0_10px_rgba(3,3,3,0.1)]">
                 <p className="font-medium text-primary">Diet Analysis</p>
-
-                <AnalysisRow warn text="Fat +33%" />
-                <AnalysisRow warn text="Sodium +17% over" />
-                <AnalysisRow warn text="Sugar slightly high" />
-                <AnalysisRow ok text="Protein adequate" />
-                <AnalysisRow warn text="Fiber 75% of need" />
+                {aiLoading ? (
+                  <p className="text-secondary text-sm">Analyzing this week&apos;s diet…</p>
+                ) : aiAnalysis.length ? (
+                  aiAnalysis.map((row, index) => (
+                    <AnalysisRow
+                      // eslint-disable-next-line react/no-array-index-key
+                      key={index}
+                      warn={row.type === "warn"}
+                      ok={row.type === "ok"}
+                      text={row.text}
+                    />
+                  ))
+                ) : (
+                  <>
+                    <AnalysisRow warn text="Not enough diet data this week to give detailed insights." />
+                  </>
+                )}
               </div>
 
               {/* Recommended */}
               <div className="rounded-[8px] bg-green-50 p-4 text-sm space-y-1">
                 <p className="font-medium text-primary">Recommended</p>
-                <p className="text-secondary">
-                  Increase: Fruits, veggies, grains, legumes
-                </p>
-                <p className="text-secondary">
-                  Decrease: Fried, processed, desserts
-                </p>
-                <p className="text-secondary">Maintain: Protein</p>
+                {aiLoading ? (
+                  <p className="text-secondary text-sm">Loading recommendations…</p>
+                ) : aiRecommendations.length ? (
+                  aiRecommendations.map((line, index) => (
+                    // eslint-disable-next-line react/no-array-index-key
+                    <p key={index} className="text-secondary">
+                      {line}
+                    </p>
+                  ))
+                ) : (
+                  <>
+                    <p className="text-secondary">
+                      Increase: Fruits, veggies, whole grains, legumes.
+                    </p>
+                    <p className="text-secondary">
+                      Decrease: Fried, processed foods and desserts on a few days.
+                    </p>
+                    <p className="text-secondary">Maintain: Balanced protein across meals.</p>
+                  </>
+                )}
               </div>
             </>
           )}

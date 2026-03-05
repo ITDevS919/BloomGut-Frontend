@@ -1,18 +1,47 @@
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
-import { Doughnut } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  ArcElement,
+  LineElement,
+  PointElement,
+  LinearScale,
+  CategoryScale,
+  Filler,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { Doughnut, Line } from "react-chartjs-2";
 import Upgrade from "./Upgrade";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 import Free from "../Free";
-ChartJS.register(ArcElement, Tooltip, Legend);
+ChartJS.register(
+  ArcElement,
+  LineElement,
+  PointElement,
+  LinearScale,
+  CategoryScale,
+  Filler,
+  Tooltip,
+  Legend
+);
 
-const Month = ({ showUpgrade = true }) => {
+const SESSION_NAMES = ["Morning", "Noon", "Afternoon", "Evening"];
+const SESSION_COLORS = ["bg-[#B9E1ED]", "bg-[#8EC4D9]", "bg-[#7CB6CF]", "bg-[#5CA3C2]"];
+const DEFAULT_TIPS = {
+  Morning: ["Great morning hydration, boosts metabolism.", "Drink 250–300ml warm water within 30 min after waking."],
+  Noon: ["Good midday hydration.", "Continue regular water intake throughout the day."],
+  Afternoon: ["Afternoon hydration is adequate.", "Consider increasing intake during afternoon hours."],
+  Evening: ["Evening hydration is adequate.", "Avoid large amounts within 10 min before bed."],
+};
+
+const Month = ({ showUpgrade = true, referenceDate }) => {
   const navigate = useNavigate();
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
   const [selectedSession, setSelectedSession] = useState("Morning");
+  const [tipsLoading, setTipsLoading] = useState(false);
 
   const [sessions, setSessions] = useState([
     {
@@ -57,6 +86,8 @@ const Month = ({ showUpgrade = true }) => {
     },
   ]);
 
+  const [urineDailyVolumes, setUrineDailyVolumes] = useState([]);
+
   const currentSession =
     sessions.find((s) => s.name === selectedSession) || sessions[0];
 
@@ -88,56 +119,67 @@ const Month = ({ showUpgrade = true }) => {
 
     const fetchMonthlyTime = async () => {
       try {
+        const ref =
+          referenceDate && referenceDate.toISOString
+            ? referenceDate.toISOString()
+            : undefined;
         const response = await api.get("/trend/water/monthlyTime", {
-          params: { userId: auth.user.id },
+          params: { userId: auth.user.id, referenceDate: ref },
         });
         const payload = response.data?.data || response.data;
         if (!payload) return;
 
-        const updated = [
-          {
-            name: "Morning",
-            percentage: payload.morningPercent ?? 0,
-            ml: payload.morningMl ?? 0,
-            tips: [
-              "Great morning hydration, boosts metabolism.",
-              "Drink 250–300ml warm water within 30 min after waking.",
-            ],
-            color: "bg-[#B9E1ED]",
-          },
-          {
-            name: "Noon",
-            percentage: payload.noonPercent ?? 0,
-            ml: payload.noonMl ?? 0,
-            tips: [
-              "Good midday hydration.",
-              "Continue regular water intake throughout the day.",
-            ],
-            color: "bg-[#8EC4D9]",
-          },
-          {
-            name: "Afternoon",
-            percentage: payload.afternoonPercent ?? 0,
-            ml: payload.afternoonMl ?? 0,
-            tips: [
-              "Afternoon hydration is adequate.",
-              "Consider increasing intake during afternoon hours.",
-            ],
-            color: "bg-[#7CB6CF]",
-          },
-          {
-            name: "Evening",
-            percentage: payload.eveningPercent ?? 0,
-            ml: payload.eveningMl ?? 0,
-            tips: [
-              "Evening hydration is adequate.",
-              "Avoid large amounts within 10 min before bed.",
-            ],
-            color: "bg-[#5CA3C2]",
-          },
-        ];
+        const updated = SESSION_NAMES.map((name, i) => ({
+          name,
+          percentage: {
+            Morning: payload.morningPercent,
+            Noon: payload.noonPercent,
+            Afternoon: payload.afternoonPercent,
+            Evening: payload.eveningPercent,
+          }[name] ?? 0,
+          ml: {
+            Morning: payload.morningMl,
+            Noon: payload.noonMl,
+            Afternoon: payload.afternoonMl,
+            Evening: payload.eveningMl,
+          }[name] ?? 0,
+          tips: DEFAULT_TIPS[name],
+          color: SESSION_COLORS[i],
+        }));
 
         setSessions(updated);
+
+        setTipsLoading(true);
+        try {
+          const adviceRes = await api.post("/trend/water/monthlyAdvice", {
+            morningMl: payload.morningMl ?? 0,
+            noonMl: payload.noonMl ?? 0,
+            afternoonMl: payload.afternoonMl ?? 0,
+            eveningMl: payload.eveningMl ?? 0,
+            totalMl: payload.totalMl ?? 0,
+            avgDailyMl: payload.avgDailyMl ?? 0,
+            morningPercent: payload.morningPercent ?? 0,
+            noonPercent: payload.noonPercent ?? 0,
+            afternoonPercent: payload.afternoonPercent ?? 0,
+            eveningPercent: payload.eveningPercent ?? 0,
+          });
+          const adviceData = adviceRes.data?.data ?? adviceRes.data;
+          const aiSessions = adviceData?.sessions;
+          if (Array.isArray(aiSessions) && aiSessions.length > 0) {
+            setSessions((prev) =>
+              prev.map((s) => {
+                const ai = aiSessions.find((a) => a && a.name === s.name);
+                const tips = Array.isArray(ai?.tips) && ai.tips.length > 0 ? ai.tips : s.tips;
+                return { ...s, tips };
+              })
+            );
+          }
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.error("Failed to load monthly water advice:", err);
+        } finally {
+          setTipsLoading(false);
+        }
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Failed to load water monthly time distribution:", error);
@@ -145,7 +187,134 @@ const Month = ({ showUpgrade = true }) => {
     };
 
     fetchMonthlyTime();
-  }, [api, auth?.user?.id]);
+  }, [api, auth?.user?.id, referenceDate]);
+
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchUrineMonthlyVolumes = async () => {
+      try {
+        const ref =
+          referenceDate && referenceDate.toISOString
+            ? referenceDate.toISOString()
+            : undefined;
+        const response = await api.get("/trend/urine/weeklyScore", {
+          params: { userId: auth.user.id, referenceDate: ref },
+        });
+        const payload = response.data?.data || response.data;
+        if (!Array.isArray(payload)) return;
+
+        const aggregated = {};
+        payload.forEach((item) => {
+          const date = new Date(item.records?.createdAt || item.createdAt);
+          const day = date.getDate();
+          const key = `${day}`;
+          const volume = item.records?.estimatedTimeVolumeMl || 0;
+          aggregated[key] = (aggregated[key] || 0) + volume;
+        });
+
+        const days = Object.keys(aggregated)
+          .map((d) => parseInt(d, 10))
+          .sort((a, b) => a - b);
+
+        const series = days.map((day) => ({
+          day,
+          label: `${day}th`,
+          volume: aggregated[day] || 0,
+        }));
+
+        setUrineDailyVolumes(series);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load urine monthly volumes:", error);
+      }
+    };
+
+    fetchUrineMonthlyVolumes();
+  }, [api, auth?.user?.id, referenceDate]);
+
+  const urineLabels = useMemo(
+    () =>
+      urineDailyVolumes.length
+        ? urineDailyVolumes.map((d) => d.label)
+        : [
+            "1st",
+            "3rd",
+            "5th",
+            "7th",
+            "9th",
+            "11th",
+            "13th",
+            "15th",
+            "17th",
+            "19th",
+            "21st",
+            "23rd",
+            "25th",
+            "27th",
+            "29th",
+            "31st",
+          ],
+    [urineDailyVolumes]
+  );
+
+  const urineValues = useMemo(
+    () =>
+      urineDailyVolumes.length
+        ? urineDailyVolumes.map((d) => d.volume)
+        : [
+            2300, 1900, 2100, 1800, 1200, 1100, 1300, 1600, 1500, 1800, 2000,
+            1850, 2100, 3000, 3300, 3600,
+          ],
+    [urineDailyVolumes]
+  );
+
+  const urineChartData = {
+    labels: urineLabels,
+    datasets: [
+      {
+        label: "Urine Volume",
+        data: urineValues,
+        borderColor: "#FACC15",
+        backgroundColor: "rgba(250, 204, 21, 0.35)",
+        fill: true,
+        tension: 0.4,
+        pointRadius: 0,
+      },
+    ],
+  };
+
+  const urineChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => `${ctx.raw} ml`,
+        },
+      },
+      datalabels: { display: false },
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { font: { size: 11 } },
+      },
+      y: {
+        min: 0,
+        max: 3600,
+        ticks: {
+          stepSize: 900,
+          font: { size: 11 },
+        },
+        grid: {
+          color: "white",
+          borderDash: [4, 4],
+        },
+      },
+    },
+  };
 
   return (
     <div className="mt-[36px]">
@@ -198,11 +367,15 @@ const Month = ({ showUpgrade = true }) => {
               </span>
             </div>
             <div className="space-y-1">
-              {currentSession.tips.map((tip, index) => (
-                <p key={index} className="text-sm text-[#3c74ed]">
-                  {tip}
-                </p>
-              ))}
+              {tipsLoading ? (
+                <p className="text-sm text-[#3c74ed]">Loading tips…</p>
+              ) : (
+                (currentSession.tips || []).map((tip, index) => (
+                  <p key={index} className="text-sm text-[#3c74ed]">
+                    {tip}
+                  </p>
+                ))
+              )}
             </div>
           </div>
 
@@ -256,6 +429,15 @@ function StatCard({ title, value, sub }) {
       <p className="text-sm text-secondary">{title}</p>
       <p className="mt-1 text-base font-semibold text-[#4682b4]">{value}</p>
       <p className="mt-1 text-xs text-custom-12">{sub}</p>
+    </div>
+  );
+}
+
+function LegendDot({ color, label }) {
+  return (
+    <div className="flex items-center gap-1">
+      <span className={`h-3 w-3 rounded ${color}`} />
+      <span>{label}</span>
     </div>
   );
 }

@@ -1,18 +1,18 @@
-import { AccordionItem } from "@/components/custom/AccordionItem";
 import { CustomButton } from "@/components/custom/CustomButton";
 import CustomHeading from "@/components/custom/CustomHeading";
 import { DropDownSelectorItem } from "@/components/custom/DropDownSelectorItem";
-import { ChevronDown, ChevronLeft, Pencil } from "lucide-react";
-import { useState } from "react";
-import { FaGlassWhiskey, FaPencilAlt } from "react-icons/fa";
+import { ChevronDown, ChevronLeft } from "lucide-react";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { FaPencilAlt } from "react-icons/fa";
 import { FaBottleWater, FaGlassWater, FaMugHot } from "react-icons/fa6";
-import { useNavigate } from "react-router-dom";
+import { FaBell } from "react-icons/fa6";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
 import useApiClient from "@/hooks/useApiClient";
+import { loadWaterReminders } from "@/utils/waterReminders";
+import { useNavigate } from "react-router-dom";
 
 const WaterRecord = () => {
-  const navigate = useNavigate();
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
   const days = [
@@ -53,9 +53,32 @@ const WaterRecord = () => {
   ];
   const [selectedCommonValues, setSelectedCommonValues] = useState([]);
   const [selectedSpecialValues, setSelectedSpecialValues] = useState([]);
+  const [todayRecords, setTodayRecords] = useState([]);
+
+  const waterReminders = useMemo(() => loadWaterReminders(), []);
+  const navigate = useNavigate();
+
+  const fetchTodayRecords = useCallback(async () => {
+    if (!auth?.user?.id) return;
+    try {
+      const res = await api.get("/record/water/today", {
+        params: { userId: auth.user.id },
+      });
+      const data = res.data?.data ?? res.data;
+      setTodayRecords(Array.isArray(data) ? data : []);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("Failed to fetch today's water records:", err);
+      setTodayRecords([]);
+    }
+  }, [api, auth?.user?.id]);
+
+  useEffect(() => {
+    fetchTodayRecords();
+  }, [fetchTodayRecords]);
 
   const handleViewTrend = () => {
-    navigate("/trend-analysis", { state: { trendType: "water" } });
+    window.open("/trend-analysis?trendType=water", "_blank", "noopener,noreferrer");
   };
 
   const parseMl = (value) => {
@@ -109,6 +132,7 @@ const WaterRecord = () => {
       });
 
       toast.success(response.data.data);
+      fetchTodayRecords();
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error("Error saving water record:", error);
@@ -151,25 +175,36 @@ const WaterRecord = () => {
       <CustomHeading label="Water Record" isRequired className="ml-3" />
       <div className="p-2">
         {/* Progress */}
-        <div className="space-y-1 text-xs text-gray-600 mt-3">
-          <div className="flex justify-between">
-            <span>Today</span>
-            <span>2000ml</span>
-          </div>
-          <div className="relative h-6 rounded-full bg-[#e5e5e5] shadow-[0_2px_8px_rgba(0,0,0,0.16)]">
-            <div
-              className="absolute left-0 top-0 h-6 rounded-full bg-custom-13 text-center text-white text-xs leading-6"
-              style={{ width: "32%" }}
-            >
-              650ml
+        {(() => {
+          const todayTotalMl = todayRecords.reduce((sum, r) => sum + (r.amount || 0), 0);
+          const targetMl = 2000;
+          const percent = targetMl > 0 ? Math.min(100, Math.round((todayTotalMl / targetMl) * 100)) : 0;
+          return (
+            <div className="space-y-1 text-xs text-gray-600 mt-3">
+              <div className="flex justify-between">
+                <span>Today</span>
+                <span>{todayTotalMl}ml / {targetMl}ml</span>
+              </div>
+              <div className="relative h-6 rounded-full bg-[#e5e5e5] shadow-[0_2px_8px_rgba(0,0,0,0.16)]">
+                <div
+                  className="absolute left-0 top-0 h-6 rounded-full bg-custom-13 text-center text-white text-xs leading-6"
+                  style={{ width: `${percent}%` }}
+                >
+                  {todayTotalMl > 0 ? `${todayTotalMl}ml` : ""}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          );
+        })()}
 
         {/* Recently Used */}
         <div className="flex items-center justify-between text-sm mt-[44px] mb-[31px]">
           <span className="font-medium">Recently Used</span>
-          <button className="bg-white shadow-[0_2px_8px_#afafaf] text-secondary border-custom-16 rounded-[8px] border px-3 py-1 text-xs cursor-pointer">
+          <button
+            type="button"
+            className="bg-white shadow-[0_2px_8px_#afafaf] text-secondary border-custom-16 rounded-[8px] border px-3 py-1 text-xs cursor-pointer"
+            onClick={() => navigate("/custom-volume")}
+          >
             Custom Amount
           </button>
         </div>
@@ -200,7 +235,11 @@ const WaterRecord = () => {
         />
 
         {/* Today's Record */}
-        <TodaysRecord />
+        <TodaysRecord
+          waterReminders={waterReminders}
+          onViewTrend={handleViewTrend}
+          todayRecords={todayRecords}
+        />
 
         <button
           type="button"
@@ -358,46 +397,76 @@ function SpecialCollapse() {
   );
 }
 
-function TodaysRecord() {
-
+function TodaysRecord({ waterReminders, onViewTrend, todayRecords = [] }) {
   const navigate = useNavigate();
-
-  const records = [
-    { time: "09:00", volume: "250ml" },
-    { time: "12:00", volume: "500ml" },
-    { time: "15:00", volume: "750ml" },
-  ];
 
   return (
     <div className="mt-5">
       {/* Header */}
       <div className="flex  mb-3">
-        <h3 className="text-base font-medium text-primary">Today's Record</h3>
+        <h3 className="text-base font-medium text-primary">Today&apos;s Record</h3>
         <button
           type="button"
           className="text-gray-400 hover:text-gray-600 transition-colors ml-5"
-          aria-label="Edit record"
+          aria-label="Add custom volume"
         >
-          <FaPencilAlt className="h-4 w-4 cursor-pointer" onClick={() => navigate("/custom-volume", { state: { initialVolume: 250 } })} />
+          <FaPencilAlt className="h-4 w-4 cursor-pointer" onClick={() => navigate("/custom-volume?initialVolume=250")} aria-label="Add custom volume" />
         </button>
       </div>
 
       {/* Record Entries */}
       <div className="space-y-2">
-        {records.map((record, index) => (
-          <div
-            key={index}
-            className="flex items-center justify-between text-base text-secondary"
-          >
-            <span>{record.time}</span>
-            <span>{record.volume}</span>
-          </div>
-        ))}
+        {todayRecords.length === 0 ? (
+          <p className="text-sm text-secondary">No records today. Add water above or tap the pencil for custom amount.</p>
+        ) : (
+          todayRecords.map((record, index) => (
+            <div
+              key={`${record.time}-${index}`}
+              className="flex items-center justify-between text-base text-secondary"
+            >
+              <span>{record.time}</span>
+              <span>{record.amount}ml</span>
+            </div>
+          ))
+        )}
       </div>
 
-      <div className="grid grid-cols-2 mt-[28px] mb-[57px] gap-[106px] ">
-        <button className="w-[99px] bg-white border border-custom-16 ml-5 rounded-[8px] px- py-1 text-sm text-secondary shadow-[0_2px_6px_#afafaf]">Trend</button>
-        <button className="w-[99px] bg-white border border-custom-16 rounded-[8px] px-2 py-1 text-sm text-secondary shadow-[0_2px_6px_#afafaf]" onClick={() => navigate("/reminders")}>Reminder</button>
+      <div className="mt-[28px] mb-[57px] space-y-3">
+        {waterReminders && (
+          <div className="rounded-[8px] bg-[#eff6ff] border border-[#79B6E2]/30 px-4 py-3 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-sm text-primary">
+              <FaBell className="text-[#79B6E2] shrink-0" />
+              <span>
+                {waterReminders.enabled
+                  ? `Reminders ${waterReminders.reminders.length > 0 ? `• ${waterReminders.reminders.join(", ")}` : "(none set)"}`
+                  : "Reminders off"}
+              </span>
+            </div>
+            <button
+              type="button"
+              className="text-sm font-medium text-[#79B6E2] hover:underline shrink-0"
+              onClick={() => window.open("/reminders", "_blank", "noopener,noreferrer")}
+            >
+              Manage
+            </button>
+          </div>
+        )}
+        <div className="grid grid-cols-2 gap-[106px]">
+          <button
+            type="button"
+            className="w-[99px] bg-white border border-custom-16 ml-5 rounded-[8px] px-2 py-1 text-sm text-secondary shadow-[0_2px_6px_#afafaf]"
+            onClick={onViewTrend}
+          >
+            Trend
+          </button>
+          <button
+            type="button"
+            className="w-[99px] bg-white border border-custom-16 rounded-[8px] px-2 py-1 text-sm text-secondary shadow-[0_2px_6px_#afafaf]"
+            onClick={() => window.open("/reminders", "_blank", "noopener,noreferrer")}
+          >
+            Reminders
+          </button>
+        </div>
       </div>
     </div >
   );

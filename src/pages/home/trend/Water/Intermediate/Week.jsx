@@ -24,7 +24,7 @@ ChartJS.register(
   ChartDataLabels
 );
 
-const Week = ({ showUpgrade = true }) => {
+const Week = ({ showUpgrade = true, referenceDate }) => {
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
 
@@ -40,14 +40,20 @@ const Week = ({ showUpgrade = true }) => {
     afternoonPercent: 30,
     eveningPercent: 150,
   });
+  const [advice, setAdvice] = useState({ message: "", tip: "" });
+  const [adviceLoading, setAdviceLoading] = useState(false);
 
   useEffect(() => {
     if (!auth?.user?.id) return;
 
     const fetchWeeklyTime = async () => {
       try {
+        const ref =
+          referenceDate && referenceDate.toISOString
+            ? referenceDate.toISOString()
+            : undefined;
         const response = await api.get("/trend/water/weeklyTime", {
-          params: { userId: auth.user.id },
+          params: { userId: auth.user.id, referenceDate: ref },
         });
         const payload = response.data?.data || response.data;
         if (!payload) return;
@@ -71,30 +77,90 @@ const Week = ({ showUpgrade = true }) => {
     };
 
     fetchWeeklyTime();
-  }, [api, auth?.user?.id]);
+  }, [api, auth?.user?.id, referenceDate]);
+
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const totalMl =
+      timeMl.morningMl +
+      timeMl.noonMl +
+      timeMl.afternoonMl +
+      timeMl.eveningMl;
+
+    const fetchWeeklyAdvice = async () => {
+      setAdviceLoading(true);
+      try {
+        const response = await api.post("/trend/water/weeklyAdvice", {
+          morningMl: timeMl.morningMl,
+          noonMl: timeMl.noonMl,
+          afternoonMl: timeMl.afternoonMl,
+          eveningMl: timeMl.eveningMl,
+          totalMl,
+          morningPercent: timePercent.morningPercent,
+          noonPercent: timePercent.noonPercent,
+          afternoonPercent: timePercent.afternoonPercent,
+          eveningPercent: timePercent.eveningPercent,
+        });
+        const payload = response.data?.data ?? response.data;
+        if (payload?.message != null || payload?.tip != null) {
+          setAdvice({
+            message: payload.message ?? "",
+            tip: payload.tip ?? "",
+          });
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load water weekly advice:", error);
+        setAdvice({
+          message: "Review your weekly water distribution.",
+          tip: "Spread intake across the day.",
+        });
+      } finally {
+        setAdviceLoading(false);
+      }
+    };
+
+    fetchWeeklyAdvice();
+  }, [
+    api,
+    auth?.user?.id,
+    timeMl.morningMl,
+    timeMl.noonMl,
+    timeMl.afternoonMl,
+    timeMl.eveningMl,
+    timePercent.morningPercent,
+    timePercent.noonPercent,
+    timePercent.afternoonPercent,
+    timePercent.eveningPercent,
+  ]);
 
   const timePeriods = useMemo(
     () => [
       {
         label: "Morning (6-12)",
+        shortLabel: "Morning",
         value: timeMl.morningMl,
         percentage: timePercent.morningPercent,
         color: "#F87171",
       },
       {
         label: "Noon (12-15)",
+        shortLabel: "Noon",
         value: timeMl.noonMl,
         percentage: timePercent.noonPercent,
         color: "#9ED5E1",
       },
       {
         label: "Afternoon (15-18)",
+        shortLabel: "Afternoon",
         value: timeMl.afternoonMl,
         percentage: timePercent.afternoonPercent,
         color: "#F87171",
       },
       {
         label: "Evening (18-22)",
+        shortLabel: "Evening",
         value: timeMl.eveningMl,
         percentage: timePercent.eveningPercent,
         color: "#7BCFA5",
@@ -102,6 +168,24 @@ const Week = ({ showUpgrade = true }) => {
     ],
     [timeMl, timePercent]
   );
+
+  const totalWeekMl = timeMl.morningMl + timeMl.noonMl + timeMl.afternoonMl + timeMl.eveningMl;
+  const lowestPeriod = timePeriods.length
+    ? timePeriods.reduce((min, p) => (p.percentage < min.percentage ? p : min))
+    : null;
+  const weeklyTargetMl = 7000;
+  const balanceLabel =
+    lowestPeriod && lowestPeriod.percentage < 20
+      ? "Low"
+      : totalWeekMl < weeklyTargetMl
+        ? "Below target"
+        : "Good";
+  const balanceSub =
+    lowestPeriod && lowestPeriod.percentage < 20
+      ? `${lowestPeriod.shortLabel} low`
+      : totalWeekMl < weeklyTargetMl
+        ? "Increase daily intake"
+        : "Well distributed";
 
   const data = {
     labels: timePeriods.map((t) => t.label),
@@ -170,7 +254,7 @@ const Week = ({ showUpgrade = true }) => {
 
   return (
     <div className=" mt-[44px]">
-      <Free showUpgrade={false} />
+      <Free showUpgrade={false} referenceDate={referenceDate} />
       <div className="pl-[20px] text-base font-medium mb-[10px] text-primary">
         Water Drinking Time
       </div>
@@ -187,34 +271,41 @@ const Week = ({ showUpgrade = true }) => {
             <Bar data={data} options={options} />
           </div>
 
-          {/* Alert and Tip Section */}
+          {/* Analysis & Advice (AI) */}
           <div className="mt-5 space-y-3 rounded-[8px] bg-yellow-50 p-4">
-            {/* Period with Rate */}
             <div className="flex items-center gap-2 text-sm text-gray-700 mb-[12px]">
               <span className="h-3 w-3 rounded-full bg-yellow-400" />
-              <span className="text-secondary">Afternoon (15-18)</span>
-              <span className="ml-auto text-[9px] text-primary">Rate: 30%</span>
+              <span className="text-secondary font-medium">Analysis & Advice</span>
             </div>
-
-            {/* Warning */}
-            <div className="flex items-center gap-2 text-sm">
-              <AlertTriangle className="w-5 h-5 text-[#ffc92b]" />
-              <span className="text-[#f57c00] text-xs">
-                Constipation may link to low afternoon intake.
-              </span>
-            </div>
-
-            {/* Tip */}
-            <div className="rounded-[8px] bg-[#fdfdfd] px-3 py-2 text-xs text-custom-19">
-              <span className="font-medium">Tip:</span> Set reminders, drink
-              100ml/hr in afternoon.
-            </div>
+            {adviceLoading ? (
+              <p className="text-xs text-secondary">Loading advice…</p>
+            ) : (
+              <>
+                {advice.message && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <AlertTriangle className="w-5 h-5 text-[#ffc92b] shrink-0" />
+                    <span className="text-[#f57c00] text-xs">
+                      {advice.message}
+                    </span>
+                  </div>
+                )}
+                {advice.tip && (
+                  <div className="rounded-[8px] bg-[#fdfdfd] px-3 py-2 text-xs text-custom-19">
+                    <span className="font-medium">Tip:</span> {advice.tip}
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           {/* Summary Cards */}
           <div className="mt-5 grid grid-cols-2 gap-3">
-            <StatCard title="Weekly Intake" value="1600ml" sub="Below Std." />
-            <StatCard2 title="Balance" value="Low" sub="M & PM Low" />
+            <StatCard
+              title="Weekly Intake"
+              value={`${totalWeekMl}ml`}
+              sub={totalWeekMl < weeklyTargetMl ? "Below Std." : "On target"}
+            />
+            <StatCard2 title="Balance" value={balanceLabel} sub={balanceSub} />
           </div>
 
           {/* Footer Text */}

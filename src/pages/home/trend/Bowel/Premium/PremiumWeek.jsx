@@ -1,12 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import useApiClient from "@/hooks/useApiClient";
 
 const PremiumWeek = () => {
   const navigate = useNavigate();
+  const auth = useSelector((state) => state.auth);
+  const api = useApiClient();
   const [tooltip, setTooltip] = useState(null); // { food, status, percentage, note, tip, x, y }
   const [foodTooltip, setFoodTooltip] = useState(null); // { food, status, percentage, note, tip, x, y }
+  const [aiTooltipMap, setAiTooltipMap] = useState({});
+  const [summaryTips, setSummaryTips] = useState([]);
+  const [aiLoading, setAiLoading] = useState(false);
 
-  // Function to get background color based on percentage
   const getCellColor = (percentage) => {
     if (percentage <= 30) return "#CFF3D7"; // Green - Low
     if (percentage <= 60) return "#FFF1B8"; // Yellow - Medium
@@ -23,8 +29,40 @@ const PremiumWeek = () => {
     { food: "Nuts", abdPain: 60, diarrh: 50, constip: 30, bloat: 20 },
   ];
 
-  // Tooltip data for each food/symptom combination
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchPremiumWeekAdvice = async () => {
+      setAiLoading(true);
+      try {
+        const res = await api.post("/trend/bowel/premiumWeekAdvice", {
+          foods: foodData,
+        });
+        const data = res.data?.data ?? res.data;
+        if (data) {
+          setAiTooltipMap(data.tooltipMap || {});
+          setSummaryTips(Array.isArray(data.summaryTips) ? data.summaryTips : []);
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load PremiumWeek bowel advice:", err);
+      } finally {
+        setAiLoading(false);
+      }
+    };
+
+    fetchPremiumWeekAdvice();
+  }, [api, auth?.user?.id]);
+
   const getTooltipData = (food, symptom, percentage) => {
+    const aiFood = aiTooltipMap?.[food]?.[symptom];
+    if (aiFood && aiFood.note && aiFood.tip) {
+      return {
+        note: aiFood.note,
+        tip: aiFood.tip,
+      };
+    }
+
     const tooltipMap = {
       "Milk": {
         "Abd Pain": { note: "Often after milk intake.", tip: "Avoid empty stomach, try lactase, or use alternatives." },
@@ -197,7 +235,7 @@ const PremiumWeek = () => {
         <div className="mt-[19px] rounded-[8px] bg-[#FFFDF6] p-4 shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
           <div className="flex items-center gap-3 mb-2">
             <span className="text-xs text-gray-500 whitespace-nowrap">Sensit</span>
-            <div className="h-5 flex-1 rounded-full bg-gradient-to-r from-green-300 via-yellow-200 to-red-300" />
+            <div className="h-5 flex-1 rounded-full bg-linear-to-r from-green-300 via-yellow-200 to-red-300" />
           </div>
           <div className="flex items-center gap-3">
             <span className="text-xs text-gray-500 whitespace-nowrap ml-[50px]">Low</span>
@@ -205,6 +243,9 @@ const PremiumWeek = () => {
             <span className="text-xs text-gray-500 whitespace-nowrap">High</span>
           </div>
         </div>
+
+        {/* AI Summary Tips */}
+       
       </div>
 
       {/* Cell Tooltip */}

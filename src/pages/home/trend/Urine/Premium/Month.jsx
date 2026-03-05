@@ -17,41 +17,214 @@ ChartJS.register(
   Legend
 );
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Line, Scatter } from "react-chartjs-2";
 import { Info } from "lucide-react";
+import { useSelector } from "react-redux";
+import useApiClient from "@/hooks/useApiClient";
 
-const Month = () => {
+const Month = ({ referenceDate }) => {
   const [mode, setMode] = useState("line");
   const [showAnalysis, setShowAnalysis] = useState(false);
 
-  const labels = [
-    "1st",
-    "3rd",
-    "5th",
-    "7th",
-    "9th",
-    "11th",
-    "13th",
-    "15th",
-    "17th",
-    "19th",
-    "21st",
-    "23rd",
-    "25th",
-    "27th",
-    "29th",
-    "31st",
-  ];
+  const auth = useSelector((state) => state.auth);
+  const api = useApiClient();
 
-  const urine = [
-    900, 1300, 800, 1100, 700, 600, 950, 1200, 900, 1100, 700, 1400, 1600, 1500,
-    1700, 1800,
-  ];
-  const intake = [
-    1800, 2400, 2100, 2300, 2000, 1900, 2100, 2500, 2300, 2400, 2200, 2600,
-    2500, 2450, 2400, 2350,
-  ];
+  const [dailyVolumes, setDailyVolumes] = useState([]);
+  const [intakePerDay, setIntakePerDay] = useState([]);
+  const [monthlyAdvice, setMonthlyAdvice] = useState(null);
+  const [adviceLoading, setAdviceLoading] = useState(false);
+  const [urineLoading, setUrineLoading] = useState(false);
+  const [intakeLoading, setIntakeLoading] = useState(false);
+
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchMonthlyVolumes = async () => {
+      setUrineLoading(true);
+      try {
+        const response = await api.get("/trend/urine/monthlyDailyVolume", {
+          params: {
+            userId: auth.user.id,
+            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+          },
+        });
+        const payload = response.data?.data || response.data;
+        if (
+          !payload ||
+          !Array.isArray(payload.days) ||
+          !Array.isArray(payload.volumes)
+        ) {
+          return;
+        }
+
+        const getOrdinal = (day) => {
+          if (day === 1 || day === 21 || day === 31) return `${day}st`;
+          if (day === 2 || day === 22) return `${day}nd`;
+          if (day === 3 || day === 23) return `${day}rd`;
+          return `${day}th`;
+        };
+
+        const series = payload.days.map((day, idx) => {
+          return {
+            day,
+            label: getOrdinal(day),
+            volume: payload.volumes[idx] || 0,
+          };
+        });
+
+        setDailyVolumes(series);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load urine monthly volumes (premium):", error);
+      } finally {
+        setUrineLoading(false);
+      }
+    };
+
+    fetchMonthlyVolumes();
+  }, [api, auth?.user?.id, referenceDate]);
+
+  useEffect(() => {
+    if (!auth?.user?.id || !referenceDate) return;
+
+    const fetchMonthlyIntake = async () => {
+      setIntakeLoading(true);
+      try {
+        const res = await api.get("/trend/water/monthlyDailyMl", {
+          params: {
+            userId: auth.user.id,
+            referenceDate: referenceDate.toISOString(),
+          },
+        });
+        const payload = res.data?.data ?? res.data;
+        if (!payload || !Array.isArray(payload.mlPerDay)) return;
+        setIntakePerDay(payload.mlPerDay);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load monthly water intake (premium):", error);
+        setIntakePerDay([]);
+      } finally {
+        setIntakeLoading(false);
+      }
+    };
+
+    fetchMonthlyIntake();
+  }, [api, auth?.user?.id, referenceDate]);
+
+  useEffect(() => {
+    if (!auth?.user?.id || dailyVolumes.length === 0) return;
+
+    const fetchMonthlyAdvice = async () => {
+      setAdviceLoading(true);
+      try {
+        const total = dailyVolumes.reduce((s, d) => s + d.volume, 0);
+        const avgVolume = dailyVolumes.length ? Math.round(total / dailyVolumes.length) : 0;
+        const withVolume = dailyVolumes.map((d) => ({ day: d.day, volume: d.volume }));
+        const highest = dailyVolumes.length
+          ? dailyVolumes.reduce((a, b) => (a.volume >= b.volume ? a : b))
+          : null;
+        const lowest = dailyVolumes.length
+          ? dailyVolumes.reduce((a, b) => (a.volume <= b.volume ? a : b))
+          : null;
+        let normalCount = 0;
+        let lowCount = 0;
+        let highCount = 0;
+        dailyVolumes.forEach((d) => {
+          if (d.volume >= 1200 && d.volume <= 2400) normalCount += 1;
+          else if (d.volume < 1200) lowCount += 1;
+          else highCount += 1;
+        });
+
+        const res = await api.post("/trend/urine/monthlyAdvice", {
+          dailyVolumes: withVolume,
+          avgVolume,
+          highestDay: highest?.day ?? null,
+          highestVolume: highest?.volume ?? 0,
+          lowestDay: lowest?.day ?? null,
+          lowestVolume: lowest?.volume ?? 0,
+          normalCount,
+          lowCount,
+          highCount,
+          totalDays: dailyVolumes.length,
+        });
+        const data = res.data?.data ?? res.data;
+        if (data) setMonthlyAdvice(data);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load monthly urine advice (premium):", err);
+      } finally {
+        setAdviceLoading(false);
+      }
+    };
+
+    fetchMonthlyAdvice();
+  }, [api, auth?.user?.id, dailyVolumes]);
+
+  const labels = useMemo(
+    () =>
+      dailyVolumes.length
+        ? dailyVolumes.map((d) => d.label)
+        : [
+            "1st",
+            "3rd",
+            "5th",
+            "7th",
+            "9th",
+            "11th",
+            "13th",
+            "15th",
+            "17th",
+            "19th",
+            "21st",
+            "23rd",
+            "25th",
+            "27th",
+            "29th",
+            "31st",
+          ],
+    [dailyVolumes]
+  );
+
+  const urine = useMemo(
+    () =>
+      dailyVolumes.length
+        ? dailyVolumes.map((d) => d.volume)
+        : [
+            900, 1300, 800, 1100, 700, 600, 950, 1200, 900, 1100, 700, 1400, 1600,
+            1500, 1700, 1800,
+          ],
+    [dailyVolumes]
+  );
+
+  const intake = useMemo(() => {
+    if (intakePerDay.length) return intakePerDay;
+    if (urine.length)
+      return urine.map((v) => v + 800); // simple offset fallback
+    return [
+      1800, 2400, 2100, 2300, 2000, 1900, 2100, 2500, 2300, 2400, 2200, 2600,
+      2500, 2450, 2400, 2350,
+    ];
+  }, [intakePerDay, urine]);
+
+  const avgUrine = useMemo(
+    () =>
+      urine.length ? Math.round(urine.reduce((sum, v) => sum + v, 0) / urine.length) : 0,
+    [urine]
+  );
+
+  const avgIntake = useMemo(
+    () =>
+      intake.length
+        ? Math.round(intake.reduce((sum, v) => sum + v, 0) / intake.length)
+        : 0,
+    [intake]
+  );
+
+  const abnormalCount = useMemo(
+    () => urine.filter((v) => v < 1200 || v > 2400).length,
+    [urine]
+  );
 
   const lineData = {
     labels,
@@ -120,6 +293,7 @@ const Month = () => {
       },
     },
   };
+  const chartLoading = urineLoading || intakeLoading;
 
   return (
     <div className="pl-[15px] pr-[15px] mt-[38px]">
@@ -137,7 +311,11 @@ const Month = () => {
 
         {/* Chart */}
         <div className="h-56">
-          {mode === "line" ? (
+          {chartLoading ? (
+            <div className="flex h-full items-center justify-center text-xs text-secondary">
+              Loading monthly water & urine data…
+            </div>
+          ) : mode === "line" ? (
             <Line data={lineData} options={options} />
           ) : (
             <Scatter data={scatterData} options={options} />
@@ -160,10 +338,30 @@ const Month = () => {
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3">
-          <Stat title="Avg Urine" value="1606 ml" accent="yellow" />
-          <Stat title="Avg Intake" value="1943 ml" accent="blue" />
-          <Stat title="Clarity" value="76%" accent="green" />
-          <Stat title="Hydration" value="18 Days" accent="indigo" />
+          <Stat
+            title="Avg Urine"
+            value={avgUrine ? `${avgUrine} ml` : "-"}
+            accent="yellow"
+          />
+          <Stat
+            title="Avg Intake"
+            value={avgIntake ? `${avgIntake} ml` : "-"}
+            accent="blue"
+          />
+          <Stat
+            title="Clarity"
+            value={
+              monthlyAdvice?.normalRatePercent != null
+                ? `${monthlyAdvice.normalRatePercent}%`
+                : "-"
+            }
+            accent="green"
+          />
+          <Stat
+            title="Abnormal Days"
+            value={abnormalCount || abnormalCount === 0 ? `${abnormalCount}` : "-"}
+            accent="indigo"
+          />
         </div>
 
         {showAnalysis && (
@@ -180,9 +378,21 @@ const Month = () => {
               <h3 className="text-sm text-primary font-medium">
                 Correlation with Changes
               </h3>
-              <p className="text-xs text-secondary leading-relaxed">
-                For every 500ml increase in water intake, urine clarity improves by 12%.Maintain 2000–2500ml daily to keep clarity &gt; 75%.
-              </p>
+              {adviceLoading ? (
+                <p className="text-xs text-secondary leading-relaxed">
+                  Loading monthly analysis…
+                </p>
+              ) : monthlyAdvice?.monthlyNotes?.length ? (
+                <ul className="list-disc pl-4 space-y-1 text-xs text-secondary">
+                  {monthlyAdvice.monthlyNotes.map((note, idx) => (
+                    <li key={idx}>{note}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-xs text-secondary leading-relaxed">
+                  Monthly insights will appear here based on your urine volume pattern.
+                </p>
+              )}
             </div>
 
             {/* Drinking Time */}
@@ -191,7 +401,9 @@ const Month = () => {
                 Drinking Time Analysis
               </h3>
               <p className="text-xs text-secondary leading-relaxed">
-                Morning intake links strongest to clarity.Drink 400–500ml before breakfast to improve urine health.
+                {monthlyAdvice?.hydrationBalancePercent != null
+                  ? `Overall hydration balance this month is ${monthlyAdvice.hydrationBalancePercent}%.`
+                  : "Keep intake distributed across the day to support stable urine volume."}
               </p>
             </div>
 
@@ -201,16 +413,30 @@ const Month = () => {
                 Abnormal Days Analysis
               </h3>
               <p className="text-xs text-secondary leading-relaxed">
-                7 days this month with clarity &lt; 60%, mostly 5th–10th.Related to lower water intake.
+                {monthlyAdvice?.normalRatePercent != null
+                  ? `Normal urine days this month: ${monthlyAdvice.normalRatePercent}%.`
+                  : "Monitor days with unusually low or high urine volume and relate them to hydration or diet changes."}
               </p>
             </div>
 
             {/* Personal Tip */}
             <div className="rounded-[8px] bg-blue-50 p-4 text-sm text-gray-700">
               <p className="text-[#619af8] mb-1">Personal Tip</p>
-              <p className="text-xs text-secondary">
-                Before 9 AM, drink at least 800ml for best urine health.
-              </p>
+              {adviceLoading ? (
+                <p className="text-xs text-secondary">
+                  Loading tip…
+                </p>
+              ) : monthlyAdvice?.suggestions?.length ? (
+                <ul className="list-disc pl-4 space-y-1 text-xs text-secondary">
+                  {monthlyAdvice.suggestions.map((s, idx) => (
+                    <li key={idx}>{s}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-xs text-secondary">
+                  Aim for 1800–2400ml intake, and avoid large amounts of water just before bed to support healthy urine patterns.
+                </p>
+              )}
             </div>
           </div>
         )}

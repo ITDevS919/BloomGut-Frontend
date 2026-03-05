@@ -19,10 +19,16 @@ ChartJS.register(
   Legend
 );
 import { Bar, Line, Radar } from "react-chartjs-2";
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import useApiClient from "@/hooks/useApiClient";
 
-const Year = () => {
+const Year = ({ referenceDate }) => {
+  const auth = useSelector((state) => state.auth);
+  const api = useApiClient();
+
   //   in take ratio chart
-  const inTakeRatioLabels = [
+  const [inTakeRatioLabels, setInTakeRatioLabels] = useState([
     "Jan",
     "Feb",
     "Mar",
@@ -35,13 +41,103 @@ const Year = () => {
     "Oct",
     "Nov",
     "Dec",
-  ];
+  ]);
+  const [fiberYear, setFiberYear] = useState([20, 22, 25, 28, 30, 35, 38, 36, 32, 30, 28, 25]);
+  const [proteinYear, setProteinYear] = useState([18, 20, 22, 25, 28, 30, 32, 30, 28, 26, 24, 22]);
+  const [fatYear, setFatYear] = useState([25, 26, 27, 28, 30, 32, 30, 28, 26, 25, 24, 23]);
+  const [sugarYear, setSugarYear] = useState([37, 32, 26, 19, 12, 3, 0, 6, 14, 19, 24, 30]);
+  const [yearlySummary, setYearlySummary] = useState("");
+  const [yearlyGoals, setYearlyGoals] = useState([
+    "Fiber ↑ in H1, slight ↓ in H2",
+    "Fat & sugar ↑ in H2",
+    "Protein stable all year",
+  ]);
+  const [keyTransitions, setKeyTransitions] = useState([
+    { period: "April–June", note: "Fiber ↑", status: "positive" },
+    { period: "Oct–Dec", note: "Fat & Sugar ↑", status: "caution" },
+  ]);
+  const [loadingYear, setLoadingYear] = useState(false);
+  const [loadingAdvice, setLoadingAdvice] = useState(false);
+
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchYearly = async () => {
+      setLoadingYear(true);
+      try {
+        const res = await api.get("/trend/diet/yearlySummary", {
+          params: {
+            userId: auth.user.id,
+            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+          },
+        });
+        const payload = res.data?.data ?? res.data;
+        if (!payload) return;
+
+        if (Array.isArray(payload.labels) && payload.labels.length === 12) {
+          setInTakeRatioLabels(payload.labels);
+        }
+        if (Array.isArray(payload.fiber)) setFiberYear(payload.fiber);
+        if (Array.isArray(payload.protein)) setProteinYear(payload.protein);
+        if (Array.isArray(payload.fat)) setFatYear(payload.fat);
+        if (Array.isArray(payload.sugar)) setSugarYear(payload.sugar);
+
+        setLoadingAdvice(true);
+        try {
+          const adviceRes = await api.post("/trend/diet/yearlyAdvice", {
+            userId: auth.user.id,
+            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+          });
+          const advicePayload = adviceRes.data?.data ?? adviceRes.data;
+          if (advicePayload) {
+            if (typeof advicePayload.summary === "string" && advicePayload.summary.trim()) {
+              setYearlySummary(advicePayload.summary.trim());
+            }
+            if (Array.isArray(advicePayload.goals) && advicePayload.goals.length) {
+              setYearlyGoals(
+                advicePayload.goals
+                  .filter((g) => typeof g === "string" && g.trim())
+                  .slice(0, 3)
+              );
+            }
+            if (Array.isArray(advicePayload.keyTransitions) && advicePayload.keyTransitions.length) {
+              setKeyTransitions(
+                advicePayload.keyTransitions
+                  .filter(
+                    (k) =>
+                      k &&
+                      typeof k.period === "string" &&
+                      k.period.trim() &&
+                      typeof k.note === "string" &&
+                      k.note.trim()
+                  )
+                  .slice(0, 2)
+              );
+            }
+          }
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error("Failed to load yearly diet advice:", error);
+        } finally {
+          setLoadingAdvice(false);
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load yearly diet summary:", error);
+      } finally {
+        setLoadingYear(false);
+      }
+    };
+
+    fetchYearly();
+  }, [api, auth?.user?.id, referenceDate]);
+
   const inTakeRatioData = {
     labels: inTakeRatioLabels,
     datasets: [
       {
         label: "Fiber",
-        data: [20, 22, 25, 28, 30, 35, 38, 36, 32, 30, 28, 25],
+        data: fiberYear,
         backgroundColor: "rgba(34,197,94,0.6)",
         borderColor: "#22C55E",
         fill: true,
@@ -50,7 +146,7 @@ const Year = () => {
       },
       {
         label: "Protein",
-        data: [18, 20, 22, 25, 28, 30, 32, 30, 28, 26, 24, 22],
+        data: proteinYear,
         backgroundColor: "rgba(59,130,246,0.6)",
         borderColor: "#3B82F6",
         fill: true,
@@ -59,7 +155,7 @@ const Year = () => {
       },
       {
         label: "Fat",
-        data: [25, 26, 27, 28, 30, 32, 30, 28, 26, 25, 24, 23],
+        data: fatYear,
         backgroundColor: "rgba(245,158,11,0.6)",
         borderColor: "#F59E0B",
         fill: true,
@@ -68,7 +164,7 @@ const Year = () => {
       },
       {
         label: "Sugar",
-        data: [37, 32, 26, 19, 12, 3, 0, 6, 14, 19, 24, 30],
+        data: sugarYear,
         backgroundColor: "rgba(239,68,68,0.6)",
         borderColor: "#EF4444",
         fill: true,
@@ -249,12 +345,18 @@ const Year = () => {
         </h2>
 
         <div className="h-40">
-          <Line data={inTakeRatioData} options={inTakeRatioOptions} />
+          {loadingYear ? (
+            <div className="flex h-full items-center justify-center text-xs text-secondary">
+              Loading yearly diet trend…
+            </div>
+          ) : (
+            <Line data={inTakeRatioData} options={inTakeRatioOptions} />
+          )}
         </div>
       </div>
 
       {/* Next Month's Goals */}
-      <div className="w-full rounded-[12px] bg-[#EFF6FF] border border-[#e5e7eb] p-5 shadow-[0_2px_4px_rgba(0,0,0,0.08)] space-y-3 mt-5">
+      <div className="w-full rounded-[12px] bg-[#EFF6FF] border border-custom-8 p-5 shadow-[0_2px_4px_rgba(0,0,0,0.08)] space-y-3 mt-5">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h2 className="text-base font-medium text-primary">Next Month’s Goals</h2>
@@ -265,20 +367,20 @@ const Year = () => {
 
         {/* Goals */}
         <ul className="space-y-2 text-base text-secondary">
-          <li className="flex items-start gap-2">
-            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-secondary" />
-            <span>Fiber ↑ in H1, slight ↓ in H2</span>
-          </li>
-
-          <li className="flex items-start gap-2">
-            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-secondary" />
-            <span>Fat & sugar ↑ in H2</span>
-          </li>
-
-          <li className="flex items-start gap-2">
-            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-secondary" />
-            <span>Protein stable all year</span>
-          </li>
+          {loadingAdvice ? (
+            <li className="flex items-start gap-2">
+              <span className="mt-1 h-1.5 w-1.5 rounded-full bg-secondary" />
+              <span>Analyzing yearly pattern…</span>
+            </li>
+          ) : (
+            yearlyGoals.map((goal, index) => (
+              // eslint-disable-next-line react/no-array-index-key
+              <li key={index} className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-secondary" />
+                <span>{goal}</span>
+              </li>
+            ))
+          )}
         </ul>
       </div>
 
@@ -289,23 +391,24 @@ const Year = () => {
 
         {/* Items */}
         <div className="flex justify-between text-sm text-gray-700">
-          {/* April–June */}
-          <div className="flex items-start gap-2">
-            <span className="mt-1 h-2.5 w-2.5 rounded-full bg-green-500" />
-            <div>
-              <p className="text-secondary text-sm">April–June</p>
-              <p className="text-secondary text-sm">Fiber ↑</p>
+          {keyTransitions.slice(0, 2).map((kt, index) => (
+            // eslint-disable-next-line react/no-array-index-key
+            <div key={index} className="flex items-start gap-2">
+              <span
+                className={`mt-1 h-2.5 w-2.5 rounded-full ${
+                  kt.status === "positive"
+                    ? "bg-green-500"
+                    : kt.status === "caution"
+                    ? "bg-yellow-400"
+                    : "bg-gray-400"
+                }`}
+              />
+              <div>
+                <p className="text-secondary text-sm">{kt.period}</p>
+                <p className="text-secondary text-sm">{kt.note}</p>
+              </div>
             </div>
-          </div>
-
-          {/* Oct–Dec */}
-          <div className="flex items-start gap-2">
-            <span className="mt-1 h-2.5 w-2.5 rounded-full bg-yellow-400" />
-            <div>
-              <p className="text-secondary text-sm">Oct–Dec</p>
-              <p className="text-secondary text-sm">Fat &amp; Sugar ↑</p>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
 
@@ -348,7 +451,7 @@ const Year = () => {
       <div className="text-primary text-base font-medium pl-[15px] mb-3 mt-5">Diet & Bowel</div>
       <div className="w-full rounded-[20px] bg-white p-5 shadow-[2px_0_10px_rgba(0,0,0,0.15)] space-y-4">
         {/* Header */}
-        <div className="rounded-[12px] bg-[#EFF6FF] p-4 text-sm border border-[#e5e7eb]">
+        <div className="rounded-[12px] bg-[#EFF6FF] p-4 text-sm border border-custom-8">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2 text-primary">
               Diet and Bowel Movement
@@ -384,13 +487,17 @@ const Year = () => {
         {/* Findings */}
         <div className="text-sm space-y-2">
           <p className="text-primary text-base mb-2">Annual Correlation</p>
-          <p className="text-secondary text-xs mb-4">Based on your annual diet and bowel data analysis, the most significant findings are as follows:</p>
+          <p className="text-secondary text-xs mb-4">
+            {loadingAdvice
+              ? "Summarizing how your yearly diet pattern relates to gut comfort…"
+              : yearlySummary ||
+                "Fiber and protein appear supportive, while higher fat and sugar periods may relate to gut discomfort."}
+          </p>
           <ul className="list-disc pl-4 space-y-1 text-secondary text-sm">
-            <li>Fiber & grains → strong positive</li>
-            <li>Fat & processed → strong negative</li>
-            <li>
-              High-protein diets show neutral correlation, depending on source
-            </li>
+            {yearlyGoals.map((goal, index) => (
+              // eslint-disable-next-line react/no-array-index-key
+              <li key={index}>{goal}</li>
+            ))}
           </ul>
         </div>
       </div>
