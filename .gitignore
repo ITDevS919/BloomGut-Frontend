@@ -6,7 +6,6 @@
 *.swp
 .buildlog/
 .history
-.env
 
 
 
@@ -119,3 +118,4 @@ app.*.symbols
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 !/dev/ci/**/Gemfile.lock
+config.bat
