@@ -4,11 +4,8 @@ import { Doughnut, Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
-<<<<<<<<< Temporary merge branch 1
-=========
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
->>>>>>>>> Temporary merge branch 2
 import Upgrade from "./Upgrade";
 import DateRangeSelectorYellowUpdate from "@/components/custom/DateRangeSelectorYellow(Update)";
 import DateRangeSelectorYellow from "@/components/custom/DateRangeSelectorYellow";
@@ -43,11 +40,8 @@ const Intermediate = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const plan = searchParams.get("plan");
-<<<<<<<<< Temporary merge branch 1
-=========
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
->>>>>>>>> Temporary merge branch 2
 
   const [weeklyData, setWeeklyData] = useState({
     labels: ["Hard", "Firm", "Normal", "Soft"],
