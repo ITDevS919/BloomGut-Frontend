@@ -11,7 +11,7 @@
 // export default Login;
 
 import { useState } from "react";
-import { useSignIn, useUser } from "@clerk/clerk-react";
+import { useSignIn } from "@clerk/clerk-react";
 // import Icon from "@/components/common/Icon";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -29,7 +29,6 @@ const Login = () => {
   const navigate = useNavigate();
   const { signIn, setActive, isLoaded } = useSignIn();
   const [loading, setLoading] = useState(false);
-  const { user } = useUser();
 
   const {
     register,
@@ -38,18 +37,21 @@ const Login = () => {
   } = useForm();
 
   const onSubmit = async (data) => {
+    if (!isLoaded || loading) return;
     setLoading(true);
-    console.log(data);
     try {
       const res = await signIn.create({
         identifier: data.identifier,
         password: data.password,
       });
 
-      console.log("Sign-in result:", res);
-      console.log("User after login:", user); // may still be null here (see below)
-      navigate("/dashboard");
-      toast.success("Login successful!");
+      if (res.status === "complete" && res.createdSessionId) {
+        await setActive({ session: res.createdSessionId });
+        toast.success("Login successful!");
+        navigate("/dashboard");
+      } else {
+        toast.error("Additional sign-in steps are required. Please try again.");
+      }
     } catch (error) {
       toast.error(error?.errors?.[0]?.longMessage || "Login failed");
     } finally {
@@ -215,7 +217,11 @@ const Login = () => {
           </div>
 
           <div className="w-[60%] mx-auto mt-3">
-            <Button type="submit" className="w-full rounded-md shadow-[0_4px_12px_rgba(0,0,0,0.08)] cursor-pointer">
+            <Button
+              type="submit"
+              className="w-full rounded-md shadow-[0_4px_12px_rgba(0,0,0,0.08)] cursor-pointer"
+              disabled={loading}
+            >
               {loading ? "Logging in..." : "Login"}
             </Button>
             <div className="mt-3">

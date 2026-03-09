@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useAuth, useSignUp } from "@clerk/clerk-react";
+import { useState } from "react";
+import { useSignUp } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
 import Icon from "@/components/common/Icon";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,6 @@ import {
   usernameValidation,
 } from "@/utils/validators";
 import FormInput from "@/components/common/FormInput";
-import axios from "axios";
 import { ChevronLeft } from "lucide-react";
 
 const getPasswordStrength = (password = "") => {
@@ -31,11 +30,8 @@ const strengthValue = {
 
 const Register = () => {
   const { signUp, isLoaded } = useSignUp();
-  // const [passwordStrength, setPasswordStrength] = useState("Weak");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
-  const { getToken } = useAuth();
 
   const {
     register,
@@ -44,30 +40,30 @@ const Register = () => {
     watch,
   } = useForm();
 
-  console.log("loading", loading);
-
   const passwordToValidate = watch("password");
   const passwordStrength = getPasswordStrength(passwordToValidate);
 
   const onSubmit = async (data) => {
     setLoading(true);
-    console.log(data);
     try {
-      const res = await signUp.create(data);
+      await signUp.create(data);
       await signUp.prepareEmailAddressVerification({
         strategy: "email_code",
       });
 
-      await axios.post('http://localhost:5000/api/v1/user/create', res);
-      toast.success("Sign-up successful!");
-      navigate("/auth/login");
-    } catch (error) {
-      toast.error(error?.errors?.[0]?.longMessage);
-      console.log(
-        "error?.errors?.long_message",
-        error?.errors?.[0]?.longMessage
+      sessionStorage.setItem(
+        "pendingRegistrationProfile",
+        JSON.stringify({
+          username: data?.username,
+          email: data?.emailAddress,
+        })
       );
-      console.log("error", error);
+      toast.success("Verification code sent to your email.");
+      navigate("/auth/verify-email");
+    } catch (error) {
+      const serverMessage = error?.response?.data?.message;
+      const clerkMessage = error?.errors?.[0]?.longMessage;
+      toast.error(serverMessage || clerkMessage || error?.message || "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -124,24 +120,26 @@ const Register = () => {
             displayError={true}
           />
 
-          <div className="flex flex-col mt-2 gap-2">
-            <div className="flex justify-between text-xs text-primary">
-              <span>Weak</span>
-              <span>Medium</span>
-              <span>Strong</span>
+          {passwordToValidate?.length > 0 && (
+            <div className="flex flex-col mt-2 gap-2">
+              <div className="flex justify-between text-xs text-primary">
+                <span>Weak</span>
+                <span>Medium</span>
+                <span>Strong</span>
+              </div>
+              <Progress className="h-3" value={strengthValue[passwordStrength]} />
+              {!errors.password && (
+                <p className="text-xs text-danger mb-4">
+                  Min 8 chars, 1 number & 1 uppercase
+                </p>
+              )}
             </div>
-            <Progress className="h-3" value={strengthValue[passwordStrength]} />
-            {!errors.password && (
-              <p className="text-xs text-danger mb-4">
-                Min 8 chars, 1 number & 1 uppercase
-              </p>
-            )}
-          </div>
+          )}
 
           <div id="clerk-captcha" />
 
-          <Button type="submit" className="w-[60%] mx-auto cursor-pointer">
-            Register
+          <Button type="submit" className="w-[60%] mx-auto cursor-pointer" disabled={loading}>
+            {loading ? "Registering..." : "Register"}
           </Button>
         </form>
 

@@ -1,7 +1,7 @@
 import PrivateLayout from "@/layouts/private-layout";
-import VerifyEmail from "@/pages/auth/SetUsername";
 import Login from "@/pages/auth/Login";
 import Register from "@/pages/auth/Register";
+import VerifyEmail from "@/pages/auth/VerifyEmail";
 import Dashboard from "@/pages/home/Dashboard";
 import Home from "@/pages/home/Home";
 import OnBoardScreen from "@/pages/home/OnBoardScreen";
@@ -87,6 +87,11 @@ export const AUTH_ROUTES = [
   {
     path: "/auth/register",
     element: <Register />,
+    isRouteAccessible: true,
+  },
+  {
+    path: "/auth/verify-email",
+    element: <VerifyEmail />,
     isRouteAccessible: true,
   },
   {
