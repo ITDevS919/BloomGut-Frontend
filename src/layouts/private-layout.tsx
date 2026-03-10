@@ -14,10 +14,12 @@ import settingIcon from "@/assets/Images/Icon settings.svg";
 import selectedSettingIcon from "@/assets/Images/Selected Icon settings.svg";
 import Icon from "@/components/common/Icon";
 import { FaGlassWhiskey, FaTint } from "react-icons/fa";
+import { useAuth } from "@clerk/clerk-react";
 
 const PrivateLayout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isSignedIn, isLoaded } = useAuth();
   const [selectedIcon, setSelectedIcon] = useState(homeIcon);
   const [showRecordModal, setShowRecordModal] = useState(false);
   const [showTrendModal, setShowTrendModal] = useState(false);
@@ -27,6 +29,12 @@ const PrivateLayout = ({ children }) => {
   const trendModalRef = useRef(null);
   const previousPathRef = useRef(location.pathname);
   const isManualNavigationRef = useRef(false);
+
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      navigate("/auth/login");
+    }
+  }, [isLoaded, isSignedIn, navigate]);
 
   const recordOptions = [
     {
