@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useSignUp } from "@clerk/clerk-react";
+import { useEffect, useState } from "react";
+import { useAuth, useSignUp } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
 import Icon from "@/components/common/Icon";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,7 @@ const strengthValue = {
 };
 
 const Register = () => {
+  const { isSignedIn } = useAuth();
   const { signUp, isLoaded } = useSignUp();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -68,6 +69,12 @@ const Register = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isSignedIn) {
+      navigate("/dashboard");
+    }
+  }, [isSignedIn, navigate]);
 
   if (!isLoaded)
     return (

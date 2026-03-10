@@ -10,8 +10,8 @@
 
 // export default Login;
 
-import { useState } from "react";
-import { useSignIn } from "@clerk/clerk-react";
+import { useEffect, useState } from "react";
+import { useAuth, useSignIn } from "@clerk/clerk-react";
 // import Icon from "@/components/common/Icon";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -27,6 +27,7 @@ import { FaLine } from "react-icons/fa";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { isSignedIn } = useAuth();
   const { signIn, setActive, isLoaded } = useSignIn();
   const [loading, setLoading] = useState(false);
 
@@ -76,6 +77,12 @@ const Login = () => {
   //     toast.error(error?.message || "Error sending reset link.");
   //   }
   // };
+
+  useEffect(() => {
+    if (isSignedIn) {
+      navigate("/dashboard");
+    }
+  }, [isSignedIn, navigate]);
 
   if (!isLoaded) {
     return <div className="flex justify-center items-center">Loading...</div>;

@@ -4,9 +4,18 @@ import { FaToilet } from "react-icons/fa";
 import { FaGlassWhiskey } from "react-icons/fa";
 import { FaArrowTrendUp } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@clerk/clerk-react";
+import { useEffect } from "react";
 
 const Home = () => {
   const navigate = useNavigate();
+  const { isSignedIn } = useAuth();
+
+  useEffect(() => {
+    if (isSignedIn) {
+      navigate("/dashboard");
+    }
+  }, [isSignedIn, navigate]);
   return (
     <div className="flex flex-col justify-center items-center h-full">
       <div className="flex flex-col gap-2 text-center mt-21">
