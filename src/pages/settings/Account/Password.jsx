@@ -1,5 +1,7 @@
 import { ChevronLeft } from "lucide-react";
 import React, { useState } from "react";
+import { useUser } from "@clerk/clerk-react";
+import { toast } from "sonner";
 
 const Password = () => {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -9,6 +11,8 @@ const Password = () => {
   const [currentPasswordError, setCurrentPasswordError] = useState("");
   const [newPasswordError, setNewPasswordError] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
+  const { user } = useUser();
+  const [isSaving, setIsSaving] = useState(false);
 
   const container = { background: "#fbf7f3", minHeight: "100%", padding: 24, color: "#4b332d", fontFamily: "sans-serif" };
   const header = { display: "flex", alignItems: "center", gap: 12, marginBottom: 18, };
@@ -41,18 +45,40 @@ const Password = () => {
     return valid ? "" : "invalid";
   };
 
-  const saveSettings = (e) => {
+  const saveSettings = async (e) => {
     e.preventDefault();
     const v = validate();
     // v === "" means valid
     if (v !== "") return;
-    // Placeholder: submit password change to API
-    console.log({ currentPassword, newPassword });
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
+
+    if (!user) {
+      setError("You must be logged in to change your password.");
+      return;
+    }
+
+    setIsSaving(true);
     setError("");
-    alert("Password updated (placeholder)");
+
+    try {
+      await user.updatePassword({
+        currentPassword,
+        newPassword,
+      });
+
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      toast.success("Password updated successfully.");
+    } catch (err) {
+      // Clerk error format: err.errors[0].longMessage, but fall back safely
+      const msg =
+        err?.errors?.[0]?.longMessage ||
+        err?.message ||
+        "Failed to update password. Please try again.";
+      setError(msg);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -111,13 +137,12 @@ const Password = () => {
           ) : <p className="text-xs text-custom-12 mb-[70px]">Must include 8 characters, at least 1 number and 1 uppercase letter</p>}
         </div>
 
-        {error && <div style={{ color: "#c33", marginTop: 12 }}>{error}</div>}
-
-
         <button
-          className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)] mt-10"
+          type="submit"
+          disabled={isSaving}
+          className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)] mt-10 disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          Save Settings
+          {isSaving ? "Saving..." : "Save Settings"}
         </button>
       </form>
     </div>

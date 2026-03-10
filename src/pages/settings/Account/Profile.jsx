@@ -2,6 +2,7 @@ import { ChevronLeft, Pencil } from "lucide-react";
 import React, { useState, useRef, useEffect } from "react";
 import { FaPencilAlt } from "react-icons/fa";
 import { useSelector } from "react-redux";
+import { useUser } from "@clerk/clerk-react";
 import useApiClient from "@/hooks/useApiClient";
 import { toast } from "sonner";
 
@@ -18,6 +19,7 @@ const Profile = () => {
   const [month, setMonth] = useState(months[0]);
   const [height, setHeight] = useState("");
   const [weight, setWeight] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   const styles = {
     page: {
@@ -92,10 +94,46 @@ const Profile = () => {
   };
 
   const auth = useSelector((state) => state.auth);
+  const { user } = useUser();
   const api = useApiClient();
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
   const fileInputRef = useRef(null);
   const [avatarUrl, setAvatarUrl] = useState(auth?.user?.imageUrl || "");
+
+  const handleAvatarFileChange = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    // Local preview
+    const previewUrl = URL.createObjectURL(file);
+    if (avatarUrl && avatarUrl.startsWith("blob:")) {
+      URL.revokeObjectURL(avatarUrl);
+    }
+    setAvatarUrl(previewUrl);
+
+    if (!user) {
+      toast.error("You must be logged in to change your avatar.");
+      return;
+    }
+
+    try {
+      const updatedUser = await user.setProfileImage({ file });
+      const finalUrl =
+        updatedUser?.profileImageUrl || updatedUser?.imageUrl || avatarUrl;
+
+      if (finalUrl) {
+        if (previewUrl && previewUrl.startsWith("blob:")) {
+          URL.revokeObjectURL(previewUrl);
+        }
+        setAvatarUrl(finalUrl);
+      }
+      // toast.success("Avatar updated.");
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("Failed to update avatar in Clerk:", error);
+      toast.error("Failed to update avatar. Please try again.");
+    }
+  };
 
   useEffect(() => {
     return () => {
@@ -125,7 +163,12 @@ const Profile = () => {
 
         setUsername(payload.username || "");
         setEmail(payload.email || "");
-        if (payload.gender) setGender(payload.gender);
+        if (payload.gender)
+          setGender(
+            typeof payload.gender === "string"
+              ? payload.gender.toLowerCase()
+              : payload.gender
+          );
         if (payload.dob) {
           const d = new Date(payload.dob);
           if (!Number.isNaN(d.getTime())) {
@@ -152,12 +195,17 @@ const Profile = () => {
       return;
     }
     try {
+      setIsSaving(true);
       const dobIso = `${year}-${month}-01T00:00:00.000Z`;
+      const normalizedGender =
+        typeof gender === "string" && gender.trim()
+          ? gender.trim().toUpperCase()
+          : undefined;
       await api.post("/user/profile", {
         userId: auth.user.id,
         username,
         email,
-        gender,
+        gender: normalizedGender,
         dob: dobIso,
         height,
         weight,
@@ -167,6 +215,9 @@ const Profile = () => {
       // eslint-disable-next-line no-console
       console.error("Failed to update profile:", error);
       toast.error("Failed to update profile. Please try again.");
+    }
+    finally {
+      setIsSaving(false);
     }
   };
 
@@ -454,9 +505,11 @@ const Profile = () => {
           </div>
 
           <button
-            className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)] mt-3"
+            type="submit"
+            disabled={isSaving}
+            className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)] mt-3 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Save Settings
+            {isSaving ? "Saving..." : "Save Settings"}
           </button>
         </form>
 
@@ -465,15 +518,7 @@ const Profile = () => {
           type="file"
           accept="image/*"
           style={{ display: "none" }}
-          onChange={(e) => {
-            const file = e.target.files && e.target.files[0];
-            if (!file) return;
-            const url = URL.createObjectURL(file);
-            if (avatarUrl && avatarUrl.startsWith("blob:"))
-              URL.revokeObjectURL(avatarUrl);
-            setAvatarUrl(url);
-            // TODO: upload `file` to server here
-          }}
+          onChange={handleAvatarFileChange}
         />
       </div>
     </>
