@@ -34,6 +34,7 @@ import { toast } from "sonner";
 const StoolPage = () => {
 
   const auth = useSelector((state) => state.auth);
+  console.log("fjdsk;lfjdsalk;fjdsaklf;jsdakl;fjk;fsfjs", auth)
   const api = useApiClient();
   const navigate = useNavigate();
 
@@ -54,6 +55,8 @@ const StoolPage = () => {
   const [selectedStool, setSelectedStool] = useState(null);
   const [selectedStoolImage, setSelectedStoolImage] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
+  const [isMainImageLoaded, setIsMainImageLoaded] = useState(false);
+  const [loadedThumbs, setLoadedThumbs] = useState<Record<string, boolean>>({});
 
   // Checkbox states
   const [timeOfDayChecked, setTimeOfDayChecked] = useState<Record<string, boolean>>({});
@@ -301,13 +304,17 @@ const StoolPage = () => {
         </CustomButton>
       </div>
 
-      <div className="flex justify-center items-center">
+      <div className="flex justify-center items-center relative">
+        {!isMainImageLoaded && (
+          <div className="w-27 h-24.5 rounded-full border border-custom-20 shadow-[0_4px_12px_rgba(0,0,0,0.08)] bg-gray-100 flex items-center justify-center">
+            <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
         <img
           src={selectedStool ? selectedStool : Type1}
-          loading="lazy"
-          decoding="async"
-          className="w-27 h-24.5 object-cover border border-custom-20 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+          className={`w-27 h-24.5 object-cover border border-custom-20 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.08)] transition-opacity duration-200 ${isMainImageLoaded ? "opacity-100" : "opacity-0"}`}
           alt="Logo"
+          onLoad={() => setIsMainImageLoaded(true)}
         />
       </div>
 
@@ -325,20 +332,28 @@ const StoolPage = () => {
                 key={index}
                 onClick={() => i?.onclick()}
               >
-                <img
-                  src={i?.image}
-                  loading="lazy"
-                  decoding="async"
-                  className={`w-10 h-10 object-cover rounded-full aspect-square flex-shrink-0
-                    ${
-                      isSelected
-                        ? "border-2 border-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
-                        : "shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
+                <div className="relative w-10 h-10">
+                  {!loadedThumbs[i.label] && (
+                    <div className="absolute inset-0 rounded-full bg-gray-100 flex items-center justify-center">
+                      <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
+                  <img
+                    src={i?.image}
+                    className={`w-10 h-10 object-cover rounded-full aspect-square flex-shrink-0
+                      ${
+                        isSelected
+                          ? "border-2 border-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
+                          : "shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
+                      }
+                      ${index === 0 ? "mt-3" : ""}
+                      `}
+                    alt={i?.label}
+                    onLoad={() =>
+                      setLoadedThumbs((prev) => ({ ...prev, [i.label]: true }))
                     }
-                    ${index === 0 ? "mt-3" : ""}
-                    `}
-                  alt={i?.label}
-                />
+                  />
+                </div>
                 <p className="text-primary text-xs font-medium text-center capitalize max-w-[50px] leading-tight">
                   {i?.label}
                 </p>
