@@ -34,6 +34,9 @@ const Dashboard = () => {
   const [urineSegments, setUrineSegments] = useState(0);
   const [urineStatus, setUrineStatus] = useState("Not Recorded");
 
+  const isPageLoading =
+    bowelLoading || dietLoading || waterLoading || urineLoading;
+
   useEffect(() => {
     if (!auth?.user?.id) return;
 
@@ -233,11 +236,10 @@ const Dashboard = () => {
         </div>
         <div className="flex flex-col gap-5 mt-4">
           <div
-            className="relative flex justify-start gap-3 bg-[#dfd2b2] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)]"
-            onClick={() => {
-              if (bowelLoading) return;
-              navigate("/stool");
-            }}
+            className={`relative flex justify-start gap-3 bg-[#dfd2b2] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)] ${
+              isPageLoading ? "opacity-60 pointer-events-none" : ""
+            }`}
+            onClick={() => navigate("/stool")}
           >
             <div className="flex-0">
               <FaPoop className="text-primary" size={24} />
@@ -259,15 +261,6 @@ const Dashboard = () => {
                       const isActive = index < bowelSegments;
                       const baseClass =
                         "h-6 w-6 rounded-full transition-all duration-300";
-                      if (bowelLoading) {
-                        return (
-                          <p
-                            // eslint-disable-next-line react/no-array-index-key
-                            key={index}
-                            className={`${baseClass} bg-custom-8 animate-pulse`}
-                          />
-                        );
-                      }
                       return (
                         <p
                           // eslint-disable-next-line react/no-array-index-key
@@ -290,20 +283,13 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-
-            {bowelLoading && (
-              <div className="pointer-events-none absolute inset-0 rounded-[15px] bg-black/5 flex items-center justify-center transition-opacity duration-300">
-                <div className="h-5 w-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              </div>
-            )}
           </div>
 
           <div
-            className="relative flex justify-start gap-3 bg-[#e0d5e6] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)]"
-            onClick={() => {
-              if (dietLoading) return;
-              navigate("/diet-record");
-            }}
+            className={`relative flex justify-start gap-3 bg-[#e0d5e6] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)] ${
+              isPageLoading ? "opacity-60 pointer-events-none" : ""
+            }`}
+            onClick={() => navigate("/diet-record")}
           >
             <div>
               <FaUtensils className="text-primary" size={24} />
@@ -342,20 +328,13 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-
-            {dietLoading && (
-              <div className="pointer-events-none absolute inset-0 rounded-[15px] bg-black/5 flex items-center justify-center transition-opacity duration-300">
-                <div className="h-5 w-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              </div>
-            )}
           </div>
 
           <div
-            className="relative flex justify-start gap-3 bg-[#d7eaf8] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)]"
-            onClick={() => {
-              if (waterLoading) return;
-              navigate("/water-record");
-            }}
+            className={`relative flex justify-start gap-3 bg-[#d7eaf8] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)] ${
+              isPageLoading ? "opacity-60 pointer-events-none" : ""
+            }`}
+            onClick={() => navigate("/water-record")}
           >
             <div>
               <FaGlassWhiskey className="text-primary" size={24} />
@@ -392,20 +371,13 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-
-            {waterLoading && (
-              <div className="pointer-events-none absolute inset-0 rounded-[15px] bg-black/5 flex items-center justify-center transition-opacity duration-300">
-                <div className="h-5 w-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              </div>
-            )}
           </div>
 
           <div
-            className="relative flex justify-start gap-3 bg-[#fff3cd] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)]"
-            onClick={() => {
-              if (urineLoading) return;
-              navigate("/urine-record");
-            }}
+            className={`relative flex justify-start gap-3 bg-[#fff3cd] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)] ${
+              isPageLoading ? "opacity-60 pointer-events-none" : ""
+            }`}
+            onClick={() => navigate("/urine-record")}
           >
             <div>
               <MdWaterDrop className="text-primary" size={24} />
@@ -428,15 +400,6 @@ const Dashboard = () => {
                     {Array.from({ length: 5 }).map((_, index) => {
                       const baseClass =
                         "h-6 w-6 rounded-full transition-all duration-300";
-                      if (urineLoading) {
-                        return (
-                          // eslint-disable-next-line react/no-array-index-key
-                          <p
-                            key={index}
-                            className={`${baseClass} bg-custom-8 animate-pulse`}
-                          />
-                        );
-                      }
                       const isActive = index < urineSegments;
                       return (
                         // eslint-disable-next-line react/no-array-index-key
@@ -460,16 +423,15 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-
-            {urineLoading && (
-              <div className="pointer-events-none absolute inset-0 rounded-[15px] bg-black/5 flex items-center justify-center transition-opacity duration-300">
-                <div className="h-5 w-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              </div>
-            )}
           </div>
         </div>
       </div>
 
+      {isPageLoading && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-auto bg-black/5">
+          <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
     </div>
   );
 };

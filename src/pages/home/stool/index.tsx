@@ -49,12 +49,10 @@ const StoolPage = () => {
   const [textureConditionValue, setTextureConditionValue] = useState([]);
   const [odorConditionValue, setOdorConditionValue] = useState([]);
   const [otherSymptomsValue, setOtherSymptomsValue] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
 
   // selected
   const [selectedStool, setSelectedStool] = useState(null);
   const [selectedStoolImage, setSelectedStoolImage] = useState(null);
-  const [stoolImageLoadingIndex, setStoolImageLoadingIndex] = useState<number | null>(null);
   const [selectedColor, setSelectedColor] = useState(null);
 
   // Checkbox states
@@ -64,9 +62,10 @@ const StoolPage = () => {
   const [textureChecked, setTextureChecked] = useState<Record<string, boolean>>({});
   const [odorChecked, setOdorChecked] = useState<Record<string, boolean>>({});
 
-  // Validation errors
+  // Validation & loading
   const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // open
   const [mucusOpen, setMucusOpen] = useState(false);
@@ -75,6 +74,8 @@ const StoolPage = () => {
   const [otherSymptomsOpen, setOtherSymptomsOpen] = useState(false);
 
   const handleSaveRecord = async () => {
+    if (isSaving) return;
+
     // Reset validation errors
     setValidationErrors({});
 
@@ -281,12 +282,7 @@ const StoolPage = () => {
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
   return (
-    <div
-      className={`relative flex flex-col gap-4 font-['Noto_Sans_TC', sans-serif] ${
-        isSaving ? "pointer-events-none opacity-60" : ""
-      }`}
-      aria-busy={isSaving}
-    >
+    <div className="relative flex flex-col gap-4 font-['Noto_Sans_TC', sans-serif]">
       <div className="pt-4 px-3">
         <CustomButton
           icon={IoIosArrowBack}
@@ -312,20 +308,11 @@ const StoolPage = () => {
       </div>
 
       <div className="flex justify-center items-center">
-        <div className="relative">
-          <img
-            src={selectedStool ? selectedStool : Type1}
-            className={`w-27 h-24.5 object-cover border border-custom-20 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.08)] ${
-              stoolImageLoadingIndex !== null ? "opacity-60" : ""
-            }`}
-            alt="Logo"
-          />
-          {stoolImageLoadingIndex !== null && (
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-full">
-              <span className="inline-block h-5 w-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            </div>
-          )}
-        </div>
+        <img
+          src={selectedStool ? selectedStool : Type1}
+          className="w-27 h-24.5 object-cover border border-custom-20 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+          alt="Logo"
+        />
       </div>
 
       <div className="px-5 flex flex-col gap-2">
@@ -335,46 +322,29 @@ const StoolPage = () => {
         </span>
         <div className="flex justify-between items-center">
           {stoolImages?.map((i, index) => {
-            const isLoading = stoolImageLoadingIndex === index;
             const isSelected = selectedStoolImage === i?.label;
             return (
-              <button
-                type="button"
+              <div
+                className="flex flex-col gap-3 items-center cursor-pointer"
                 key={index}
-                className="flex flex-col gap-3 items-center cursor-pointer focus:outline-none disabled:cursor-default"
-                onClick={() => {
-                  if (isSaving || isLoading) return;
-                  setStoolImageLoadingIndex(index);
-                  i?.onclick();
-                  setTimeout(() => {
-                    setStoolImageLoadingIndex((current) =>
-                      current === index ? null : current
-                    );
-                  }, 300);
-                }}
-                disabled={isSaving}
-                aria-pressed={isSelected}
+                onClick={() => i?.onclick()}
               >
-                <div className="relative">
-                  <img
-                    src={i?.image}
-                    className={`w-10 h-10 object-cover rounded-full aspect-square flex-shrink-0
-                    ${isSelected ? "border-2 border-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]" : "shadow-[0_1px_3px_rgba(0,0,0,0.04)]"}
+                <img
+                  src={i?.image}
+                  className={`w-10 h-10 object-cover rounded-full aspect-square flex-shrink-0
+                    ${
+                      isSelected
+                        ? "border-2 border-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
+                        : "shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
+                    }
                     ${index === 0 ? "mt-3" : ""}
-                    ${isLoading ? "opacity-60" : ""}
                     `}
-                    alt={i?.label}
-                  />
-                  {isLoading && (
-                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-full">
-                      <span className="inline-block h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                    </div>
-                  )}
-                </div>
+                  alt={i?.label}
+                />
                 <p className="text-primary text-xs font-medium text-center capitalize max-w-[50px] leading-tight">
                   {i?.label}
                 </p>
-              </button>
+              </div>
             );
           })}
         </div>
@@ -743,20 +713,18 @@ const StoolPage = () => {
           onClick={handleSaveRecord}
           disabled={isSaving}
           aria-label="Save Record"
-          className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center gap-2 text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)] disabled:opacity-70 disabled:cursor-not-allowed"
+          className={`w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center gap-2 text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)] ${isSaving ? "opacity-70 cursor-not-allowed" : ""}`}
         >
-          {isSaving && (
-            <span className="inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          {isSaving ? (
+            <span className="flex items-center gap-2">
+              <span className="inline-block w-4 h-4 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
+              <span>Saving...</span>
+            </span>
+          ) : (
+            <span>Save</span>
           )}
-          <span>{isSaving ? "Saving..." : "Save"}</span>
         </button>
       </div>
-
-      {isSaving && (
-        <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/10 pointer-events-none transition-opacity duration-300">
-          <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin bg-white/0" />
-        </div>
-      )}
 
       {/* Unsaved Confirmation Modal */}
       {
