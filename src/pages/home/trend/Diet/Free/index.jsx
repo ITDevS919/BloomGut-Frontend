@@ -28,6 +28,17 @@ ChartJS.register(
   ChartDataLabels
 );
 
+const DIET_PRIMARY_COLOR = "#B5A6D2";
+
+const getScorePosition = (score) =>
+  Math.max(0, Math.min(100, Math.round(typeof score === "number" ? score : 0)));
+
+const getIndicatorColor = (value) => {
+  if (value >= 81) return DIET_PRIMARY_COLOR;
+  if (value >= 61) return "#FBC02D"; // Yellow segment (61–80)
+  return "#F66B6B"; // Red segment (0–60)
+};
+
 const Free = ({ showUpgrade = true, referenceDate }) => {
   const [selectedDate, setSelectedDate] = useState("3/16");
 
@@ -70,11 +81,8 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
     30, 33, 35, 37, 40, 43, 48,
   ]);
 
-  // Loading flags for cards/charts
-  const [scoreLoading, setScoreLoading] = useState(false);
-  const [dailyTypeLoading, setDailyTypeLoading] = useState(false);
-  const [dietTrendLoading, setDietTrendLoading] = useState(false);
-  const [bowelTrendLoading, setBowelTrendLoading] = useState(false);
+  const [loadingDietScores, setLoadingDietScores] = useState(true);
+  const [loadingTrendData, setLoadingTrendData] = useState(true);
 
   useEffect(() => {
     if (!auth?.user?.id) return;
@@ -91,7 +99,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         if (!payload) return;
         setWeekScore(payload.todayScore ?? 0);
         setBeforeWeekScore(payload.yesterdayScore ?? 0);
-        console.log("payload----------------",payload);
+        console.log("payload----------------", payload);
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Failed to load diet today score:", error);
@@ -134,11 +142,11 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
     };
 
     const run = async () => {
-      setScoreLoading(true);
+      setLoadingDietScores(true);
       try {
         await Promise.all([fetchDietScores(), fetchWeeklyDots()]);
       } finally {
-        setScoreLoading(false);
+        setLoadingDietScores(false);
       }
     };
 
@@ -150,7 +158,6 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
     const fetchDietCategory = async () => {
       try {
-        setDailyTypeLoading(true);
         const res = await api.get("/trend/diet/category", {
           params: {
             userId: auth.user.id,
@@ -165,13 +172,12 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         // eslint-disable-next-line no-console
         console.error("Failed to load diet category distribution:", error);
       } finally {
-        setDailyTypeLoading(false);
+        // no-op
       }
     };
 
     const fetchDietMacroWeekly = async () => {
       try {
-        setDietTrendLoading(true);
         const res = await api.get("/trend/diet/macroWeekly", {
           params: {
             userId: auth.user.id,
@@ -190,13 +196,12 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         // eslint-disable-next-line no-console
         console.error("Failed to load diet macro weekly trend:", error);
       } finally {
-        setDietTrendLoading(false);
+        // no-op
       }
     };
 
     const fetchBowelTrend = async () => {
       try {
-        setBowelTrendLoading(true);
         const res = await api.get("/trend/bowel/dailyTrendForDiet", {
           params: {
             userId: auth.user.id,
@@ -215,14 +220,26 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         // eslint-disable-next-line no-console
         console.error("Failed to load bowel daily trend for diet:", error);
       } finally {
-        setBowelTrendLoading(false);
+        // no-op
       }
     };
 
-    fetchDietCategory();
-    fetchDietMacroWeekly();
-    fetchBowelTrend();
+    const runTrends = async () => {
+      setLoadingTrendData(true);
+      try {
+        await Promise.all([
+          fetchDietCategory(),
+          fetchDietMacroWeekly(),
+          fetchBowelTrend(),
+        ]);
+      } finally {
+        setLoadingTrendData(false);
+      }
+    };
+
+    runTrends();
   }, [api, auth?.user?.id, referenceDate]);
+  const isLoading = loadingDietScores || loadingTrendData;
   const dailyTypeLabels = [
     {
       color: '#d0ab7f',
@@ -310,8 +327,8 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
     dietMacroLabels.length > 0
       ? dietMacroLabels
       : bowelLabels.length > 0
-      ? bowelLabels
-      : ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+        ? bowelLabels
+        : ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const chartDates = dates;
 
   const monthNames = [
@@ -413,8 +430,8 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         typeof dp.raw === "number"
           ? Math.round(dp.raw)
           : typeof dp.parsed?.y === "number"
-          ? Math.round(dp.parsed.y)
-          : dp.raw || "";
+            ? Math.round(dp.parsed.y)
+            : dp.raw || "";
       labelSpan.textContent = `${dp.dataset.label}: ${value}`;
 
       row.appendChild(dot);
@@ -605,8 +622,17 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         ticks: { font: { size: 11 } },
       },
     },
-  }
+  };
 
+  const scorePosition = getScorePosition(weekScore);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="h-8 w-8 border-4 border-[#CFE4B8] border-t-[#6AA84F] rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="pr-[15px] pl-[15px]">
@@ -614,57 +640,52 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
       <div className="bg-white rounded-[27px] p-[32px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[29px]">
         <div className="flex items-center justify-between">
           <div className="pl-[50px]">
-            {scoreLoading ? (
-              <div className="space-y-2">
-                <div className="h-7 w-16 rounded-full bg-slate-100 animate-pulse" />
-                <div className="h-3 w-20 rounded-full bg-slate-100 animate-pulse" />
-              </div>
-            ) : (
-              <>
-                <div className="text-3xl font-medium text-[#B5A6D2]">
-                  {weekScore}
-                </div>
-                <div className="text-sm text-custom-12">
-                  {weekScore > 75
-                    ? "Excellent"
-                    : weekScore > 50
-                    ? "Good"
-                    : weekScore > 25
-                    ? "Fair"
-                    : "Poor"}
-                </div>
-              </>
-            )}
+            <div className="text-3xl font-medium text-[#B5A6D2] text-center">
+              {weekScore}
+            </div>
+            <div className="text-sm text-custom-12 text-center">
+              {weekScore > 75
+                ? "Excellent"
+                : weekScore > 50
+                ? "Good"
+                : weekScore > 25
+                ? "Fair"
+                : "Poor"}
+            </div>
           </div>
-          <div className="text-base text-[#B5A6D2]">
-            {scoreLoading ? (
-              <span className="text-xs text-custom-12">
-                Loading weekly score…
-              </span>
-            ) : (
-              <>
-                {beforeWeekScore > weekScore ? "-" : "+"}
-                {Math.abs(Math.round(beforeWeekScore - weekScore))}% vs Last
-              </>
-            )}
+          <div className="text-base text-[#B5A6D2] text-center pr-[50px]">
+            {beforeWeekScore > weekScore ? "-" : "+"}
+            {Math.abs(Math.round(beforeWeekScore - weekScore))}% vs Last
           </div>
         </div>
 
+        {/* Progress Bar (Health Score) */}
         <div className="mt-4">
-          <div className="h-2 bg-green-200 rounded-full relative">
+          <div
+            className="h-2 rounded-full relative overflow-hidden"
+            style={{
+              background: `linear-gradient(to right,
+                ${DIET_PRIMARY_COLOR} 0%,
+                ${DIET_PRIMARY_COLOR} 60%,
+                #FBC02D 60%,
+                #FBC02D 80%,
+                #F66B6B 80%,
+                #F66B6B 100%)`,
+            }}
+          >
+            {/* Indicator (outer ring + inner fill) */}
             <div
-              className="absolute left-0 top-0 h-2 bg-[#B5A6D2] rounded-full"
-              style={{ width: "45%" }}
-            />
-            <div
-              className="absolute left-[45%] top-0 h-2 bg-yellow-300 rounded-full"
-              style={{ width: "30%" }}
-            />
-            <div
-              className="absolute left-[75%] top-0 h-2 bg-rose-300 rounded-full"
-              style={{ width: "25%" }}
-            />
-            <div className="absolute left-[44%] -top-2 w-3 h-3 rounded-full bg-white border-2 border-emerald-300" />
+              className="absolute -top-2.5 w-5 h-5 rounded-full border border-[#9E9E9E] bg-white flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.12)]"
+              style={{
+                left: `${scorePosition}%`,
+                transform: "translateX(-50%)",
+              }}
+            >
+              <div
+                className="w-2.5 h-2.5 rounded-full"
+                style={{ backgroundColor: getIndicatorColor(scorePosition) }}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -672,71 +693,65 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
       {/* Daily Type Distribution */}
       <div className="text-base mb-3 font-medium pl-[15px] text-primary">Daily Types</div>
       <div className="bg-white rounded-[20px] p-6 shadow-[2px_0_10px_rgba(3,3,3,0.1)] mb-[34px]">
-        {dailyTypeLoading ? (
-          <div className="flex h-[120px] items-center justify-center text-xs text-secondary">
-            Loading daily type distribution…
-          </div>
-        ) : (
-          <div className="flex items-end justify-between gap-2">
-            {dailyTypeValues.map((value, index) => (
+        <div className="flex items-end justify-between gap-2">
+          {dailyTypeValues.map((value, index) => (
+            <div
+              // eslint-disable-next-line react/no-array-index-key
+              key={index}
+              className="flex flex-col items-center flex-1"
+              title={`${dailyTypeLabels[index].label}: ${value}% of this week's diet calories`}
+            >
+              {/* Colored Bar with Gray Background and Icon Inside */}
               <div
-                // eslint-disable-next-line react/no-array-index-key
-                key={index}
-                className="flex flex-col items-center flex-1"
-                title={`${dailyTypeLabels[index].label}: ${value}% of this week's diet calories`}
+                className="w-full bg-[#E6E6E6] rounded-lg relative overflow-hidden flex flex-col"
+                style={{ height: "120px" }}
               >
-                {/* Colored Bar with Gray Background and Icon Inside */}
-                <div
-                  className="w-full bg-[#E6E6E6] rounded-lg relative overflow-hidden flex flex-col"
-                  style={{ height: "120px" }}
-                >
-                  {/* Circular Icon at Top */}
-                  <div className="w-12 h-12 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center mx-auto mt-2 mb-2 z-10">
-                    <img
-                      src={
-                        [
-                          GrainsImage,
-                          ProteinImage,
-                          FruitsVegImage,
-                          DairyImage,
-                          OtherImage,
-                        ][index]
-                      }
-                      alt={`Type ${index + 1}`}
-                      className="w-12 h-12 object-contain"
-                    />
-                  </div>
-                  {/* Colored Bar Fill */}
-                  {value > 0 ? (
-                    <div
-                      className="w-full rounded-lg flex items-center justify-center absolute bottom-0"
-                      style={{
-                        height: `${value}%`,
-                        backgroundColor: dailyTypeColors[index],
-                        minHeight: "20px",
-                      }}
-                    >
-                      <span className="text-white text-xs">{value}%</span>
-                    </div>
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center absolute">
-                      <span className="text-custom-1 text-xs">0%</span>
-                    </div>
-                  )}
+                {/* Circular Icon at Top */}
+                <div className="w-12 h-12 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center mx-auto mt-2 mb-2 z-10">
+                  <img
+                    src={
+                      [
+                        GrainsImage,
+                        ProteinImage,
+                        FruitsVegImage,
+                        DairyImage,
+                        OtherImage,
+                      ][index]
+                    }
+                    alt={`Type ${index + 1}`}
+                    className="w-12 h-12 object-contain"
+                  />
                 </div>
-                {/* Label Below Bar */}
-                <div className="text-xs text-primary mt-2 text-center">
-                  <span
-                    className="whitespace-nowrap"
-                    style={{ color: "#705d57" }}
+                {/* Colored Bar Fill */}
+                {value > 0 ? (
+                  <div
+                    className="w-full rounded-lg flex items-center justify-center absolute bottom-0"
+                    style={{
+                      height: `${value}%`,
+                      backgroundColor: dailyTypeColors[index],
+                      minHeight: "20px",
+                    }}
                   >
-                    {dailyTypeLabels[index].label}
-                  </span>
-                </div>
+                    <span className="text-white text-xs">{value}%</span>
+                  </div>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center absolute">
+                    <span className="text-custom-1 text-xs">0%</span>
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
-        )}
+              {/* Label Below Bar */}
+              <div className="text-xs text-primary mt-2 text-center">
+                <span
+                  className="whitespace-nowrap"
+                  style={{ color: "#705d57" }}
+                >
+                  {dailyTypeLabels[index].label}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Diet Trends */}
@@ -774,13 +789,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
             <span className="text-red-600">Sugar</span>
           </div>
           <div className="relative">
-            {dietTrendLoading ? (
-              <div className="flex h-full items-center justify-center text-xs text-secondary">
-                Loading diet trends…
-              </div>
-            ) : (
-              <Line data={dietTrendData} options={dietTrendOptions} />
-            )}
+            <Line data={dietTrendData} options={dietTrendOptions} />
           </div>
         </div>
 
@@ -829,13 +838,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
           {/* CHART */}
           <div className="relative">
-            {bowelTrendLoading ? (
-              <div className="flex h-full items-center justify-center text-xs text-secondary">
-                Loading bowel trends…
-              </div>
-            ) : (
-              <Line data={dietBoweldata} options={dietBowelOptions} />
-            )}
+            <Line data={dietBoweldata} options={dietBowelOptions} />
           </div>
         </div>
 

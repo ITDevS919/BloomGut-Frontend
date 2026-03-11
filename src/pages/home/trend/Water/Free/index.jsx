@@ -13,6 +13,17 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 
+const WATER_PRIMARY_COLOR = "#4682B4";
+
+const getScorePosition = (score) =>
+  Math.max(0, Math.min(100, Math.round(typeof score === "number" ? score : 0)));
+
+const getIndicatorColor = (value) => {
+  if (value >= 81) return WATER_PRIMARY_COLOR;
+  if (value >= 61) return "#FBC02D"; // Yellow segment (61–80)
+  return "#F66B6B"; // Red segment (0–60)
+};
+
 ChartJS.register(
   BarElement,
   CategoryScale,
@@ -134,8 +145,13 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
 
+  const [isLoading, setIsLoading] = useState(true);
+
   const [labels, setLabels] = useState(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]);
   const [mlPerDay, setMlPerDay] = useState([1600, 1850, 2100, 2300, 2200, 2450, 1900]);
+  const [score, setScore] = useState(null);
+  const [status, setStatus] = useState("Good");
+  const [change, setChange] = useState("+0% vs Last");
 
   const totalWeekMl = mlPerDay.reduce((sum, v) => sum + v, 0);
   const avgMl = Math.round(totalWeekMl / (mlPerDay.length || 1));
@@ -148,6 +164,8 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
   useEffect(() => {
     if (!auth?.user?.id) return;
 
+    let isCancelled = false;
+
     const fetchDailyWater = async () => {
       try {
         const ref =
@@ -159,8 +177,10 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         });
         const payload = response.data?.data || response.data;
         if (payload?.days && payload?.mlPerDay) {
-          setLabels(payload.days);
-          setMlPerDay(payload.mlPerDay);
+          if (!isCancelled) {
+            setLabels(payload.days);
+            setMlPerDay(payload.mlPerDay);
+          }
         }
       } catch (error) {
         // eslint-disable-next-line no-console
@@ -168,38 +188,118 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
       }
     };
 
-    fetchDailyWater();
+    const fetchWeeklySummary = async () => {
+      try {
+        const ref =
+          referenceDate && referenceDate.toISOString
+            ? referenceDate.toISOString()
+            : undefined;
+
+        const response = await api.get("/trend/water/weeklySummary", {
+          params: {
+            userId: auth.user.id,
+            referenceDate: ref,
+          },
+        });
+
+        const payload = response.data?.data || response.data;
+        if (!payload) return;
+
+        if (typeof payload.score === "number") {
+          const rounded = Math.round(payload.score);
+          if (!isCancelled) {
+            setScore(rounded);
+          }
+        }
+
+        if (typeof payload.changePercent === "number") {
+          const sign = payload.changePercent > 0 ? "+" : "";
+          const text = `${sign}${payload.changePercent}% vs Last`;
+          if (!isCancelled) {
+            setChange(text);
+          }
+        }
+
+        if (payload.status && !isCancelled) {
+          console.log("payload.status", payload.status);
+          setStatus(payload.status);
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load water weekly summary:", error);
+      }
+    };
+
+    const loadAll = async () => {
+      setIsLoading(true);
+      await Promise.all([fetchDailyWater(), fetchWeeklySummary()]);
+      if (!isCancelled) {
+        setIsLoading(false);
+      }
+    };
+
+    loadAll();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [api, auth?.user?.id, referenceDate]);
+  const hydrationScore = toPercent(avgMl);
+  const effectiveScore = typeof score === "number" ? score : hydrationScore;
+  const scorePosition = getScorePosition(effectiveScore);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="h-8 w-8 border-4 border-[#D6EAF8] border-t-[#79b6e2] rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="pl-[15px] pr-[15px]">
       <div className="bg-white rounded-[27px] p-[32px] shadow-md mb-[36px]">
         <div className="flex items-center justify-between">
           <div className="pl-[50px]">
-            <div className="text-3xl font-medium text-[#4682B4]">
-              {toPercent(avgMl)}
+            <div className="text-3xl font-medium text-[#4682B4] text-center">
+              {effectiveScore}
             </div>
-            <div className="text-sm text-custom-12">Hydration Score</div>
+            <div className="text-sm text-custom-12 text-center">
+              {status || "Hydration Score"}
+            </div>
           </div>
-          <div className="text-sm text-[#4682B4] pr-[50px]">
-            Weekly Avg: {avgMl}ml
+          <div className="text-sm text-[#4682B4] pr-[50px] text-right">
+            {change && <div>{change}</div>}
           </div>
         </div>
 
+        {/* Progress Bar (Health Score) */}
         <div className="mt-4">
-          <div className="h-2 bg-green-200 rounded-full relative">
+          <div
+            className="h-2 rounded-full relative overflow-hidden"
+            style={{
+              background: `linear-gradient(to right,
+                ${WATER_PRIMARY_COLOR} 0%,
+                ${WATER_PRIMARY_COLOR} 60%,
+                #FBC02D 60%,
+                #FBC02D 80%,
+                #F66B6B 80%,
+                #F66B6B 100%)`,
+            }}
+          >
+            {/* Indicator (outer ring + inner fill) */}
             <div
-              className="absolute left-0 top-0 h-2 bg-[#4682B4] rounded-full"
-              style={{ width: "45%" }}
-            />
-            <div
-              className="absolute left-[45%] top-0 h-2 bg-yellow-300 rounded-full"
-              style={{ width: "30%" }}
-            />
-            <div
-              className="absolute left-[75%] top-0 h-2 bg-rose-300 rounded-full"
-              style={{ width: "25%" }}
-            />
-            <div className="absolute left-[44%] -top-2 w-3 h-3 rounded-full bg-white border-2 border-emerald-300" />
+              className="absolute -top-2.5 w-5 h-5 rounded-full border border-[#9E9E9E] bg-white flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.12)]"
+              style={{
+                left: `${scorePosition}%`,
+                transform: "translateX(-50%)",
+              }}
+            >
+              <div
+                className="w-2.5 h-2.5 rounded-full"
+                style={{ backgroundColor: getIndicatorColor(scorePosition) }}
+              />
+            </div>
           </div>
         </div>
       </div>

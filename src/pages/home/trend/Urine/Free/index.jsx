@@ -4,6 +4,17 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 
+const URINE_PRIMARY_COLOR = "#F09129";
+
+const getScorePosition = (score) =>
+  Math.max(0, Math.min(100, Math.round(typeof score === "number" ? score : 0)));
+
+const getIndicatorColor = (value) => {
+  if (value >= 81) return URINE_PRIMARY_COLOR;
+  if (value >= 61) return "#FBC02D"; // Yellow segment (61–80)
+  return "#F66B6B"; // Red segment (0–60)
+};
+
 const Free = ({ showUpgrade = true, referenceDate }) => {
   const [dotData, setDotData] = useState([]);
   const colors = {
@@ -18,9 +29,10 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
   const [weekScore, setWeekScore] = useState(0);
   const [beforeWeekScore, setBeforeWeekScore] = useState(0);
   const [healthTips, setHealthTips] = useState([]);
-  const [healthTipsLoading, setHealthTipsLoading] = useState(false);
-  const [scoreLoading, setScoreLoading] = useState(false);
-  const [weeklyDotsLoading, setWeeklyDotsLoading] = useState(false);
+
+  const [dotsLoaded, setDotsLoaded] = useState(false);
+  const [scoreLoaded, setScoreLoaded] = useState(false);
+  const [tipsLoaded, setTipsLoaded] = useState(true);
 
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
@@ -29,7 +41,6 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
     if (!auth?.user?.id) return;
 
     const fetchWeeklyDots = async () => {
-      setWeeklyDotsLoading(true);
       try {
         const response = await api.get("/trend/urine/weeklyScore", {
           params: {
@@ -83,7 +94,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         // eslint-disable-next-line no-console
         console.log(err);
       } finally {
-        setWeeklyDotsLoading(false);
+        setDotsLoaded(true);
       }
     };
 
@@ -94,7 +105,6 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
     if (!auth?.user?.id) return;
 
     const fetchWeeklyScores = async () => {
-      setScoreLoading(true);
       try {
         const response = await api.get("/trend/urine/compareWeeklyScore", {
           params: {
@@ -104,13 +114,14 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         });
         const payload = response.data?.data || response.data;
         if (!payload) return;
+        const currentWeekScore = payload.weekScore ?? 0;
         setBeforeWeekScore(payload.beforeWeekScore ?? 0);
-        setWeekScore(payload.weekScore ?? 0);
+        setWeekScore(currentWeekScore);
       } catch (err) {
         // eslint-disable-next-line no-console
         console.log(err);
       } finally {
-        setScoreLoading(false);
+        setScoreLoaded(true);
       }
     };
 
@@ -121,7 +132,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
     if (!auth?.user?.id || dotData.length === 0) return;
 
     const fetchHealthTips = async () => {
-      setHealthTipsLoading(true);
+      setTipsLoaded(false);
       try {
         const response = await api.post("/trend/urine/healthTips", {
           clarityRate,
@@ -144,7 +155,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         console.error("Failed to load urine health tips:", err);
         setHealthTips([]);
       } finally {
-        setHealthTipsLoading(false);
+        setTipsLoaded(true);
       }
     };
 
@@ -161,61 +172,69 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
     beforeWeekScore,
   ]);
 
+  const scorePosition = getScorePosition(weekScore);
+  const isLoading = !dotsLoaded || !scoreLoaded || !tipsLoaded;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="h-8 w-8 border-4 border-amber-200 border-t-amber-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="pl-[15px] pr-[15px]">
       {/* Score Card */}
       <div className="bg-white rounded-[27px] p-[32px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[28px]">
         <div className="flex items-center justify-between">
           <div className="pl-[50px]">
-            {scoreLoading ? (
-              <div className="space-y-2">
-                <div className="h-7 w-16 rounded-full bg-slate-100 animate-pulse" />
-                <div className="h-3 w-20 rounded-full bg-slate-100 animate-pulse" />
-              </div>
-            ) : (
-              <>
-                <div className="text-3xl font-medium text-[#F09129]">
-                  {weekScore}
-                </div>
-                <div className="text-sm text-[#F09129] text-center">
-                  {weekScore > 75
-                    ? "Excellent"
-                    : weekScore > 50
-                    ? "Good"
-                    : weekScore > 25
-                    ? "Fair"
-                    : "Poor"}
-                </div>
-              </>
-            )}
+            <div className="text-3xl font-medium text-[#F09129] text-center">
+              {weekScore}
+            </div>
+            <div className="text-sm text-[#F09129] text-center">
+              {weekScore > 75
+                ? "Excellent"
+                : weekScore > 50
+                ? "Good"
+                : weekScore > 25
+                ? "Fair"
+                : "Poor"}
+            </div>
           </div>
           <div className="text-sm pr-[50px] text-[#F09129]">
-            {scoreLoading ? (
-              <span className="text-xs text-[#F09129]">Loading weekly score…</span>
-            ) : (
-              <>
-                {beforeWeekScore > weekScore ? "-" : "+"}
-                {Math.abs(beforeWeekScore - weekScore)}% vs Last
-              </>
-            )}
+            {beforeWeekScore > weekScore ? "-" : "+"}
+            {Math.abs(beforeWeekScore - weekScore)}% vs Last
           </div>
         </div>
 
+        {/* Progress Bar (Health Score) */}
         <div className="mt-4">
-          <div className="h-2 bg-green-200 rounded-full relative">
+          <div
+            className="h-2 rounded-full relative overflow-hidden"
+            style={{
+              background: `linear-gradient(to right,
+                ${URINE_PRIMARY_COLOR} 0%,
+                ${URINE_PRIMARY_COLOR} 60%,
+                #FBC02D 60%,
+                #FBC02D 80%,
+                #F66B6B 80%,
+                #F66B6B 100%)`,
+            }}
+          >
+            {/* Indicator (outer ring + inner fill) */}
             <div
-              className="absolute left-0 top-0 h-2 bg-[#F09129] rounded-full"
-              style={{ width: `${weekScore}%` }}
-            />
-            <div
-              className="absolute left-[45%] top-0 h-2 bg-[#fbc02d] rounded-full"
-              style={{ width: "30%" }}
-            />
-            <div
-              className="absolute left-[75%] top-0 h-2 bg-[#f66b6b] rounded-full"
-              style={{ width: "25%" }}
-            />
-            <div className="absolute left-[44%] -top-2 w-3 h-3 rounded-full bg-white border-2 border-emerald-300" />
+              className="absolute -top-2.5 w-5 h-5 rounded-full border border-[#9E9E9E] bg-white flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.12)]"
+              style={{
+                left: `${scorePosition}%`,
+                transform: "translateX(-50%)",
+              }}
+            >
+              <div
+                className="w-2.5 h-2.5 rounded-full"
+                style={{ backgroundColor: getIndicatorColor(scorePosition) }}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -223,20 +242,14 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
       <div className="text-primary font-medium mb-5 pl-[15px]">Weekly Urine Report</div>
       <div className="w-full max-w-sm rounded-[20px] bg-white p-4 shadow-[2px_0_10px_rgba(3,3,3,0.1)] space-y-4">
         {/* Status dots */}
-        {weeklyDotsLoading ? (
-          <div className="flex h-10 items-center justify-center text-xs text-secondary">
-            Loading weekly urine report…
-          </div>
-        ) : (
-          <div className="flex justify-between">
-            {dotData.map((d) => (
-              <div key={d.day} className="flex flex-col items-center gap-1">
-                <span className={`h-8 w-8 rounded-full ${colors[d.status]}`} />
-                <span className="text-xs text-secondary">{d.day}</span>
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="flex justify-between">
+          {dotData.map((d) => (
+            <div key={d.day} className="flex flex-col items-center gap-1">
+              <span className={`h-8 w-8 rounded-full ${colors[d.status]}`} />
+              <span className="text-xs text-secondary">{d.day}</span>
+            </div>
+          ))}
+        </div>
 
         {/* Legend */}
         <div className="flex justify-center gap-4 text-xs text-gray-600">
@@ -247,31 +260,22 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
         {/* Summary */}
         <div className="space-y-1 text-sm mb-5">
-          {weeklyDotsLoading ? (
-            <>
-              <div className="h-4 w-40 rounded-full bg-slate-100 animate-pulse" />
-              <div className="h-3 w-32 rounded-full bg-slate-100 animate-pulse ml-[20px]" />
-            </>
-          ) : (
-            <>
-              <div className="flex items-center gap-1">
-                <FaSmile className="w-4 h-4 text-[#f09129]" />
-                <span className="text-[15px] font-medium text-primary">
-                  <span className="text-[15px] text-primary">Clarity:</span>{" "}
-                  {clarityRate >= 80
-                    ? "Good"
-                    : clarityRate >= 60
-                    ? "Fair"
-                    : clarityRate >= 40
-                    ? "Deviation"
-                    : "Abnormal"}
-                </span>
-              </div>
-              <p className="text-primary text-[15px] pl-[20px]">
-                Weekly Clarity Rate: {clarityRate}%
-              </p>
-            </>
-          )}
+          <div className="flex items-center gap-1">
+            <FaSmile className="w-4 h-4 text-[#f09129]" />
+            <span className="text-[15px] font-medium text-primary">
+              <span className="text-[15px] text-primary">Clarity:</span>{" "}
+              {clarityRate >= 80
+                ? "Good"
+                : clarityRate >= 60
+                ? "Fair"
+                : clarityRate >= 40
+                ? "Deviation"
+                : "Abnormal"}
+            </span>
+          </div>
+          <p className="text-primary text-[15px] pl-[20px]">
+            Weekly Clarity Rate: {clarityRate}%
+          </p>
         </div>
 
         {/* Progress bar */}
@@ -284,43 +288,33 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
         {/* Counts */}
         <div className="flex justify-between text-[15px] text-primary text-center pl-[20px] pr-[20px] mb-5">
-          {weeklyDotsLoading ? (
-            <div className="w-full flex items-center justify-center text-xs text-secondary">
-              Calculating weekly clarity…
-            </div>
-          ) : (
-            <>
-              <span className="text-[15px] text-primary">
-                Clear
-                <br />
-                <span className="text-[#3fb96e]">
-                  {clearCount} {clearCount > 1 ? "Days" : "Day"}
-                </span>
-              </span>
-              <span className="text-[15px] text-primary">
-                Yellowish
-                <br />
-                <span className="text-[#fbc02d]">
-                  {yellowCount} {yellowCount > 1 ? "Days" : "Day"}
-                </span>
-              </span>
-              <span className="text-[15px] text-primary">
-                Abnormal
-                <br />
-                <span className="text-[#f66b6b]">
-                  {abnormalCount} {abnormalCount > 1 ? "Days" : "Day"}
-                </span>
-              </span>
-            </>
-          )}
+          <span className="text-[15px] text-primary">
+            Clear
+            <br />
+            <span className="text-[#3fb96e]">
+              {clearCount} {clearCount > 1 ? "Days" : "Day"}
+            </span>
+          </span>
+          <span className="text-[15px] text-primary">
+            Yellowish
+            <br />
+            <span className="text-[#fbc02d]">
+              {yellowCount} {yellowCount > 1 ? "Days" : "Day"}
+            </span>
+          </span>
+          <span className="text-[15px] text-primary">
+            Abnormal
+            <br />
+            <span className="text-[#f66b6b]">
+              {abnormalCount} {abnormalCount > 1 ? "Days" : "Day"}
+            </span>
+          </span>
         </div>
 
         {/* Health Tips from AI (OpenAI) */}
         <div className="rounded-[8px] bg-green-50 p-4 text-xs text-gray-700">
           <p className="mb-[6px] font-medium text-primary">Health Tips</p>
-          {healthTipsLoading ? (
-            <p className="text-secondary text-xs">Loading tips…</p>
-          ) : healthTips.length > 0 ? (
+          {healthTips.length > 0 ? (
             <ul className="text-secondary text-xs list-disc list-inside space-y-1">
               {healthTips.map((tip, i) => (
                 <li key={i}>{tip}</li>
