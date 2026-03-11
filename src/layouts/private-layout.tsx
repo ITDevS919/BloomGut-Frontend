@@ -209,10 +209,18 @@ const PrivateLayout = ({ children }) => {
   const [selectedRecordOption, setSelectedRecordOption] = useState("");
   const [selectedTrendOption, setSelectedTrendOption] = useState("");
   return (
-    <div className="flex flex-col h-screen relative">
-      <div className="flex-1 overflow-y-auto pb-24 min-h-0">{children}</div>
+    // Center the mobile app frame and use dynamic viewport height for iOS
+    <div className="flex justify-center min-h-[100dvh] bg-white">
+      <div className="flex flex-col w-full max-w-[480px] min-h-[100dvh] relative">
+        {/* Scrollable content area with space reserved for bottom nav */}
+        <div className="flex-1 overflow-y-auto pb-24 min-h-0">{children}</div>
 
-      <div className="flex justify-between items-center w-full px-2 py-4 bg-[#EFEBE4] absolute bottom-0 left-0 z-10 shadow-sm border border-custom-8">
+        {/* Fixed, centered bottom navbar that respects safe area insets */}
+        <div className="fixed inset-x-0 bottom-0 z-20 flex justify-center pointer-events-none">
+          <div
+            className="flex justify-between items-center w-full max-w-[480px] px-2 py-4 bg-[#EFEBE4] shadow-sm border-t border-custom-8 pointer-events-auto"
+            style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+          >
         {navItems.map((item) => {
           // const IconComponent = item.icon;
 
@@ -259,6 +267,8 @@ const PrivateLayout = ({ children }) => {
             </button>
           );
         })}
+          </div>
+        </div>
       </div>
 
       {/* Record Selection Modal */}
