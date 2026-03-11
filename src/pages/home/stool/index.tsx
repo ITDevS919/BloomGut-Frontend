@@ -312,15 +312,20 @@ const StoolPage = () => {
       </div>
 
       <div className="flex justify-center items-center">
-        <img
-          src={
-            selectedStool
-              ? selectedStool
-              : Type1
-          }
-          className="w-27 h-24.5 object-cover border border-custom-20 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
-          alt="Logo"
-        />
+        <div className="relative">
+          <img
+            src={selectedStool ? selectedStool : Type1}
+            className={`w-27 h-24.5 object-cover border border-custom-20 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.08)] ${
+              stoolImageLoadingIndex !== null ? "opacity-60" : ""
+            }`}
+            alt="Logo"
+          />
+          {stoolImageLoadingIndex !== null && (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-full">
+              <span className="inline-block h-5 w-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="px-5 flex flex-col gap-2">
