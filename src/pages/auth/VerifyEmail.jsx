@@ -23,8 +23,7 @@ const VerifyEmail = () => {
       profile = null;
     }
 
-    const apiBaseUrl =
-      import.meta.env.VITE_API_ENDPOINT || "http://localhost:5000/api/v1";
+    const apiBaseUrl = import.meta.env.VITE_API_ENDPOINT;
 
     await axios.post(`${apiBaseUrl}/user/profile`, {
       userId,
