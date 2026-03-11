@@ -16,9 +16,23 @@ import FormInput from "@/components/common/FormInput";
 import { ChevronLeft } from "lucide-react";
 
 const getPasswordStrength = (password = "") => {
-  if (password.length >= 8 && /[A-Z]/.test(password) && /\d/.test(password)) {
-    return password.length > 8 ? "Strong" : "Medium";
+  const length = password.length;
+
+  const hasLetter = /[A-Za-z]/.test(password);
+  const hasNumber = /\d/.test(password);
+  const hasSymbol = /[^A-Za-z0-9]/.test(password);
+
+  // Strong: length ≥ 12, letters + numbers + symbols
+  if (length >= 12 && hasLetter && hasNumber && hasSymbol) {
+    return "Strong";
   }
+
+  // Medium: length ≥ 8, letters + numbers
+  if (length >= 8 && hasLetter && hasNumber) {
+    return "Medium";
+  }
+
+  // Weak: everything else (length < 8 or missing required types)
   return "Weak";
 };
 
@@ -26,6 +40,12 @@ const strengthValue = {
   Weak: 33,
   Medium: 66,
   Strong: 100,
+};
+
+const strengthColor = {
+  Weak: "bg-red-500",
+  Medium: "bg-yellow-400",
+  Strong: "bg-green-500",
 };
 
 const Register = () => {
@@ -134,7 +154,11 @@ const Register = () => {
                 <span>Medium</span>
                 <span>Strong</span>
               </div>
-              <Progress className="h-3" value={strengthValue[passwordStrength]} />
+              <Progress
+                className="h-3"
+                value={strengthValue[passwordStrength]}
+                indicatorClassName={strengthColor[passwordStrength]}
+              />
               {!errors.password && (
                 <p className="text-xs text-danger mb-4">
                   Min 8 chars, 1 number & 1 uppercase

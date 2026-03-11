@@ -707,11 +707,20 @@ const StoolPage = () => {
           onClick={handleSaveRecord}
           disabled={isSaving}
           aria-label="Save Record"
-          className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)]"
+          className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center gap-2 text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)] disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          {isSaving ? "Saving..." : "Save"}
+          {isSaving && (
+            <span className="inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          )}
+          <span>{isSaving ? "Saving..." : "Save"}</span>
         </button>
       </div>
+
+      {isSaving && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/10 pointer-events-auto">
+          <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin bg-white/0" />
+        </div>
+      )}
 
       {/* Unsaved Confirmation Modal */}
       {

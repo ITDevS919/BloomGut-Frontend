@@ -155,14 +155,14 @@ const Settings = () => {
               <button
                 type="button"
                 onClick={closeLogoutModal}
-                className="shadow-[0_2px_6px_#afafaf] rounded-[8px] text-[#d32f2f] w-[64px] h-[38px] text-[14px] font-['Roboto', sans-serif]"
+                className="shadow-[0_2px_6px_#afafaf] rounded-[8px] text-[#d32f2f] w-[64px] h-[38px] text-[14px] font-['Roboto', sans-serif] cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={() => signOut()}
-                className="shadow-[0_2px_6px_#afafaf] rounded-[8px] text-primary w-[64px] h-[38px] text-[14px] font-['Roboto', sans-serif] border-secondary border-[1px]"
+                className="shadow-[0_2px_6px_#afafaf] rounded-[8px] text-primary w-[64px] h-[38px] text-[14px] font-['Roboto', sans-serif] border-secondary border-[1px] cursor-pointer"
               >
                 Confirm
               </button>

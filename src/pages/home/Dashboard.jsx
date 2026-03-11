@@ -233,8 +233,11 @@ const Dashboard = () => {
         </div>
         <div className="flex flex-col gap-5 mt-4">
           <div
-            className="flex justify-start gap-3 bg-[#dfd2b2] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)]"
-            onClick={() => navigate("/stool")}
+            className="relative flex justify-start gap-3 bg-[#dfd2b2] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)]"
+            onClick={() => {
+              if (bowelLoading) return;
+              navigate("/stool");
+            }}
           >
             <div className="flex-0">
               <FaPoop className="text-primary" size={24} />
@@ -279,9 +282,7 @@ const Dashboard = () => {
                     })}
                   </div>
                   <p className="text-primary-muted text-xs">
-                    {bowelLoading
-                      ? "Loading…"
-                      : bowelStatus}
+                    {bowelStatus}
                   </p>
                 </div>
                 <div className="flex items-center">
@@ -289,9 +290,21 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
+
+            {bowelLoading && (
+              <div className="pointer-events-none absolute inset-0 rounded-[15px] bg-black/5 flex items-center justify-center transition-opacity duration-300">
+                <div className="h-5 w-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
           </div>
 
-          <div className="flex justify-start gap-3 bg-[#e0d5e6] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)]" onClick={() => navigate("/diet-record")}>
+          <div
+            className="relative flex justify-start gap-3 bg-[#e0d5e6] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)]"
+            onClick={() => {
+              if (dietLoading) return;
+              navigate("/diet-record");
+            }}
+          >
             <div>
               <FaUtensils className="text-primary" size={24} />
             </div>
@@ -311,7 +324,7 @@ const Dashboard = () => {
                       Today's Intake
                     </span>
                     <span className="text-primary text-sm ">
-                      {dietLoading ? "…" : `${dietIntakePercent}%`}
+                      {`${dietIntakePercent}%`}
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3 shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
@@ -321,7 +334,7 @@ const Dashboard = () => {
                     />
                   </div>
                   <p className="text-primary text-sm">
-                    {dietLoading ? "Loading…" : dietStatus}
+                    {dietStatus}
                   </p>
                 </div>
                 <div className="flex items-center">
@@ -329,9 +342,21 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
+
+            {dietLoading && (
+              <div className="pointer-events-none absolute inset-0 rounded-[15px] bg-black/5 flex items-center justify-center transition-opacity duration-300">
+                <div className="h-5 w-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
           </div>
 
-          <div className="flex justify-start gap-3 bg-[#d7eaf8] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)]" onClick={() => navigate("/water-record")}>
+          <div
+            className="relative flex justify-start gap-3 bg-[#d7eaf8] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)]"
+            onClick={() => {
+              if (waterLoading) return;
+              navigate("/water-record");
+            }}
+          >
             <div>
               <FaGlassWhiskey className="text-primary" size={24} />
             </div>
@@ -349,7 +374,7 @@ const Dashboard = () => {
                       Today's Intake
                     </span>
                     <span className="text-primary text-sm ">
-                      {waterLoading ? "…" : `${waterIntakePercent}%`}
+                      {`${waterIntakePercent}%`}
                     </span>
                   </div>
                   <div className="w-full bg-white rounded-full h-3 shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
@@ -359,7 +384,7 @@ const Dashboard = () => {
                     />
                   </div>
                   <p className="text-primary-muted text-xs">
-                    {waterLoading ? "Loading…" : waterStatus}
+                    {waterStatus}
                   </p>
                 </div>
                 <div className="flex items-center">
@@ -367,9 +392,21 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
+
+            {waterLoading && (
+              <div className="pointer-events-none absolute inset-0 rounded-[15px] bg-black/5 flex items-center justify-center transition-opacity duration-300">
+                <div className="h-5 w-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
           </div>
 
-          <div className="flex justify-start gap-3 bg-[#fff3cd] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)]" onClick={() => navigate("/urine-record")}>
+          <div
+            className="relative flex justify-start gap-3 bg-[#fff3cd] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)]"
+            onClick={() => {
+              if (urineLoading) return;
+              navigate("/urine-record");
+            }}
+          >
             <div>
               <MdWaterDrop className="text-primary" size={24} />
             </div>
@@ -415,7 +452,7 @@ const Dashboard = () => {
                     })}
                   </div>
                   <p className="text-primary-muted text-xs">
-                    {urineLoading ? "Loading…" : urineStatus}
+                    {urineStatus}
                   </p>
                 </div>
                 <div className="flex items-center">
@@ -423,6 +460,12 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
+
+            {urineLoading && (
+              <div className="pointer-events-none absolute inset-0 rounded-[15px] bg-black/5 flex items-center justify-center transition-opacity duration-300">
+                <div className="h-5 w-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
           </div>
         </div>
       </div>
