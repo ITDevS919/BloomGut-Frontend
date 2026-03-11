@@ -62,15 +62,9 @@ const StoolPage = () => {
   const [textureChecked, setTextureChecked] = useState<Record<string, boolean>>({});
   const [odorChecked, setOdorChecked] = useState<Record<string, boolean>>({});
 
-  // Validation & loading
+  // Validation
   const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
-  const [isPageLoading, setIsPageLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsPageLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
 
   // open
   const [mucusOpen, setMucusOpen] = useState(false);
@@ -281,43 +275,8 @@ const StoolPage = () => {
   const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-  useEffect(() => {
-    let isCancelled = false;
-
-    const loadBowelOverview = async () => {
-      if (!auth?.user?.id) {
-        setIsPageLoading(false);
-        return;
-      }
-
-      try {
-        await api.get("/trend/bowel/weeklySummary", {
-          params: { userId: auth.user.id },
-        });
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error("Failed to load bowel weekly summary for stool page:", error);
-      } finally {
-        if (!isCancelled) {
-          setIsPageLoading(false);
-        }
-      }
-    };
-
-    loadBowelOverview();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [api, auth?.user?.id]);
-
   return (
     <div className="relative flex flex-col gap-4 font-['Noto_Sans_TC', sans-serif]">
-      {isPageLoading && (
-        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/5">
-          <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        </div>
-      )}
       <div className="pt-4 px-3">
         <CustomButton
           icon={IoIosArrowBack}
@@ -345,6 +304,8 @@ const StoolPage = () => {
       <div className="flex justify-center items-center">
         <img
           src={selectedStool ? selectedStool : Type1}
+          loading="lazy"
+          decoding="async"
           className="w-27 h-24.5 object-cover border border-custom-20 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
           alt="Logo"
         />
@@ -366,6 +327,8 @@ const StoolPage = () => {
               >
                 <img
                   src={i?.image}
+                  loading="lazy"
+                  decoding="async"
                   className={`w-10 h-10 object-cover rounded-full aspect-square flex-shrink-0
                     ${
                       isSelected
@@ -743,7 +706,7 @@ const StoolPage = () => {
         )
       }
 
-      <div className="px-6.5 pb-6 flex justify-center" >
+      <div className="px-6.5 pb-6 flex justify-center">
         <button
           onClick={handleSaveRecord}
           aria-label="Save Record"
@@ -752,12 +715,6 @@ const StoolPage = () => {
           <span>Save</span>
         </button>
       </div>
-
-      {isPageLoading && (
-        <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-auto bg-black/5">
-          <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        </div>
-      )}
 
       {/* Unsaved Confirmation Modal */}
       {
