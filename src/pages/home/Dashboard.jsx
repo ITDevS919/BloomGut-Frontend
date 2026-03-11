@@ -226,7 +226,7 @@ const Dashboard = () => {
   return (
     <div className="flex flex-col relative h-full p-4">
       {/* Upper Scrollable Area */}
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col overflow-y-auto h-full">
         <div className="text-center">
           <h3 className="text-3xl font-bold text-primary mb-5">Hi {auth.user != null && (auth.user.firstName || auth.user.username)}</h3>
           <p className="text-primary-muted">How is your health today?</p>
