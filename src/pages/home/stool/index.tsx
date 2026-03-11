@@ -54,6 +54,7 @@ const StoolPage = () => {
   // selected
   const [selectedStool, setSelectedStool] = useState(null);
   const [selectedStoolImage, setSelectedStoolImage] = useState(null);
+  const [stoolImageLoadingIndex, setStoolImageLoadingIndex] = useState<number | null>(null);
   const [selectedColor, setSelectedColor] = useState(null);
 
   // Checkbox states
@@ -329,21 +330,46 @@ const StoolPage = () => {
         </span>
         <div className="flex justify-between items-center">
           {stoolImages?.map((i, index) => {
+            const isLoading = stoolImageLoadingIndex === index;
+            const isSelected = selectedStoolImage === i?.label;
             return (
-              <div className="flex flex-col gap-3 items-center cursor-pointer" key={index}>
-                <img
-                  src={i?.image}
-                  className={`w-10 h-10 object-cover rounded-full aspect-square flex-shrink-0
-                    ${selectedStoolImage === i?.label ? "border-2 border-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]" : "shadow-[0_1px_3px_rgba(0,0,0,0.04)]"}
+              <button
+                type="button"
+                key={index}
+                className="flex flex-col gap-3 items-center cursor-pointer focus:outline-none disabled:cursor-default"
+                onClick={() => {
+                  if (isSaving || isLoading) return;
+                  setStoolImageLoadingIndex(index);
+                  i?.onclick();
+                  setTimeout(() => {
+                    setStoolImageLoadingIndex((current) =>
+                      current === index ? null : current
+                    );
+                  }, 300);
+                }}
+                disabled={isSaving}
+                aria-pressed={isSelected}
+              >
+                <div className="relative">
+                  <img
+                    src={i?.image}
+                    className={`w-10 h-10 object-cover rounded-full aspect-square flex-shrink-0
+                    ${isSelected ? "border-2 border-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]" : "shadow-[0_1px_3px_rgba(0,0,0,0.04)]"}
                     ${index === 0 ? "mt-3" : ""}
+                    ${isLoading ? "opacity-60" : ""}
                     `}
-                  alt={i?.label}
-                  onClick={() => i?.onclick()}
-                />
+                    alt={i?.label}
+                  />
+                  {isLoading && (
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-full">
+                      <span className="inline-block h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
+                </div>
                 <p className="text-primary text-xs font-medium text-center capitalize max-w-[50px] leading-tight">
                   {i?.label}
                 </p>
-              </div>
+              </button>
             );
           })}
         </div>
