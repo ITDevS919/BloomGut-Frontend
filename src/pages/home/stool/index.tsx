@@ -280,7 +280,12 @@ const StoolPage = () => {
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
   return (
-    <div className="flex flex-col gap-4 font-['Noto_Sans_TC', sans-serif]">
+    <div
+      className={`relative flex flex-col gap-4 font-['Noto_Sans_TC', sans-serif] ${
+        isSaving ? "pointer-events-none opacity-60" : ""
+      }`}
+      aria-busy={isSaving}
+    >
       <div className="pt-4 px-3">
         <CustomButton
           icon={IoIosArrowBack}
@@ -717,7 +722,7 @@ const StoolPage = () => {
       </div>
 
       {isSaving && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/10 pointer-events-auto">
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/10 pointer-events-none transition-opacity duration-300">
           <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin bg-white/0" />
         </div>
       )}
