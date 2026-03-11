@@ -49,6 +49,7 @@ const StoolPage = () => {
   const [textureConditionValue, setTextureConditionValue] = useState([]);
   const [odorConditionValue, setOdorConditionValue] = useState([]);
   const [otherSymptomsValue, setOtherSymptomsValue] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   // selected
   const [selectedStool, setSelectedStool] = useState(null);
@@ -133,12 +134,15 @@ const StoolPage = () => {
     };
 
     try {
+      setIsSaving(true);
       const response = await api.put("/record/bowel", param);
       toast.success(response.data.data);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error("Error saving stool record:", error);
       toast.error("Failed to save stool record. Please try again.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -701,10 +705,11 @@ const StoolPage = () => {
       <div className="px-6.5 pb-6 flex justify-center" >
         <button
           onClick={handleSaveRecord}
+          disabled={isSaving}
           aria-label="Save Record"
           className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)]"
         >
-          Save
+          {isSaving ? "Saving..." : "Save"}
         </button>
       </div>
 
