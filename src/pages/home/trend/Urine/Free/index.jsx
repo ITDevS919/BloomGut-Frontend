@@ -221,7 +221,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
       </div>
 
       <div className="text-primary font-medium mb-5 pl-[15px]">Weekly Urine Report</div>
-      <div className="w-full max-w-sm rounded-[20px] bg-white p-[24px] shadow-[2px_0_10px_rgba(3,3,3,0.1)] space-y-4">
+      <div className="w-full max-w-sm rounded-[20px] bg-white p-4 shadow-[2px_0_10px_rgba(3,3,3,0.1)] space-y-4">
         {/* Status dots */}
         {weeklyDotsLoading ? (
           <div className="flex h-10 items-center justify-center text-xs text-secondary">

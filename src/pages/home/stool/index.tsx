@@ -65,7 +65,12 @@ const StoolPage = () => {
   // Validation & loading
   const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsPageLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   // open
   const [mucusOpen, setMucusOpen] = useState(false);
@@ -74,8 +79,6 @@ const StoolPage = () => {
   const [otherSymptomsOpen, setOtherSymptomsOpen] = useState(false);
 
   const handleSaveRecord = async () => {
-    if (isSaving) return;
-
     // Reset validation errors
     setValidationErrors({});
 
@@ -136,15 +139,12 @@ const StoolPage = () => {
     };
 
     try {
-      setIsSaving(true);
       const response = await api.put("/record/bowel", param);
       toast.success(response.data.data);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error("Error saving stool record:", error);
       toast.error("Failed to save stool record. Please try again.");
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -281,8 +281,43 @@ const StoolPage = () => {
   const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadBowelOverview = async () => {
+      if (!auth?.user?.id) {
+        setIsPageLoading(false);
+        return;
+      }
+
+      try {
+        await api.get("/trend/bowel/weeklySummary", {
+          params: { userId: auth.user.id },
+        });
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load bowel weekly summary for stool page:", error);
+      } finally {
+        if (!isCancelled) {
+          setIsPageLoading(false);
+        }
+      }
+    };
+
+    loadBowelOverview();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [api, auth?.user?.id]);
+
   return (
     <div className="relative flex flex-col gap-4 font-['Noto_Sans_TC', sans-serif]">
+      {isPageLoading && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/5">
+          <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
       <div className="pt-4 px-3">
         <CustomButton
           icon={IoIosArrowBack}
@@ -711,20 +746,18 @@ const StoolPage = () => {
       <div className="px-6.5 pb-6 flex justify-center" >
         <button
           onClick={handleSaveRecord}
-          disabled={isSaving}
           aria-label="Save Record"
-          className={`w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center gap-2 text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)] ${isSaving ? "opacity-70 cursor-not-allowed" : ""}`}
+          className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center gap-2 text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)]"
         >
-          {isSaving ? (
-            <span className="flex items-center gap-2">
-              <span className="inline-block w-4 h-4 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
-              <span>Saving...</span>
-            </span>
-          ) : (
-            <span>Save</span>
-          )}
+          <span>Save</span>
         </button>
       </div>
+
+      {isPageLoading && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-auto bg-black/5">
+          <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
 
       {/* Unsaved Confirmation Modal */}
       {

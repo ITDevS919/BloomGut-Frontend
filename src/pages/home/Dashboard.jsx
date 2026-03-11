@@ -5,7 +5,7 @@ import { MdWaterDrop } from "react-icons/md";
 import { FaChevronRight } from "react-icons/fa6";
 
 import { useEffect, useState } from "react";
-import { useClerk, useUser } from "@clerk/clerk-react";
+import { useClerk } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 
 import { useSelector } from "react-redux";
@@ -13,19 +13,10 @@ import useApiClient from "@/hooks/useApiClient";
 
 const Dashboard = () => {
   const { signOut } = useClerk();
-  const { user: clerkUser } = useUser();
   const navigate = useNavigate();
 
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
-
-  const userId = auth?.user?.id || clerkUser?.id;
-  const userDisplayName =
-    auth?.user?.firstName ||
-    auth?.user?.username ||
-    clerkUser?.firstName ||
-    clerkUser?.username ||
-    "";
 
   const [bowelLoading, setBowelLoading] = useState(false);
   const [bowelScore, setBowelScore] = useState(0);
@@ -47,13 +38,13 @@ const Dashboard = () => {
     bowelLoading || dietLoading || waterLoading || urineLoading;
 
   useEffect(() => {
-    if (!userId) return;
+    if (!auth?.user?.id) return;
 
     const fetchBowelWeeklySummary = async () => {
       setBowelLoading(true);
       try {
         const res = await api.get("/trend/bowel/weeklySummary", {
-          params: { userId },
+          params: { userId: auth.user.id },
         });
         const payload = res.data?.data ?? res.data;
         if (!payload) return;
@@ -95,16 +86,16 @@ const Dashboard = () => {
     };
 
     fetchBowelWeeklySummary();
-  }, [api, userId]);
+  }, [api, auth?.user?.id]);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!auth?.user?.id) return;
 
     const fetchDietToday = async () => {
       setDietLoading(true);
       try {
         const res = await api.get("/trend/diet/dailySummary", {
-          params: { userId },
+          params: { userId: auth.user.id },
         });
         const payload = res.data?.data ?? res.data;
         if (!payload) {
@@ -147,16 +138,16 @@ const Dashboard = () => {
     };
 
     fetchDietToday();
-  }, [api, userId]);
+  }, [api, auth?.user?.id]);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!auth?.user?.id) return;
 
     const fetchWaterToday = async () => {
       setWaterLoading(true);
       try {
         const res = await api.get("/trend/water/dailyMl", {
-          params: { userId },
+          params: { userId: auth.user.id },
         });
         const payload = res.data?.data ?? res.data;
         const mlPerDay = Array.isArray(payload?.mlPerDay) ? payload.mlPerDay : [];
@@ -189,16 +180,16 @@ const Dashboard = () => {
     };
 
     fetchWaterToday();
-  }, [api, userId]);
+  }, [api, auth?.user?.id]);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!auth?.user?.id) return;
 
     const fetchUrineWeek = async () => {
       setUrineLoading(true);
       try {
         const res = await api.get("/trend/urine/weeklyScore", {
-          params: { userId },
+          params: { userId: auth.user.id },
         });
         const payload = res.data?.data ?? res.data;
         const scores = Array.isArray(payload) ? payload : [];
@@ -234,15 +225,13 @@ const Dashboard = () => {
     };
 
     fetchUrineWeek();
-  }, [api, userId]);
+  }, [api, auth?.user?.id]);
   return (
     <div className="flex flex-col relative h-full p-4">
       {/* Upper Scrollable Area */}
       <div className="flex flex-col h-full overflow-y-auto">
         <div className="text-center">
-          <h3 className="text-3xl font-bold text-primary mb-5">
-            Hi {userDisplayName}
-          </h3>
+          <h3 className="text-3xl font-bold text-primary mb-5">Hi {auth.user != null && (auth.user.firstName || auth.user.username)}</h3>
           <p className="text-primary-muted">How is your health today?</p>
         </div>
         <div className="flex flex-col gap-5 mt-4">
