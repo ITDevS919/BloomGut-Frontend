@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useApiClient from "@/hooks/useApiClient";
 import { useSelector } from "react-redux";
+import Loader from "@/components/common/Loader";
 
 ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend);
 
@@ -21,13 +22,14 @@ const PremiumYear = () => {
   const navigate = useNavigate();
   const api = useApiClient();
   const auth = useSelector((state) => state.auth);
+
   const [analysis, setAnalysis] = useState({
     foodTips: "",
     seasonal: "",
     actionPlan: "",
   });
   const [analysisLoading, setAnalysisLoading] = useState(false);
-  const foods = [
+  const [foods, setFoods] = useState([
     {
       rank: 1,
       name: "Milk",
@@ -55,16 +57,22 @@ const PremiumYear = () => {
       type: 6,
       bg: "#fff0ac", // Light yellow
     },
-  ];
+  ]);
+  const [foodsLoading, setFoodsLoading] = useState(false);
 
-  //   Overall Gut Reaction Chart
+  // Yearly gut index series (current vs last year)
+  const [gutIndex, setGutIndex] = useState(Array(12).fill(0));
+  const [lastYearIndex, setLastYearIndex] = useState(Array(12).fill(0));
+  const [seasonalTrend, setSeasonalTrend] = useState([3, 3, 3, 3]); // SPRING,SUMMER,AUTUMN,WINTER on 1–5 scale
+  const [trendLoading, setTrendLoading] = useState(false);
+
   const overallLabels = Array.from({ length: 12 }, (_, i) => i + 1);
   const overallData = {
     labels: overallLabels,
     datasets: [
       {
         label: "Gut Index",
-        data: [50, 47, 47, 48, 60, 65, 80, 87, 87, 85, 0, 88],
+        data: gutIndex,
         borderColor: "#22C55E", // Green
         backgroundColor: "transparent",
         borderWidth: 3,
@@ -77,7 +85,7 @@ const PremiumYear = () => {
       },
       {
         label: "Last Yr",
-        data: [40, 42, 43, 44, 45, 47, 48, 50, 51, 52, 53, 55],
+        data: lastYearIndex,
         borderColor: "#9CA3AF", // Gray
         backgroundColor: "transparent",
         borderDash: [6, 6], // Dashed line
@@ -142,18 +150,19 @@ const PremiumYear = () => {
             return monthNames[index] || `Month ${index + 1}`;
           },
           label: (context) => {
-            const label = context.dataset.label === "Gut Index"
-              ? "Gut Health"
-              : context.dataset.label === "Last Yr"
-                ? "Last Year"
-                : context.dataset.label;
+            const label =
+              context.dataset.label === "Gut Index"
+                ? "Gut Health"
+                : context.dataset.label === "Last Yr"
+                  ? "Last Year"
+                  : context.dataset.label;
             return `${label}: ${context.parsed.y}`;
           },
           labelColor: (context) => {
             const datasetLabel = context.dataset.label;
             let color = "#9CA3AF"; // Default gray
             if (datasetLabel === "Gut Index") {
-              color = "#EF4444"; // Red/pinkish-red for Gut Health
+              color = "#22C55E"; // Match Gut Index line color
             } else if (datasetLabel === "Last Yr") {
               color = "#9CA3AF"; // Gray for Last Year
             }
@@ -211,7 +220,7 @@ const PremiumYear = () => {
     datasets: [
       {
         label: "Stool Trend",
-        data: [4, 3, 4.5, 4],
+        data: seasonalTrend,
         borderColor: "#22C55E",
         backgroundColor: "transparent",
         borderWidth: 3,
@@ -272,6 +281,138 @@ const PremiumYear = () => {
   };
   const seasonLabels = ["Loose", "Rare", "Best", "Hard"];
 
+  // Load yearly top 3 gut‑sensitivity foods from backend
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const fetchTopFoods = async () => {
+      setFoodsLoading(true);
+      try {
+        const ref = new Date().toISOString();
+        const res = await api.get("/trend/bowel/yearlyTopFoods", {
+          params: { userId: auth.user.id, referenceDate: ref },
+        });
+        const data = res.data?.data ?? res.data;
+        if (data && Array.isArray(data.foods) && data.foods.length) {
+          setFoods(
+            data.foods.map((f, idx) => ({
+              rank: f.rank ?? idx + 1,
+              name: f.name ?? f.food ?? `Food ${idx + 1}`,
+              sensit: f.sensit ?? "",
+              main: f.main ?? "",
+              second: f.second ?? "",
+              type: f.type ?? "",
+              bg: idx === 0 ? "#fcc" : "#fff0ac",
+            }))
+          );
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load yearly top foods:", err);
+      } finally {
+        setFoodsLoading(false);
+      }
+    };
+
+    fetchTopFoods();
+  }, [api, auth?.user?.id]);
+
+  // Load yearly gut index and seasonal trend from bowel weeklySummary (database-backed)
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    let isCancelled = false;
+
+    const toSeasonScale = (avgScore) => {
+      if (!Number.isFinite(avgScore)) return 3;
+      const v = 1 + (4 * Math.max(0, Math.min(100, avgScore))) / 100;
+      return Math.round(v * 10) / 10;
+    };
+
+    const fetchYearlyTrend = async () => {
+      setTrendLoading(true);
+      try {
+        const now = new Date();
+        const year = now.getFullYear();
+
+        const currentScores = [];
+        const lastYearScores = [];
+
+        // sample one representative week per month for current year and previous year
+        for (let month = 0; month < 12; month += 1) {
+          const currentRef = new Date(year, month, 15);
+          const lastYearRef = new Date(year - 1, month, 15);
+
+          // eslint-disable-next-line no-await-in-loop
+          const [currentRes, lastRes] = await Promise.all([
+            api.get("/trend/bowel/weeklySummary", {
+              params: {
+                userId: auth.user.id,
+                referenceDate: currentRef.toISOString(),
+              },
+            }),
+            api.get("/trend/bowel/weeklySummary", {
+              params: {
+                userId: auth.user.id,
+                referenceDate: lastYearRef.toISOString(),
+              },
+            }),
+          ]);
+
+          const currentPayload = currentRes.data?.data ?? currentRes.data;
+          const lastPayload = lastRes.data?.data ?? lastRes.data;
+
+          currentScores.push(
+            typeof currentPayload?.score === "number" ? currentPayload.score : 0
+          );
+          lastYearScores.push(
+            typeof lastPayload?.score === "number" ? lastPayload.score : 0
+          );
+        }
+
+        if (isCancelled) return;
+
+        setGutIndex(currentScores);
+        setLastYearIndex(lastYearScores);
+
+        // derive simple seasonal trend from current year scores
+        const springMonths = [2, 3, 4]; // Mar–May
+        const summerMonths = [5, 6, 7]; // Jun–Aug
+        const autumnMonths = [8, 9, 10]; // Sep–Nov
+        const winterMonths = [11, 0, 1]; // Dec, Jan, Feb
+
+        const avgFor = (indices) => {
+          const vals = indices
+            .map((idx) => currentScores[idx])
+            .filter((v) => typeof v === "number");
+          if (!vals.length) return 0;
+          return vals.reduce((sum, v) => sum + v, 0) / vals.length;
+        };
+
+        const spring = toSeasonScale(avgFor(springMonths));
+        const summer = toSeasonScale(avgFor(summerMonths));
+        const autumn = toSeasonScale(avgFor(autumnMonths));
+        const winter = toSeasonScale(avgFor(winterMonths));
+
+        setSeasonalTrend([spring, summer, autumn, winter]);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load yearly bowel trend:", err);
+      } finally {
+        if (!isCancelled) {
+          setTrendLoading(false);
+        }
+      }
+    };
+
+    fetchYearlyTrend();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [api, auth?.user?.id]);
+
+  // Load AI yearly advice, using the database-backed series and top foods when available
   useEffect(() => {
     if (!auth?.user?.id) return;
 
@@ -285,9 +426,9 @@ const PremiumYear = () => {
             main: f.main,
             second: f.second,
           })),
-          gutIndex: overallData.datasets[0].data,
-          lastYearIndex: overallData.datasets[1].data,
-          seasonalTrend: seasonalData.datasets[0].data,
+          gutIndex,
+          lastYearIndex,
+          seasonalTrend,
         };
         const res = await api.post("/trend/bowel/premiumYearAdvice", payload);
         const data = res.data?.data ?? res.data;
@@ -302,8 +443,10 @@ const PremiumYear = () => {
         // eslint-disable-next-line no-console
         console.error("Failed to load PremiumYear bowel advice:", err);
         setAnalysis({
-          foodTips: "Milk, peanuts and seafood appear most associated with symptoms; adjust timing and portion or try alternatives.",
-          seasonal: "Gut index dips in colder months, likely from lower water intake and heavier foods.",
+          foodTips:
+            "Milk, peanuts and seafood appear most associated with symptoms; adjust timing and portion or try alternatives.",
+          seasonal:
+            "Gut index dips in colder months, likely from lower water intake and heavier foods.",
           actionPlan:
             "Consider moderating trigger foods and increasing hydration during your weakest seasons; seek medical advice if pain or diarrhea persists.",
         });
@@ -314,12 +457,12 @@ const PremiumYear = () => {
 
     fetchYearAdvice();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth?.user?.id]);
+  }, [auth?.user?.id, gutIndex, lastYearIndex, seasonalTrend]);
 
   return (
     <div className="pl-[15px] pr-[15px]">
       {/* Top 3 Gut-Sensitivity Foods Cards */}
-      <div className="w-full max-w-3xl p-4 rounded-[12px] bg-[#FEFAEF] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-5">
+      <div className="w-full max-w-3xl p-4 rounded-[12px] bg-[#FEFAEF] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-5 relative">
         {/* Title */}
         <h2 className="mb-6 text-center text-lg font-bold text-primary">
           Top 3 Gut-Sensitivity Foods
@@ -347,6 +490,12 @@ const PremiumYear = () => {
             </div>
           ))}
         </div>
+
+        {foodsLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-[#FEFAEF]/60">
+            <Loader />
+          </div>
+        )}
       </div>
 
       {/* Overall Gut Reaction Chart */}
@@ -398,10 +547,16 @@ const PremiumYear = () => {
               border-radius: 50% !important;
             }
           `}</style>
-          <Line data={overallData} options={overallOptions} className="bg-[#F9FEFA] rounded-sm shadow-sm" />
+          {trendLoading ? (
+            <div className="flex h-full items-center justify-center">
+              <Loader />
+            </div>
+          ) : (
+            <Line data={overallData} options={overallOptions} className="bg-[#F9FEFA] rounded-sm shadow-sm" />
+          )}
 
           {/* Information Icon Overlay at x=4 (index 3) */}
-          <div
+          {/* <div
             className="absolute"
             style={{
               left: "calc(25% + 8.33% * 3)", // Approximate position for x=4
@@ -412,7 +567,7 @@ const PremiumYear = () => {
             <div className="w-6 h-6 rounded-full bg-yellow-400 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
               <Info className="w-4 h-4 text-yellow-800" />
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -433,7 +588,13 @@ const PremiumYear = () => {
             </span>
           </div> */}
 
-          <Line data={seasonalData} options={seasonalOptions} />
+          {trendLoading ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-white/60">
+              <Loader />
+            </div>
+          ) : (
+            <Line data={seasonalData} options={seasonalOptions} />
+          )}
         </div>
       </div>
 
@@ -449,7 +610,9 @@ const PremiumYear = () => {
         {/* Content Sections */}
         <div className="space-y-3 text-secondary text-sm mb-[12px]">
           {analysisLoading ? (
-            <p className="text-xs text-secondary">Loading yearly analysis…</p>
+            <div className="flex items-center justify-center py-2">
+              <Loader />
+            </div>
           ) : (
             <>
               <div>

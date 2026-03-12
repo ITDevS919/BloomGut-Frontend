@@ -20,6 +20,7 @@ ChartJS.register(
 );
 import { Bar, Line, Radar } from "react-chartjs-2";
 import { useEffect, useState } from "react";
+import Loader from "@/components/common/Loader";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 
@@ -48,16 +49,15 @@ const Year = ({ referenceDate }) => {
   const [sugarYear, setSugarYear] = useState([37, 32, 26, 19, 12, 3, 0, 6, 14, 19, 24, 30]);
   const [yearlySummary, setYearlySummary] = useState("");
   const [yearlyGoals, setYearlyGoals] = useState([
-    "Fiber ↑ in H1, slight ↓ in H2",
-    "Fat & sugar ↑ in H2",
-    "Protein stable all year",
+    
   ]);
   const [keyTransitions, setKeyTransitions] = useState([
-    { period: "April–June", note: "Fiber ↑", status: "positive" },
-    { period: "Oct–Dec", note: "Fat & Sugar ↑", status: "caution" },
+    
   ]);
   const [loadingYear, setLoadingYear] = useState(false);
   const [loadingAdvice, setLoadingAdvice] = useState(false);
+  const [showAnnualAnalysis, setShowAnnualAnalysis] = useState(false);
+  const [showDietBowelFindings, setShowDietBowelFindings] = useState(false);
 
   useEffect(() => {
     if (!auth?.user?.id) return;
@@ -346,9 +346,7 @@ const Year = ({ referenceDate }) => {
 
         <div className="h-40">
           {loadingYear ? (
-            <div className="flex h-full items-center justify-center text-xs text-secondary">
-              Loading yearly diet trend…
-            </div>
+            <Loader />
           ) : (
             <Line data={inTakeRatioData} options={inTakeRatioOptions} />
           )}
@@ -356,23 +354,26 @@ const Year = ({ referenceDate }) => {
       </div>
 
       {/* Next Month's Goals */}
-      <div className="w-full rounded-[12px] bg-[#EFF6FF] border border-custom-8 p-5 shadow-[0_2px_4px_rgba(0,0,0,0.08)] space-y-3 mt-5">
+      <div className="w-full rounded-[12px] bg-[#EFF6FF] border border-custom-8 p-5 shadow-[0_2px_4px_rgba(0,0,0,0.08)] space-y-3 mt-5 relative">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h2 className="text-base font-medium text-primary">Next Month’s Goals</h2>
-          <button className="text-xs text-blue-500 hover:underline">
-            View Analysis
+          <button
+            type="button"
+            className="text-xs text-blue-500 hover:underline"
+            onClick={() => setShowAnnualAnalysis((prev) => !prev)}
+          >
+            {showAnnualAnalysis ? "Hide Analysis" : "View Analysis"}
           </button>
         </div>
 
-        {/* Goals */}
+        {/* Goals (from AI yearlyAdvice) */}
         <ul className="space-y-2 text-base text-secondary">
           {loadingAdvice ? (
-            <li className="flex items-start gap-2">
-              <span className="mt-1 h-1.5 w-1.5 rounded-full bg-secondary" />
-              <span>Analyzing yearly pattern…</span>
-            </li>
-          ) : (
+            <div className="flex items-center justify-center py-2">
+              <Loader />
+            </div>
+          ) : yearlyGoals.length ? (
             yearlyGoals.map((goal, index) => (
               // eslint-disable-next-line react/no-array-index-key
               <li key={index} className="flex items-start gap-2">
@@ -380,8 +381,81 @@ const Year = ({ referenceDate }) => {
                 <span>{goal}</span>
               </li>
             ))
+          ) : (
+            <li className="flex items-start gap-2">
+              <span className="mt-1 h-1.5 w-1.5 rounded-full bg-secondary" />
+              <span>
+                Once enough yearly diet data is available, AI will suggest 2–3 clear goals for
+                the coming month.
+              </span>
+            </li>
           )}
         </ul>
+
+        {/* AI annual analysis cards (design from screenshot) */}
+        {showAnnualAnalysis && (
+          loadingAdvice ? (
+            <div className="flex items-center justify-center py-4">
+              <Loader />
+            </div>
+          ) : (
+            <div className="space-y-3 mt-2">
+              {/* First Half Analysis */}
+              <div className="rounded-[12px] bg-white p-4 border border-custom-8">
+                <p className="text-sm text-primary mb-2">First Half Analysis</p>
+                <p className="text-xs text-secondary">
+                  <span className=" text-[#2563eb]">Change: </span>
+                  {yearlyGoals[0] ||
+                    "Once enough yearly data is available, AI will summarize how fiber, fat and sugar shifted in the first half of the year."}
+                </p>
+                <p className="text-xs text-secondary mt-1">
+                  <span className=" text-[#28b070]">Impact: </span>
+                  {yearlySummary ||
+                    "Early yearly trends suggest that balanced fiber and moderate fat support smoother bowel movements."}
+                </p>
+              </div>
+
+              {/* Second Half Analysis */}
+              <div className="rounded-[12px] bg-white p-4 border border-custom-8">
+                <p className="text-base text-primary mb-2">Second Half Analysis</p>
+                <p className="text-xs text-secondary">
+                  <span className=" text-[#28b070]">Change: </span>
+                  {yearlyGoals[1] ||
+                    "AI will highlight how holiday or seasonal eating in the second half affects fat and sugar balance once more data is collected."}
+                </p>
+                <p className="text-xs text-secondary mt-1">
+                  <span className=" text-[#2563eb]">Impact: </span>
+                  {yearlySummary ||
+                    "Shifts in fat and sugar later in the year may relate to more sensitive gut days compared with the first half."}
+                </p>
+              </div>
+
+              {/* Annual Analysis */}
+              <div className="rounded-[12px] bg-white p-4 border border-custom-8">
+                <p className="text-sm text-primary mb-2">Annual Analysis</p>
+                <p className="text-xs text-secondary">
+                  <span className=" text-[#28b070]">Change: </span>
+                  {yearlyGoals[2] ||
+                    "Overall fiber and protein trends versus fat and sugar will be summarized here as more yearly data accumulates."}
+                </p>
+                <p className="text-xs text-secondary mt-1">
+                  <span className=" text-[#2563eb]">Impact: </span>
+                  {yearlySummary ||
+                    "Current AI summary suggests that consistent fiber with controlled fat and sugar supports more stable bowel comfort over the year."}
+                </p>
+              </div>
+
+              {/* Annual Suggestion */}
+              <div className="rounded-[12px] bg-[#fefce8] p-4 border border-custom-8">
+                <p className="text-xs font-medium text-primary mb-1">Annual Suggestion</p>
+                <p className="text-xs text-secondary">
+                  {yearlyGoals[0] ||
+                    "Keep the balanced pattern from your best months, reduce heavy fat & sugar bursts in festive periods, and add a small daily fiber habit."}
+                </p>
+              </div>
+            </div>
+          )
+        )}
       </div>
 
       {/* Key Transition */}
@@ -390,26 +464,31 @@ const Year = ({ referenceDate }) => {
         <h2 className="text-sm text-primary">Key Transition</h2>
 
         {/* Items */}
-        <div className="flex justify-between text-sm text-gray-700">
-          {keyTransitions.slice(0, 2).map((kt, index) => (
-            // eslint-disable-next-line react/no-array-index-key
-            <div key={index} className="flex items-start gap-2">
-              <span
-                className={`mt-1 h-2.5 w-2.5 rounded-full ${
-                  kt.status === "positive"
+        {loadingAdvice ? (
+          <div className="flex items-center justify-center py-2">
+            <Loader />
+          </div>
+        ) : (
+          <div className="flex justify-between text-sm text-gray-700">
+            {keyTransitions.slice(0, 2).map((kt, index) => (
+              // eslint-disable-next-line react/no-array-index-key
+              <div key={index} className="flex items-start gap-2">
+                <span
+                  className={`mt-1 h-2.5 w-2.5 rounded-full ${kt.status === "positive"
                     ? "bg-green-500"
                     : kt.status === "caution"
-                    ? "bg-yellow-400"
-                    : "bg-gray-400"
-                }`}
-              />
-              <div>
-                <p className="text-secondary text-sm">{kt.period}</p>
-                <p className="text-secondary text-sm">{kt.note}</p>
+                      ? "bg-yellow-400"
+                      : "bg-gray-400"
+                    }`}
+                />
+                <div>
+                  <p className="text-secondary text-sm">{kt.period}</p>
+                  <p className="text-secondary text-sm">{kt.note}</p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Sensitive Foods */}
@@ -456,8 +535,12 @@ const Year = ({ referenceDate }) => {
             <div className="flex items-center gap-2 text-primary">
               Diet and Bowel Movement
             </div>
-            <button className="text-xs text-blue-500 hover:underline">
-              View Analysis
+            <button
+              type="button"
+              className="text-xs text-blue-500 hover:underline"
+              onClick={() => setShowDietBowelFindings((prev) => !prev)}
+            >
+              {showDietBowelFindings ? "Hide Analysis" : "View Analysis"}
             </button>
           </div>
           <p className="text-xs text-custom-12">
@@ -484,22 +567,24 @@ const Year = ({ referenceDate }) => {
           <Status color="bg-red-500" label="Negative" />
         </div>
 
-        {/* Findings */}
-        <div className="text-sm space-y-2">
-          <p className="text-primary text-base mb-2">Annual Correlation</p>
-          <p className="text-secondary text-xs mb-4">
-            {loadingAdvice
-              ? "Summarizing how your yearly diet pattern relates to gut comfort…"
-              : yearlySummary ||
-                "Fiber and protein appear supportive, while higher fat and sugar periods may relate to gut discomfort."}
-          </p>
-          <ul className="list-disc pl-4 space-y-1 text-secondary text-sm">
-            {yearlyGoals.map((goal, index) => (
-              // eslint-disable-next-line react/no-array-index-key
-              <li key={index}>{goal}</li>
-            ))}
-          </ul>
-        </div>
+        {/* Findings (toggled by View Analysis) */}
+        {showDietBowelFindings && (
+          <div className="text-sm space-y-2">
+            <p className="text-primary text-base mb-2">Annual Correlation</p>
+            <p className="text-secondary text-xs mb-4">
+              {loadingAdvice
+                ? "Summarizing how your yearly diet pattern relates to gut comfort…"
+                : yearlySummary ||
+                  "Fiber and protein appear supportive, while higher fat and sugar periods may relate to gut discomfort."}
+            </p>
+            <ul className="list-disc pl-4 space-y-1 text-secondary text-sm">
+              {yearlyGoals.map((goal, index) => (
+                // eslint-disable-next-line react/no-array-index-key
+                <li key={index}>{goal}</li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       <div className="flex justify-center items-center text-custom-12 p-4 italic text-sm mt-3 text-center">

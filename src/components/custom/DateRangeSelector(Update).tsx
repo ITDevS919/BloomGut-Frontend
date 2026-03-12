@@ -81,7 +81,7 @@ const DateRangeSelectorBlueUpdate = (props) => {
       <div className="flex gap-4 sm:gap-6 md:gap-10 justify-center mb-4 px-[15px] overflow-x-auto">
         <button
           onClick={() => { handleViewModeChange("week"); props.setViewMode("week") }}
-          className={`px-6 py-1 rounded-lg text-lg transition-colors ${viewMode === "week"
+          className={`px-6 py-1 rounded-lg text-lg transition-colors cursor-pointer ${viewMode === "week"
             ? "bg-[#C69C6D] text-primary" // Active: light brown/beige background
             : "bg-white border border-[#d9cbc0] text-primary" // Inactive: white background
             }`}
@@ -90,7 +90,7 @@ const DateRangeSelectorBlueUpdate = (props) => {
         </button>
         <button
           onClick={() => { handleViewModeChange("month"); props.setViewMode("month") }}
-          className={`px-6 py-2 rounded-lg text-lg transition-colors ${viewMode === "month"
+          className={`px-6 py-2 rounded-lg text-lg transition-colors cursor-pointer ${viewMode === "month"
             ? "bg-[#C69C6D] text-primary" // Active: light brown/beige background
             : "bg-white border border-[#d9cbc0] text-primary" // Inactive: white background
             }`}
@@ -99,7 +99,7 @@ const DateRangeSelectorBlueUpdate = (props) => {
         </button>
         <button
           onClick={() => { handleViewModeChange("year"); props.setViewMode("year") }}
-          className={`px-6 py-2 rounded-lg text-lg transition-colors ${viewMode === "year"
+          className={`px-6 py-2 rounded-lg text-lg transition-colors cursor-pointer ${viewMode === "year"
             ? "bg-[#C69C6D] text-primary" // Active: light brown/beige background
             : "bg-white border border-[#d9cbc0] text-primary" // Inactive: white background
             }`}
@@ -126,10 +126,10 @@ const DateRangeSelectorBlueUpdate = (props) => {
         ) : (
           <><button
             onClick={handlePrevious}
-            className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors bg-[#EDEDEF]"
+            className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors bg-[#EDEDEF] cursor-pointer"
             aria-label="Previous"
           >
-            <ChevronLeft className="w-5 h-5 text-gray-600 cursor-pointer" />
+            <ChevronLeft className="w-5 h-5 text-gray-600" />
           </button>
 
             {/* Date Display */}
@@ -140,10 +140,10 @@ const DateRangeSelectorBlueUpdate = (props) => {
             {/* Next Button */}
             <button
               onClick={handleNext}
-              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors bg-[#EDEDEF]"
+              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors bg-[#EDEDEF] cursor-pointer"
               aria-label="Next"
             >
-              <ChevronRight className="w-5 h-5 text-gray-600 cursor-pointer" />
+              <ChevronRight className="w-5 h-5 text-gray-600" />
             </button>
           </>)}
       </div>

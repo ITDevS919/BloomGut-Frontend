@@ -5,6 +5,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Loader from "@/components/common/Loader";
 
 const VerifyEmail = () => {
   const navigate = useNavigate();
@@ -72,7 +73,7 @@ const VerifyEmail = () => {
   };
 
   if (!isLoaded) {
-    return <div className="flex justify-center items-center w-full">Loading...</div>;
+    return <Loader />;
   }
 
   return (

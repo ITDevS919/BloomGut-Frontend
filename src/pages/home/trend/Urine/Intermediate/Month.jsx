@@ -35,6 +35,7 @@ import useApiClient from "@/hooks/useApiClient";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { MdErrorOutline, MdOutlineErrorOutline } from "react-icons/md";
 import Upgrade from "./Upgrade";
+import Loader from "@/components/common/Loader";
 
 const Month = ({ referenceDate }) => {
   const navigate = useNavigate();
@@ -49,6 +50,8 @@ const Month = ({ referenceDate }) => {
 
   useEffect(() => {
     if (!auth?.user?.id) return;
+
+    let isCancelled = false;
 
     const fetchMonthlyVolumes = async () => {
       setChartLoading(true);
@@ -75,11 +78,17 @@ const Month = ({ referenceDate }) => {
         // eslint-disable-next-line no-console
         console.error("Failed to load urine monthly volumes:", error);
       } finally {
-        setChartLoading(false);
+        if (!isCancelled) {
+          setChartLoading(false);
+        }
       }
     };
 
     fetchMonthlyVolumes();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [api, auth?.user?.id, referenceDate]);
 
   useEffect(() => {
@@ -228,19 +237,19 @@ const Month = ({ referenceDate }) => {
     <>
       <Free showUpgrade={false} />
       <div className="pl-[15px] pr-[15px] mt-[29px]">
-        <div className="w-full max-w-md rounded-[20px] bg-white p-5 shadow-md space-y-5">
+        <div className="w-full max-w-md rounded-[20px] bg-white p-5 shadow-md space-y-5 relative">
           {/* Header */}
           <h2 className="text-base font-medium text-primary">Urine Trend Analysis</h2>
 
           {/* Chart */}
           <div className="h-56">
-          {chartLoading ? (
-            <div className="flex h-full items-center justify-center text-xs text-secondary">
-              Loading monthly urine volumes…
-            </div>
-          ) : (
-            <Line data={data} options={options} />
-          )}
+            {chartLoading ? (
+              <div className="flex h-full items-center justify-center">
+                <Loader />
+              </div>
+            ) : (
+              <Line data={data} options={options} />
+            )}
           </div>
 
           {/* Legend */}
@@ -311,21 +320,23 @@ const Month = ({ referenceDate }) => {
                   Monthly Notes
                 </h3>
 
-                <div className="rounded-[8px] bg-blue-50 p-4 text-sm text-secondary">
-                  {adviceLoading ? (
-                    <p className="text-secondary">Loading analysis…</p>
-                  ) : monthlyAdvice?.monthlyNotes?.length ? (
-                    <ul className="list-disc space-y-2 pl-4 text-secondary">
-                      {monthlyAdvice.monthlyNotes.map((note, i) => (
-                        <li key={i}>{note}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <ul className="list-disc space-y-2 pl-4 text-secondary">
-                      <li>Review your monthly urine volume trend.</li>
-                    </ul>
-                  )}
-                </div>
+                  <div className="rounded-[8px] bg-blue-50 p-4 text-sm text-secondary">
+                    {adviceLoading ? (
+                      <div className="flex items-center justify-center py-2">
+                        <Loader />
+                      </div>
+                    ) : monthlyAdvice?.monthlyNotes?.length ? (
+                      <ul className="list-disc space-y-2 pl-4 text-secondary">
+                        {monthlyAdvice.monthlyNotes.map((note, i) => (
+                          <li key={i}>{note}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <ul className="list-disc space-y-2 pl-4 text-secondary">
+                        <li>Review your monthly urine volume trend.</li>
+                      </ul>
+                    )}
+                  </div>
               </div>
 
               {/* Health Status Assessment */}
@@ -364,7 +375,9 @@ const Month = ({ referenceDate }) => {
                     Personalized Suggestions
                   </h3>
                   {adviceLoading ? (
-                    <p className="text-secondary">Loading suggestions…</p>
+                    <div className="flex items-center justify-center py-2">
+                      <Loader />
+                    </div>
                   ) : monthlyAdvice?.suggestions?.length ? (
                     <ul className="list-disc space-y-2 pl-4 text-secondary">
                       {monthlyAdvice.suggestions.map((s, i) => (

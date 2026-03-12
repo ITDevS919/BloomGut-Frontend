@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import Loader from "@/components/common/Loader";
 
 const PremiumWeek = () => {
   const navigate = useNavigate();
@@ -19,7 +20,8 @@ const PremiumWeek = () => {
     return "#FFC2B5"; // Pink/Red - High
   };
 
-  const foodData = [
+  // Default sample data; will be overridden by backend values when available
+  const defaultFoodData = [
     { food: "Milk", abdPain: 90, diarrh: 70, constip: 30, bloat: 10 },
     { food: "Bread", abdPain: 20, diarrh: 80, constip: 40, bloat: 30 },
     { food: "Peanuts", abdPain: 50, diarrh: 20, constip: 90, bloat: 70 },
@@ -29,6 +31,8 @@ const PremiumWeek = () => {
     { food: "Nuts", abdPain: 60, diarrh: 50, constip: 30, bloat: 20 },
   ];
 
+  const [foodData, setFoodData] = useState(defaultFoodData);
+
   useEffect(() => {
     if (!auth?.user?.id) return;
 
@@ -36,10 +40,14 @@ const PremiumWeek = () => {
       setAiLoading(true);
       try {
         const res = await api.post("/trend/bowel/premiumWeekAdvice", {
-          foods: foodData,
+          userId: auth.user.id,
         });
+        console.log("food vs symptom", res.data)
         const data = res.data?.data ?? res.data;
         if (data) {
+          if (Array.isArray(data.foods) && data.foods.length) {
+            setFoodData(data.foods);
+          }
           setAiTooltipMap(data.tooltipMap || {});
           setSummaryTips(Array.isArray(data.summaryTips) ? data.summaryTips : []);
         }
@@ -170,7 +178,7 @@ const PremiumWeek = () => {
       <div className="text-base pl-[15px] font-medium mb-[11px] text-primary">
         Food vs Symptoms
       </div>
-      <div className="w-full max-w-2xl rounded-[8px] bg-white p-4 shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
+      <div className="w-full max-w-2xl rounded-[8px] bg-white p-4 shadow-[0_2px_4px_rgba(0,0,0,0.08)] relative">
         {/* Table */}
         <div className="overflow-x-auto bg-quinary rounded-[8px]">
           <table className="w-full border-collapse">
@@ -244,8 +252,11 @@ const PremiumWeek = () => {
           </div>
         </div>
 
-        {/* AI Summary Tips */}
-       
+        {aiLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/60">
+            <Loader />
+          </div>
+        )}
       </div>
 
       {/* Cell Tooltip */}

@@ -327,8 +327,52 @@ const Week = ({ referenceDate }) => {
         {/* Chart */}
         <div className="h-48">
           {chartLoading ? (
-            <div className="flex h-full items-center justify-center text-xs text-secondary">
-              Loading weekly water & urine data…
+            <div className="flex h-full items-center justify-center">
+              <svg
+                version="1.1"
+                xmlns="http://www.w3.org/2000/svg"
+                x="0px"
+                y="0px"
+                width="24px"
+                height="30px"
+                viewBox="0 0 24 30"
+                style={{ enableBackground: "new 0 0 50 50" }}
+                xmlSpace="preserve"
+              >
+                <rect x="0" y="0" width="4" height="10" fill="#ef4444">
+                  <animateTransform
+                    attributeType="xml"
+                    attributeName="transform"
+                    type="translate"
+                    values="0 0; 0 20; 0 0"
+                    begin="0"
+                    dur="0.6s"
+                    repeatCount="indefinite"
+                  />
+                </rect>
+                <rect x="10" y="0" width="4" height="10" fill="#ef4444">
+                  <animateTransform
+                    attributeType="xml"
+                    attributeName="transform"
+                    type="translate"
+                    values="0 0; 0 20; 0 0"
+                    begin="0.2s"
+                    dur="0.6s"
+                    repeatCount="indefinite"
+                  />
+                </rect>
+                <rect x="20" y="0" width="4" height="10" fill="#ef4444">
+                  <animateTransform
+                    attributeType="xml"
+                    attributeName="transform"
+                    type="translate"
+                    values="0 0; 0 20; 0 0"
+                    begin="0.4s"
+                    dur="0.6s"
+                    repeatCount="indefinite"
+                  />
+                </rect>
+              </svg>
             </div>
           ) : (
             <Line data={data} options={options} />
@@ -377,7 +421,53 @@ const Week = ({ referenceDate }) => {
             <div className="rounded-[14px] bg-[#fefce8] p-4 text-sm text-primary">
               <p className="font-medium mb-1">Weekly Insights</p>
               {healthTipsLoading ? (
-                <p className="text-secondary text-xs">Loading insights…</p>
+                <div className="flex items-center justify-center py-2">
+                  <svg
+                    version="1.1"
+                    xmlns="http://www.w3.org/2000/svg"
+                    x="0px"
+                    y="0px"
+                    width="24px"
+                    height="30px"
+                    viewBox="0 0 24 30"
+                    style={{ enableBackground: "new 0 0 50 50" }}
+                    xmlSpace="preserve"
+                  >
+                    <rect x="0" y="0" width="4" height="10" fill="#ef4444">
+                      <animateTransform
+                        attributeType="xml"
+                        attributeName="transform"
+                        type="translate"
+                        values="0 0; 0 20; 0 0"
+                        begin="0"
+                        dur="0.6s"
+                        repeatCount="indefinite"
+                      />
+                    </rect>
+                    <rect x="10" y="0" width="4" height="10" fill="#ef4444">
+                      <animateTransform
+                        attributeType="xml"
+                        attributeName="transform"
+                        type="translate"
+                        values="0 0; 0 20; 0 0"
+                        begin="0.2s"
+                        dur="0.6s"
+                        repeatCount="indefinite"
+                      />
+                    </rect>
+                    <rect x="20" y="0" width="4" height="10" fill="#ef4444">
+                      <animateTransform
+                        attributeType="xml"
+                        attributeName="transform"
+                        type="translate"
+                        values="0 0; 0 20; 0 0"
+                        begin="0.4s"
+                        dur="0.6s"
+                        repeatCount="indefinite"
+                      />
+                    </rect>
+                  </svg>
+                </div>
               ) : healthTips.length > 0 ? (
                 <ul className="list-disc pl-4 space-y-1 text-secondary text-xs">
                   {healthTips.map((tip, idx) => (

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import Loader from "@/components/common/Loader";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 import { Doughnut, Pie } from "react-chartjs-2";
@@ -125,11 +126,12 @@ const Month = ({ referenceDate }) => {
         <div className="text-primary text-base pl-[15px] mb-3">Monthly Diet Category</div>
         <div className="w-full max-w-sm rounded-[20px] bg-white p-5 shadow-md space-y-4">
           {/* Donut */}
-          <div className="h-48 flex justify-center items-center">
-            {loading ? (
-              <div className="text-xs text-secondary">Loading monthly diet data…</div>
-            ) : (
-              <Pie data={data} options={options} />
+          <div className="h-48 flex justify-center items-center relative">
+            <Pie data={data} options={options} />
+            {loading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/60">
+                <Loader />
+              </div>
             )}
           </div>
 
@@ -158,7 +160,13 @@ const Month = ({ referenceDate }) => {
             <div className="flex items-start gap-2">
               <AlertTriangle className="h-4 w-4 text-[#F59E0B] shrink-0 mt-0.5" />
               <p className="text-secondary">
-                {aiLoading ? "Analyzing monthly diet…" : highlight}
+                {aiLoading ? (
+                  <span className="inline-flex items-center justify-center">
+                    <Loader />
+                  </span>
+                ) : (
+                  highlight
+                )}
               </p>
             </div>
           </div>
@@ -167,7 +175,9 @@ const Month = ({ referenceDate }) => {
           {showAnalysis && (
             <>
               {aiLoading ? (
-                <p className="text-secondary text-sm">Loading detailed tips…</p>
+                <div className="flex items-center justify-center py-2">
+                  <Loader />
+                </div>
               ) : perMacroAdvice && perMacroAdvice.length ? (
                 perMacroAdvice.map((item, index) => (
                   // eslint-disable-next-line react/no-array-index-key
@@ -220,7 +230,13 @@ const Month = ({ referenceDate }) => {
               <div className="rounded-[8px] bg-green-50 p-4 text-sm">
                 <p className="text-primary mb-2 text-sm font-medium">Overall Suggestions</p>
                 <p className="text-secondary text-xs">
-                  {aiLoading ? "Summarizing overall trend…" : overallAdvice}
+                  {aiLoading ? (
+                    <span className="inline-flex items-center justify-center">
+                      <DietLoader />
+                    </span>
+                  ) : (
+                    overallAdvice
+                  )}
                 </p>
               </div>
             </>

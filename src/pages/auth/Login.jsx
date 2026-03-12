@@ -24,6 +24,7 @@ import { FcGoogle } from "react-icons/fc";
 import { FaApple } from "react-icons/fa";
 import { FaFacebook } from "react-icons/fa";
 import { FaLine } from "react-icons/fa";
+import Loader from "@/components/common/Loader";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -85,7 +86,7 @@ const Login = () => {
   }, [isSignedIn, navigate]);
 
   if (!isLoaded) {
-    return <div className="flex justify-center items-center">Loading...</div>;
+    return <Loader />;
   }
 
   return (

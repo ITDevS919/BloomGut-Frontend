@@ -58,18 +58,18 @@ const TrendHeader = (props) => {
       <div className="flex items-center gap-4 mb-6 mt-[20px] ml-[20px]">
         <button
           type="button"
-          className="text-primary text-xl leading-none"
+          className="text-primary text-xl leading-none cursor-pointer"
           aria-label="back"
           onClick={handleBackClick}
         >
-          <ChevronLeft className="text-primary text-[40px] leading-none cursor-pointer " />
+          <ChevronLeft className="text-primary text-[40px] leading-none" />
         </button>
         <h2 className="text-lg text-primary">Health Trends</h2>
       </div>
 
       <div className={`flex justify-end ${plan === "premium" ? "mt-5 mb-[40px]" : "mt-5"}`}>
         <button
-          className={`border border-custom-8 text-sm px-6 py-1 rounded-full shadow-[0_2px_6px_rgba(0,0,0,0.12)] mr-5 ${plan === "premium"
+          className={`border border-custom-8 text-sm px-6 py-1 rounded-full shadow-[0_2px_6px_rgba(0,0,0,0.12)] mr-5 cursor-pointer ${plan === "premium"
               ? "bg-[#fff5c0] text-secondary"
               : "bg-[#E2F1DB] text-[#4F7E4E]"
             }`}

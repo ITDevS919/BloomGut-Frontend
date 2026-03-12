@@ -32,9 +32,7 @@ const Week = ({ referenceDate }) => {
     evening: 0.25,
   });
   const [advice, setAdvice] = useState({ message: "", tip: "" });
-  const [adviceLoading, setAdviceLoading] = useState(false);
-   const [chartLoading, setChartLoading] = useState(true);
-
+  const [chartLoading, setChartLoading] = useState(true);
   const dayNames = {
     "Mon": "Monday",
     "Tue": "Tuesday",
@@ -49,8 +47,8 @@ const Week = ({ referenceDate }) => {
     if (!auth?.user?.id) return;
 
     const fetchData = async () => {
+      setChartLoading(true);
       try {
-        setChartLoading(true);
         const ref =
           referenceDate && referenceDate.toISOString
             ? referenceDate.toISOString()
@@ -87,7 +85,6 @@ const Week = ({ referenceDate }) => {
           }
 
           try {
-            setAdviceLoading(true);
             const adviceRes = await api.post("/trend/water/weeklyAdvice", {
               morningMl: morning,
               noonMl: noon,
@@ -114,7 +111,7 @@ const Week = ({ referenceDate }) => {
               tip: "Spread intake across the day.",
             });
           } finally {
-            setAdviceLoading(false);
+            // no loading state
           }
         }
       } catch (err) {
@@ -253,7 +250,51 @@ const Week = ({ referenceDate }) => {
         <div className="relative h-60">
           {chartLoading ? (
             <div className="flex h-full items-center justify-center">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-400 border-t-transparent" />
+              <svg
+                version="1.1"
+                xmlns="http://www.w3.org/2000/svg"
+                x="0px"
+                y="0px"
+                width="24px"
+                height="30px"
+                viewBox="0 0 24 30"
+                style={{ enableBackground: "new 0 0 50 50" }}
+                xmlSpace="preserve"
+              >
+                <rect x="0" y="0" width="4" height="10" fill="#ef4444">
+                  <animateTransform
+                    attributeType="xml"
+                    attributeName="transform"
+                    type="translate"
+                    values="0 0; 0 20; 0 0"
+                    begin="0"
+                    dur="0.6s"
+                    repeatCount="indefinite"
+                  />
+                </rect>
+                <rect x="10" y="0" width="4" height="10" fill="#ef4444">
+                  <animateTransform
+                    attributeType="xml"
+                    attributeName="transform"
+                    type="translate"
+                    values="0 0; 0 20; 0 0"
+                    begin="0.2s"
+                    dur="0.6s"
+                    repeatCount="indefinite"
+                  />
+                </rect>
+                <rect x="20" y="0" width="4" height="10" fill="#ef4444">
+                  <animateTransform
+                    attributeType="xml"
+                    attributeName="transform"
+                    type="translate"
+                    values="0 0; 0 20; 0 0"
+                    begin="0.4s"
+                    dur="0.6s"
+                    repeatCount="indefinite"
+                  />
+                </rect>
+              </svg>
             </div>
           ) : (
             <>
@@ -294,25 +335,24 @@ const Week = ({ referenceDate }) => {
                   <h3 className="text-base font-medium text-primary mb-2">
                     Weekly Tip
                   </h3>
-                  {adviceLoading ? (
-                    <p className="text-sm text-secondary leading-relaxed">
-                      Loading advice…
-                    </p>
-                  ) : (
-                    <>
-                      {advice.message && (
-                        <p className="text-sm text-secondary leading-relaxed mb-1">
-                          {advice.message}
-                        </p>
-                      )}
-                      {advice.tip && (
-                        <p className="text-xs text-custom-12">
-                          <span className="font-medium">Tip: </span>
-                          {advice.tip}
-                        </p>
-                      )}
-                    </>
-                  )}
+                  <>
+                    {advice.message && (
+                      <p className="text-sm text-secondary leading-relaxed mb-1">
+                        {advice.message}
+                      </p>
+                    )}
+                    {advice.tip && (
+                      <p className="text-xs text-custom-12">
+                        <span className="font-medium">Tip: </span>
+                        {advice.tip}
+                      </p>
+                    )}
+                    {!advice.message && !advice.tip && (
+                      <p className="text-sm text-secondary leading-relaxed">
+                        Weekly water tips will appear here once available.
+                      </p>
+                    )}
+                  </>
                 </div>
               )}
 

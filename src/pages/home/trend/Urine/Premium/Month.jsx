@@ -294,6 +294,7 @@ const Month = ({ referenceDate }) => {
     },
   };
   const chartLoading = urineLoading || intakeLoading;
+  const statsLoading = chartLoading || adviceLoading;
 
   return (
     <div className="pl-[15px] pr-[15px] mt-[38px]">
@@ -312,8 +313,52 @@ const Month = ({ referenceDate }) => {
         {/* Chart */}
         <div className="h-56">
           {chartLoading ? (
-            <div className="flex h-full items-center justify-center text-xs text-secondary">
-              Loading monthly water & urine data…
+            <div className="flex h-full items-center justify-center">
+              <svg
+                version="1.1"
+                xmlns="http://www.w3.org/2000/svg"
+                x="0px"
+                y="0px"
+                width="24px"
+                height="30px"
+                viewBox="0 0 24 30"
+                style={{ enableBackground: "new 0 0 50 50" }}
+                xmlSpace="preserve"
+              >
+                <rect x="0" y="0" width="4" height="10" fill="#ef4444">
+                  <animateTransform
+                    attributeType="xml"
+                    attributeName="transform"
+                    type="translate"
+                    values="0 0; 0 20; 0 0"
+                    begin="0"
+                    dur="0.6s"
+                    repeatCount="indefinite"
+                  />
+                </rect>
+                <rect x="10" y="0" width="4" height="10" fill="#ef4444">
+                  <animateTransform
+                    attributeType="xml"
+                    attributeName="transform"
+                    type="translate"
+                    values="0 0; 0 20; 0 0"
+                    begin="0.2s"
+                    dur="0.6s"
+                    repeatCount="indefinite"
+                  />
+                </rect>
+                <rect x="20" y="0" width="4" height="10" fill="#ef4444">
+                  <animateTransform
+                    attributeType="xml"
+                    attributeName="transform"
+                    type="translate"
+                    values="0 0; 0 20; 0 0"
+                    begin="0.4s"
+                    dur="0.6s"
+                    repeatCount="indefinite"
+                  />
+                </rect>
+              </svg>
             </div>
           ) : mode === "line" ? (
             <Line data={lineData} options={options} />
@@ -337,32 +382,82 @@ const Month = ({ referenceDate }) => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-3">
-          <Stat
-            title="Avg Urine"
-            value={avgUrine ? `${avgUrine} ml` : "-"}
-            accent="yellow"
-          />
-          <Stat
-            title="Avg Intake"
-            value={avgIntake ? `${avgIntake} ml` : "-"}
-            accent="blue"
-          />
-          <Stat
-            title="Clarity"
-            value={
-              monthlyAdvice?.normalRatePercent != null
-                ? `${monthlyAdvice.normalRatePercent}%`
-                : "-"
-            }
-            accent="green"
-          />
-          <Stat
-            title="Abnormal Days"
-            value={abnormalCount || abnormalCount === 0 ? `${abnormalCount}` : "-"}
-            accent="indigo"
-          />
-        </div>
+        {statsLoading ? (
+          <div className="flex items-center justify-center py-4">
+            <svg
+              version="1.1"
+              xmlns="http://www.w3.org/2000/svg"
+              x="0px"
+              y="0px"
+              width="24px"
+              height="30px"
+              viewBox="0 0 24 30"
+              style={{ enableBackground: "new 0 0 50 50" }}
+              xmlSpace="preserve"
+            >
+              <rect x="0" y="0" width="4" height="10" fill="#ef4444">
+                <animateTransform
+                  attributeType="xml"
+                  attributeName="transform"
+                  type="translate"
+                  values="0 0; 0 20; 0 0"
+                  begin="0"
+                  dur="0.6s"
+                  repeatCount="indefinite"
+                />
+              </rect>
+              <rect x="10" y="0" width="4" height="10" fill="#ef4444">
+                <animateTransform
+                  attributeType="xml"
+                  attributeName="transform"
+                  type="translate"
+                  values="0 0; 0 20; 0 0"
+                  begin="0.2s"
+                  dur="0.6s"
+                  repeatCount="indefinite"
+                />
+              </rect>
+              <rect x="20" y="0" width="4" height="10" fill="#ef4444">
+                <animateTransform
+                  attributeType="xml"
+                  attributeName="transform"
+                  type="translate"
+                  values="0 0; 0 20; 0 0"
+                  begin="0.4s"
+                  dur="0.6s"
+                  repeatCount="indefinite"
+                />
+              </rect>
+            </svg>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            <Stat
+              title="Avg Urine"
+              value={avgUrine ? `${avgUrine} ml` : "-"}
+              accent="yellow"
+            />
+            <Stat
+              title="Avg Intake"
+              value={avgIntake ? `${avgIntake} ml` : "-"}
+              accent="blue"
+            />
+            <Stat
+              title="Clarity"
+              value={
+                monthlyAdvice?.normalRatePercent != null
+                  ? `${monthlyAdvice.normalRatePercent}%`
+                  : "-"
+              }
+              accent="green"
+            />
+            <Stat
+              title="Abnormal Days"
+              value={abnormalCount || abnormalCount === 0 ? `${abnormalCount}` : "-"}
+              accent="indigo"
+            />
+          </div>
+        )}
 
         {showAnalysis && (
           <div>
@@ -379,9 +474,53 @@ const Month = ({ referenceDate }) => {
                 Correlation with Changes
               </h3>
               {adviceLoading ? (
-                <p className="text-xs text-secondary leading-relaxed">
-                  Loading monthly analysis…
-                </p>
+                <div className="flex items-center justify-center py-2">
+                  <svg
+                    version="1.1"
+                    xmlns="http://www.w3.org/2000/svg"
+                    x="0px"
+                    y="0px"
+                    width="24px"
+                    height="30px"
+                    viewBox="0 0 24 30"
+                    style={{ enableBackground: "new 0 0 50 50" }}
+                    xmlSpace="preserve"
+                  >
+                    <rect x="0" y="0" width="4" height="10" fill="#ef4444">
+                      <animateTransform
+                        attributeType="xml"
+                        attributeName="transform"
+                        type="translate"
+                        values="0 0; 0 20; 0 0"
+                        begin="0"
+                        dur="0.6s"
+                        repeatCount="indefinite"
+                      />
+                    </rect>
+                    <rect x="10" y="0" width="4" height="10" fill="#ef4444">
+                      <animateTransform
+                        attributeType="xml"
+                        attributeName="transform"
+                        type="translate"
+                        values="0 0; 0 20; 0 0"
+                        begin="0.2s"
+                        dur="0.6s"
+                        repeatCount="indefinite"
+                      />
+                    </rect>
+                    <rect x="20" y="0" width="4" height="10" fill="#ef4444">
+                      <animateTransform
+                        attributeType="xml"
+                        attributeName="transform"
+                        type="translate"
+                        values="0 0; 0 20; 0 0"
+                        begin="0.4s"
+                        dur="0.6s"
+                        repeatCount="indefinite"
+                      />
+                    </rect>
+                  </svg>
+                </div>
               ) : monthlyAdvice?.monthlyNotes?.length ? (
                 <ul className="list-disc pl-4 space-y-1 text-xs text-secondary">
                   {monthlyAdvice.monthlyNotes.map((note, idx) => (
@@ -423,9 +562,53 @@ const Month = ({ referenceDate }) => {
             <div className="rounded-[8px] bg-blue-50 p-4 text-sm text-gray-700">
               <p className="text-[#619af8] mb-1">Personal Tip</p>
               {adviceLoading ? (
-                <p className="text-xs text-secondary">
-                  Loading tip…
-                </p>
+                <div className="flex items-center justify-center py-2">
+                  <svg
+                    version="1.1"
+                    xmlns="http://www.w3.org/2000/svg"
+                    x="0px"
+                    y="0px"
+                    width="24px"
+                    height="30px"
+                    viewBox="0 0 24 30"
+                    style={{ enableBackground: "new 0 0 50 50" }}
+                    xmlSpace="preserve"
+                  >
+                    <rect x="0" y="0" width="4" height="10" fill="#ef4444">
+                      <animateTransform
+                        attributeType="xml"
+                        attributeName="transform"
+                        type="translate"
+                        values="0 0; 0 20; 0 0"
+                        begin="0"
+                        dur="0.6s"
+                        repeatCount="indefinite"
+                      />
+                    </rect>
+                    <rect x="10" y="0" width="4" height="10" fill="#ef4444">
+                      <animateTransform
+                        attributeType="xml"
+                        attributeName="transform"
+                        type="translate"
+                        values="0 0; 0 20; 0 0"
+                        begin="0.2s"
+                        dur="0.6s"
+                        repeatCount="indefinite"
+                      />
+                    </rect>
+                    <rect x="20" y="0" width="4" height="10" fill="#ef4444">
+                      <animateTransform
+                        attributeType="xml"
+                        attributeName="transform"
+                        type="translate"
+                        values="0 0; 0 20; 0 0"
+                        begin="0.4s"
+                        dur="0.6s"
+                        repeatCount="indefinite"
+                      />
+                    </rect>
+                  </svg>
+                </div>
               ) : monthlyAdvice?.suggestions?.length ? (
                 <ul className="list-disc pl-4 space-y-1 text-xs text-secondary">
                   {monthlyAdvice.suggestions.map((s, idx) => (

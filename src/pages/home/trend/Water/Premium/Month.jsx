@@ -342,7 +342,51 @@ const Month = ({ referenceDate }) => {
       <div className="relative h-60">
         {chartLoading ? (
           <div className="flex h-full items-center justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-400 border-t-transparent" />
+            <svg
+              version="1.1"
+              xmlns="http://www.w3.org/2000/svg"
+              x="0px"
+              y="0px"
+              width="24px"
+              height="30px"
+              viewBox="0 0 24 30"
+              style={{ enableBackground: "new 0 0 50 50" }}
+              xmlSpace="preserve"
+            >
+              <rect x="0" y="0" width="4" height="10" fill="#ef4444">
+                <animateTransform
+                  attributeType="xml"
+                  attributeName="transform"
+                  type="translate"
+                  values="0 0; 0 20; 0 0"
+                  begin="0"
+                  dur="0.6s"
+                  repeatCount="indefinite"
+                />
+              </rect>
+              <rect x="10" y="0" width="4" height="10" fill="#ef4444">
+                <animateTransform
+                  attributeType="xml"
+                  attributeName="transform"
+                  type="translate"
+                  values="0 0; 0 20; 0 0"
+                  begin="0.2s"
+                  dur="0.6s"
+                  repeatCount="indefinite"
+                />
+              </rect>
+              <rect x="20" y="0" width="4" height="10" fill="#ef4444">
+                <animateTransform
+                  attributeType="xml"
+                  attributeName="transform"
+                  type="translate"
+                  values="0 0; 0 20; 0 0"
+                  begin="0.4s"
+                  dur="0.6s"
+                  repeatCount="indefinite"
+                />
+              </rect>
+            </svg>
           </div>
         ) : (
           <>
@@ -417,7 +461,53 @@ const Month = ({ referenceDate }) => {
                 {labels[selectedWeekIndex] ?? `Week ${selectedWeekIndex + 1}`}
               </div>
               {aiLoadingWeek === selectedWeekIndex ? (
-                <p className="text-xs text-custom-12">Loading weekly analysis…</p>
+                <div className="flex items-center justify-center py-2">
+                  <svg
+                    version="1.1"
+                    xmlns="http://www.w3.org/2000/svg"
+                    x="0px"
+                    y="0px"
+                    width="24px"
+                    height="30px"
+                    viewBox="0 0 24 30"
+                    style={{ enableBackground: "new 0 0 50 50" }}
+                    xmlSpace="preserve"
+                  >
+                    <rect x="0" y="0" width="4" height="10" fill="#ef4444">
+                      <animateTransform
+                        attributeType="xml"
+                        attributeName="transform"
+                        type="translate"
+                        values="0 0; 0 20; 0 0"
+                        begin="0"
+                        dur="0.6s"
+                        repeatCount="indefinite"
+                      />
+                    </rect>
+                    <rect x="10" y="0" width="4" height="10" fill="#ef4444">
+                      <animateTransform
+                        attributeType="xml"
+                        attributeName="transform"
+                        type="translate"
+                        values="0 0; 0 20; 0 0"
+                        begin="0.2s"
+                        dur="0.6s"
+                        repeatCount="indefinite"
+                      />
+                    </rect>
+                    <rect x="20" y="0" width="4" height="10" fill="#ef4444">
+                      <animateTransform
+                        attributeType="xml"
+                        attributeName="transform"
+                        type="translate"
+                        values="0 0; 0 20; 0 0"
+                        begin="0.4s"
+                        dur="0.6s"
+                        repeatCount="indefinite"
+                      />
+                    </rect>
+                  </svg>
+                </div>
               ) : (
                 <>
                   {aiAdviceByWeek[selectedWeekIndex]?.message && (

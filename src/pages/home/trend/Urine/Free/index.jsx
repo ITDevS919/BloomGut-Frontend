@@ -3,6 +3,7 @@ import { FaSmile } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import Loader from "@/components/common/Loader";
 
 const URINE_PRIMARY_COLOR = "#F09129";
 
@@ -172,39 +173,54 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
     beforeWeekScore,
   ]);
 
-  const scorePosition = getScorePosition(weekScore);
-  const isLoading = !dotsLoaded || !scoreLoaded || !tipsLoaded;
+  const hasTodayUrineRecord = (() => {
+    if (!Array.isArray(dotData) || dotData.length === 0) return false;
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <div className="h-8 w-8 border-4 border-amber-200 border-t-amber-500 rounded-full animate-spin" />
-      </div>
-    );
-  }
+    const weekLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const todayLabel = weekLabels[new Date().getDay()];
+    const today = dotData.find((d) => d.day === todayLabel);
+    const todayScore = today ? Number(today.score || 0) : 0;
+
+    return todayScore > 0;
+  })();
+
+  const effectiveWeekScore = hasTodayUrineRecord ? weekScore : 0;
+  const effectiveStatus =
+    hasTodayUrineRecord && effectiveWeekScore > 0
+      ? effectiveWeekScore > 75
+        ? "Excellent"
+        : effectiveWeekScore > 50
+        ? "Good"
+        : effectiveWeekScore > 25
+        ? "Fair"
+        : "Poor"
+      : "Not Recorded";
+  const effectiveChangeText = hasTodayUrineRecord
+    ? `${beforeWeekScore > effectiveWeekScore ? "-" : "+"}${Math.abs(
+        beforeWeekScore - effectiveWeekScore
+      )}% vs Last`
+    : "";
+  const scorePosition = getScorePosition(effectiveWeekScore);
+
+  const loadingScore = !scoreLoaded;
+  const loadingDots = !dotsLoaded;
+  const loadingTips = !tipsLoaded;
 
   return (
     <div className="pl-[15px] pr-[15px]">
       {/* Score Card */}
-      <div className="bg-white rounded-[27px] p-[32px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[28px]">
+      <div className="bg-white rounded-[27px] p-[32px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[28px] relative">
         <div className="flex items-center justify-between">
           <div className="pl-[50px]">
             <div className="text-3xl font-medium text-[#F09129] text-center">
-              {weekScore}
+              {effectiveWeekScore}
             </div>
             <div className="text-sm text-[#F09129] text-center">
-              {weekScore > 75
-                ? "Excellent"
-                : weekScore > 50
-                ? "Good"
-                : weekScore > 25
-                ? "Fair"
-                : "Poor"}
+              {effectiveStatus}
             </div>
           </div>
           <div className="text-sm pr-[50px] text-[#F09129]">
-            {beforeWeekScore > weekScore ? "-" : "+"}
-            {Math.abs(beforeWeekScore - weekScore)}% vs Last
+            {effectiveChangeText}
           </div>
         </div>
 
@@ -237,10 +253,16 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
             </div>
           </div>
         </div>
+
+        {loadingScore && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/60">
+            <Loader />
+          </div>
+        )}
       </div>
 
       <div className="text-primary font-medium mb-5 pl-[15px]">Weekly Urine Report</div>
-      <div className="w-full max-w-sm rounded-[20px] bg-white p-4 shadow-[2px_0_10px_rgba(3,3,3,0.1)] space-y-4">
+      <div className="w-full max-w-sm rounded-[20px] bg-white p-4 shadow-[2px_0_10px_rgba(3,3,3,0.1)] space-y-4 relative">
         {/* Status dots */}
         <div className="flex justify-between">
           {dotData.map((d) => (
@@ -314,7 +336,11 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         {/* Health Tips from AI (OpenAI) */}
         <div className="rounded-[8px] bg-green-50 p-4 text-xs text-gray-700">
           <p className="mb-[6px] font-medium text-primary">Health Tips</p>
-          {healthTips.length > 0 ? (
+          {loadingTips ? (
+            <div className="flex items-center justify-center py-2">
+              <Loader />
+            </div>
+          ) : healthTips.length > 0 ? (
             <ul className="text-secondary text-xs list-disc list-inside space-y-1">
               {healthTips.map((tip, i) => (
                 <li key={i}>{tip}</li>
@@ -326,6 +352,12 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
             </p>
           )}
         </div>
+
+        {loadingDots && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/60">
+            <Loader />
+          </div>
+        )}
       </div>
 
       {/* <Upgrade /> */}

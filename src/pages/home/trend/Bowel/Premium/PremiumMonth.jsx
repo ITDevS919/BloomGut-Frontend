@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import Loader from "@/components/common/Loader";
 
 const PremiumMonth = () => {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ const PremiumMonth = () => {
     return "#FFC2B5"; // Pink/Red - High
   };
 
-  const foodData = [
+  const defaultFoodData = [
     { food: "Milk", week1: 82, week2: 70, week3: 65, week4: 55 },
     { food: "Bread", week1: 20, week2: 80, week3: 52, week4: 63 },
     { food: "Peanuts", week1: 50, week2: 82, week3: 86, week4: 70 },
@@ -29,6 +30,8 @@ const PremiumMonth = () => {
     { food: "Beans", week1: 40, week2: 30, week3: 60, week4: 50 },
     { food: "Nuts", week1: 60, week2: 50, week3: 30, week4: 20 },
   ];
+
+  const [foodData, setFoodData] = useState(defaultFoodData);
 
   const getTooltipData = (food, week, percentage) => {
     const aiFood = aiTooltipMap?.[food]?.[week];
@@ -113,10 +116,13 @@ const PremiumMonth = () => {
       setAiLoading(true);
       try {
         const res = await api.post("/trend/bowel/premiumMonthAdvice", {
-          foods: foodData,
+          userId: auth.user.id,
         });
         const data = res.data?.data ?? res.data;
         if (data) {
+          if (Array.isArray(data.foods) && data.foods.length) {
+            setFoodData(data.foods);
+          }
           setAiTooltipMap(data.tooltipMap || {});
           setSummaryTips(Array.isArray(data.summaryTips) ? data.summaryTips : []);
         }
@@ -136,7 +142,7 @@ const PremiumMonth = () => {
       <div className="text-base pl-[15px] font-medium mb-[11px] text-primary">
         Food vs Symptoms
       </div>
-      <div className="w-full max-w-2xl rounded-[8px] bg-white p-4 shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
+      <div className="w-full max-w-2xl rounded-[8px] bg-white p-4 shadow-[0_2px_4px_rgba(0,0,0,0.08)] relative">
         {/* Table */}
         <div className="overflow-x-auto bg-quinary rounded-[8px]">
           <table className="w-full border-collapse">
@@ -204,26 +210,11 @@ const PremiumMonth = () => {
           </div>
         </div>
 
-        {/* AI Summary Tips */}
-        <div className="mt-[16px] rounded-[8px] bg-white p-4 shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-primary">AI Insights</span>
-            {aiLoading && (
-              <span className="text-xs text-gray-400">Loading…</span>
-            )}
+        {aiLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/60">
+            <Loader />
           </div>
-          {summaryTips && summaryTips.length > 0 ? (
-            <ul className="list-disc pl-4 space-y-1 text-xs text-secondary">
-              {summaryTips.map((tip, idx) => (
-                <li key={idx}>{tip}</li>
-              ))}
-            </ul>
-          ) : !aiLoading ? (
-            <p className="text-xs text-secondary">
-              Monthly AI insights will appear here based on your food–sensitivity pattern.
-            </p>
-          ) : null}
-        </div>
+        )}
       </div>
 
       {/* Tooltip */}

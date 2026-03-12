@@ -596,7 +596,7 @@ const DietRecord = (props) => {
         </>
       )}
 
-      <div className="text-primary mt-5 mb-[63px]">
+      {/* <div className="text-primary mt-5 mb-[63px]">
         <div className="font-medium">Gut Trends</div>
         <div className="flex justify-center bg-white rounded-[27px] shadow-[0_4px_12px_rgba(0,0,0,0.08)] p-6 mt-3">
           <div className="bg-gray-200 rounded-[24px] h-12 w-56 text-center flex items-center justify-center text-sm">
@@ -604,7 +604,7 @@ const DietRecord = (props) => {
             <MdHttps className="text-custom-9 w-[24px] h-[24px]" />
           </div>
         </div>
-      </div>
+      </div> */}
 
       <button
         type="button"

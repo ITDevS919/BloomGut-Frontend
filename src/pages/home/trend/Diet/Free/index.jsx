@@ -12,6 +12,7 @@ import Upgrade from "./Upgrade";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import Loader from "@/components/common/Loader";
 import GrainsImage from "@/assets/Images/diet-types/Grains.png";
 import ProteinImage from "@/assets/Images/diet-types/Protein.png";
 import FruitsVegImage from "@/assets/Images/diet-types/Fruits.png";
@@ -47,6 +48,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
   const api = useApiClient();
   const [weekScore, setWeekScore] = useState(0);
   const [beforeWeekScore, setBeforeWeekScore] = useState(0);
+  const [hasTodayDietRecord, setHasTodayDietRecord] = useState(false);
   const [clarityRate, setClarityRate] = useState(0);
   const [clearCount, setClearCount] = useState(0);
   const [yellowCount, setYellowCount] = useState(0);
@@ -106,6 +108,35 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
       }
     };
 
+    const checkTodayDietRecord = async () => {
+      try {
+        const response = await api.get("/trend/diet/dailySummary", {
+          params: {
+            userId: auth.user.id,
+            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+          },
+        });
+        const payload = response.data?.data ?? response.data;
+        if (!payload) {
+          setHasTodayDietRecord(false);
+          return;
+        }
+
+        const calories = Number(payload.calories || 0);
+        const hasData =
+          calories > 0 ||
+          Number(payload.protein_g || 0) > 0 ||
+          Number(payload.fat_g || 0) > 0 ||
+          Number(payload.carb_g || 0) > 0;
+
+        setHasTodayDietRecord(hasData);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to check today's diet record:", error);
+        setHasTodayDietRecord(false);
+      }
+    };
+
     const fetchWeeklyDots = async () => {
       try {
         const response = await api.get("/trend/urine/weeklyScore", {
@@ -144,7 +175,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
     const run = async () => {
       setLoadingDietScores(true);
       try {
-        await Promise.all([fetchDietScores(), fetchWeeklyDots()]);
+        await Promise.all([fetchDietScores(), fetchWeeklyDots(), checkTodayDietRecord()]);
       } finally {
         setLoadingDietScores(false);
       }
@@ -239,7 +270,6 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
     runTrends();
   }, [api, auth?.user?.id, referenceDate]);
-  const isLoading = loadingDietScores || loadingTrendData;
   const dailyTypeLabels = [
     {
       color: '#d0ab7f',
@@ -624,38 +654,39 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
     },
   };
 
-  const scorePosition = getScorePosition(weekScore);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <div className="h-8 w-8 border-4 border-[#CFE4B8] border-t-[#6AA84F] rounded-full animate-spin" />
-      </div>
-    );
-  }
+  const effectiveScore = hasTodayDietRecord ? weekScore : 0;
+  const effectiveStatus =
+    hasTodayDietRecord && effectiveScore > 0
+      ? effectiveScore > 75
+        ? "Excellent"
+        : effectiveScore > 50
+        ? "Good"
+        : effectiveScore > 25
+        ? "Fair"
+        : "Poor"
+      : "Not Recorded";
+  const effectiveChangeText = hasTodayDietRecord
+    ? `${beforeWeekScore > effectiveScore ? "-" : "+"}${Math.abs(
+        beforeWeekScore - effectiveScore
+      )}% vs Last`
+    : "";
+  const scorePosition = getScorePosition(effectiveScore);
 
   return (
     <div className="pr-[15px] pl-[15px]">
       {/* Score Card (uses urine weekly score) */}
-      <div className="bg-white rounded-[27px] p-[32px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[29px]">
+      <div className="bg-white rounded-[27px] p-[32px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[29px] relative">
         <div className="flex items-center justify-between">
           <div className="pl-[50px]">
             <div className="text-3xl font-medium text-[#B5A6D2] text-center">
-              {weekScore}
+              {effectiveScore}
             </div>
             <div className="text-sm text-custom-12 text-center">
-              {weekScore > 75
-                ? "Excellent"
-                : weekScore > 50
-                ? "Good"
-                : weekScore > 25
-                ? "Fair"
-                : "Poor"}
+              {effectiveStatus}
             </div>
           </div>
           <div className="text-base text-[#B5A6D2] text-center pr-[50px]">
-            {beforeWeekScore > weekScore ? "-" : "+"}
-            {Math.abs(Math.round(beforeWeekScore - weekScore))}% vs Last
+            {effectiveChangeText}
           </div>
         </div>
 
@@ -688,11 +719,17 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
             </div>
           </div>
         </div>
+
+        {loadingDietScores && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/60">
+            <Loader />
+          </div>
+        )}
       </div>
 
       {/* Daily Type Distribution */}
       <div className="text-base mb-3 font-medium pl-[15px] text-primary">Daily Types</div>
-      <div className="bg-white rounded-[20px] p-6 shadow-[2px_0_10px_rgba(3,3,3,0.1)] mb-[34px]">
+      <div className="bg-white rounded-[20px] p-6 shadow-[2px_0_10px_rgba(3,3,3,0.1)] mb-[34px] relative">
         <div className="flex items-end justify-between gap-2">
           {dailyTypeValues.map((value, index) => (
             <div
@@ -752,6 +789,12 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
             </div>
           ))}
         </div>
+
+        {loadingTrendData && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/60">
+            <Loader />
+          </div>
+        )}
       </div>
 
       {/* Diet Trends */}
@@ -789,6 +832,11 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
             <span className="text-red-600">Sugar</span>
           </div>
           <div className="relative">
+            {loadingTrendData && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/60">
+                <Loader />
+              </div>
+            )}
             <Line data={dietTrendData} options={dietTrendOptions} />
           </div>
         </div>
@@ -838,6 +886,11 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
           {/* CHART */}
           <div className="relative">
+            {loadingTrendData && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/60 z-10">
+                <Loader />
+              </div>
+            )}
             <Line data={dietBoweldata} options={dietBowelOptions} />
           </div>
         </div>

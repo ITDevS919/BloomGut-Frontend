@@ -5,6 +5,7 @@ import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import Loader from "@/components/common/Loader";
 
 ChartJS.register(ArcElement, Tooltip, ChartDataLabels);
 
@@ -150,9 +151,7 @@ const Month = ({ referenceDate }) => {
         <div className="flex justify-center">
           <div className="h-52 w-52 flex items-center justify-center">
             {loadingAdvice ? (
-              <span className="text-xs text-secondary">
-                Loading monthly overview…
-              </span>
+              <Loader />
             ) : (
               <Doughnut data={data} options={options} />
             )}

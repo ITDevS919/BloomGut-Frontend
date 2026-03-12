@@ -108,12 +108,36 @@ const Year = ({ referenceDate }) => {
   };
 
   const items = [
-    { title: "High Protein", yellow: 85, odor: 70 },
-    { title: "Sugary Drinks", yellow: 60, odor: 30 },
-    { title: "Alcohol", yellow: 80, odor: 85 },
-    { title: "Spicy Foods", yellow: 70, odor: 80 },
-    { title: "Processed", yellow: 65, odor: 75 },
-    { title: "Fruits & Veg", yellow: 85, odor: 15 },
+    {
+      title: "High Protein",
+      yellow: data.datasets[0].data[0],
+      odor: data.datasets[1].data[0],
+    },
+    {
+      title: "Sugary Drinks",
+      yellow: data.datasets[0].data[2],
+      odor: data.datasets[1].data[2],
+    },
+    {
+      title: "Alcohol",
+      yellow: data.datasets[0].data[1],
+      odor: data.datasets[1].data[1],
+    },
+    {
+      title: "Spicy Foods",
+      yellow: data.datasets[0].data[4],
+      odor: data.datasets[1].data[4],
+    },
+    {
+      title: "Processed",
+      yellow: data.datasets[0].data[5],
+      odor: data.datasets[1].data[5],
+    },
+    {
+      title: "Fruits & Veg",
+      yellow: data.datasets[0].data[6],
+      odor: data.datasets[1].data[6],
+    },
   ];
 
   useEffect(() => {
@@ -168,9 +192,53 @@ const Year = ({ referenceDate }) => {
         <div className="w-full rounded-[20px] bg-white p-5 shadow-md mb-[32px]">
           <div className="h-64 flex items-center justify-center">
             {adviceLoading ? (
-              <span className="text-xs text-secondary">
-                Loading yearly urine pattern…
-              </span>
+              <div className="flex h-full items-center justify-center py-2">
+                <svg
+                  version="1.1"
+                  xmlns="http://www.w3.org/2000/svg"
+                  x="0px"
+                  y="0px"
+                  width="24px"
+                  height="30px"
+                  viewBox="0 0 24 30"
+                  style={{ enableBackground: "new 0 0 50 50" }}
+                  xmlSpace="preserve"
+                >
+                  <rect x="0" y="0" width="4" height="10" fill="#ef4444">
+                    <animateTransform
+                      attributeType="xml"
+                      attributeName="transform"
+                      type="translate"
+                      values="0 0; 0 20; 0 0"
+                      begin="0"
+                      dur="0.6s"
+                      repeatCount="indefinite"
+                    />
+                  </rect>
+                  <rect x="10" y="0" width="4" height="10" fill="#ef4444">
+                    <animateTransform
+                      attributeType="xml"
+                      attributeName="transform"
+                      type="translate"
+                      values="0 0; 0 20; 0 0"
+                      begin="0.2s"
+                      dur="0.6s"
+                      repeatCount="indefinite"
+                    />
+                  </rect>
+                  <rect x="20" y="0" width="4" height="10" fill="#ef4444">
+                    <animateTransform
+                      attributeType="xml"
+                      attributeName="transform"
+                      type="translate"
+                      values="0 0; 0 20; 0 0"
+                      begin="0.4s"
+                      dur="0.6s"
+                      repeatCount="indefinite"
+                    />
+                  </rect>
+                </svg>
+              </div>
             ) : (
               <Radar data={data} options={options} />
             )}
@@ -187,27 +255,77 @@ const Year = ({ referenceDate }) => {
           </button>
         </div>
         <div className="grid grid-cols-2 gap-3 max-w-sm mt-3">
-          {items.map((item) => (
-            <div key={item.title} className="rounded-[8px] bg-white p-2">
-              <p className="mb-3 text-sm font-medium text-primary">
-                {item.title}
-              </p>
-
-              <div className="grid grid-cols-2 gap-2">
-                <Badge
-                  bg="bg-[#FEF9C3]"
-                  label={`Yellow ${item.yellow}%`}
-                />
-                <Badge
-                  bg="bg-[#FEF2F2]"
-                  label={`Odor ${item.odor}%`}
-                />
-              </div>
+          {adviceLoading ? (
+            <div className="col-span-2 flex items-center justify-center py-4">
+              <svg
+                version="1.1"
+                xmlns="http://www.w3.org/2000/svg"
+                x="0px"
+                y="0px"
+                width="24px"
+                height="30px"
+                viewBox="0 0 24 30"
+                style={{ enableBackground: "new 0 0 50 50" }}
+                xmlSpace="preserve"
+              >
+                <rect x="0" y="0" width="4" height="10" fill="#ef4444">
+                  <animateTransform
+                    attributeType="xml"
+                    attributeName="transform"
+                    type="translate"
+                    values="0 0; 0 20; 0 0"
+                    begin="0"
+                    dur="0.6s"
+                    repeatCount="indefinite"
+                  />
+                </rect>
+                <rect x="10" y="0" width="4" height="10" fill="#ef4444">
+                  <animateTransform
+                    attributeType="xml"
+                    attributeName="transform"
+                    type="translate"
+                    values="0 0; 0 20; 0 0"
+                    begin="0.2s"
+                    dur="0.6s"
+                    repeatCount="indefinite"
+                  />
+                </rect>
+                <rect x="20" y="0" width="4" height="10" fill="#ef4444">
+                  <animateTransform
+                    attributeType="xml"
+                    attributeName="transform"
+                    type="translate"
+                    values="0 0; 0 20; 0 0"
+                    begin="0.4s"
+                    dur="0.6s"
+                    repeatCount="indefinite"
+                  />
+                </rect>
+              </svg>
             </div>
-          ))}
+          ) : (
+            items.map((item) => (
+              <div key={item.title} className="rounded-[8px] bg-white p-2">
+                <p className="mb-3 text-sm font-medium text-primary">
+                  {item.title}
+                </p>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <Badge
+                    bg="bg-[#FEF9C3]"
+                    label={`Yellow ${item.yellow}%`}
+                  />
+                  <Badge
+                    bg="bg-[#FEF2F2]"
+                    label={`Odor ${item.odor}%`}
+                  />
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
-            {showAnalysis && (
+        {showAnalysis && (
           <div>
             {/* Fruits & Veg Impact */}
             <div className="w-full max-w-sm rounded-[12px] p-5 bg-white mt-8 space-y-4">
@@ -223,7 +341,7 @@ const Year = ({ referenceDate }) => {
                   {adviceLoading
                     ? "Loading main food items…"
                     : yearlyAdvice?.fruitsVegImpact ||
-                      "Main Food Items"}
+                    "Main Food Items"}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {mainFoods.map((item, index) => (
@@ -263,7 +381,7 @@ const Year = ({ referenceDate }) => {
                   {adviceLoading
                     ? "Loading frequency tip…"
                     : yearlyAdvice?.frequencyText ||
-                      "3-5 servings/day of fruits & veg helps urine clarity & health"}
+                    "3-5 servings/day of fruits & veg helps urine clarity & health"}
                 </p>
               </div>
             </div>

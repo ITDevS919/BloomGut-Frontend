@@ -11,6 +11,14 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 
+const InlineLoader = () => (
+  <div className="dash-load-3">
+    <span className="dash-line" />
+    <span className="dash-line" />
+    <span className="dash-line" />
+  </div>
+);
+
 const Dashboard = () => {
   const { signOut } = useClerk();
   const navigate = useNavigate();
@@ -43,6 +51,32 @@ const Dashboard = () => {
     const fetchBowelWeeklySummary = async () => {
       setBowelLoading(true);
       try {
+        // First, check whether there is any bowel record *today* using the dailyCount API.
+        let hasTodayRecord = false;
+        try {
+          const dailyRes = await api.get("/trend/bowel/dailyCount", {
+            params: { userId: auth.user.id },
+          });
+          const dailyPayload = dailyRes.data?.data ?? dailyRes.data;
+          const dailyCounts = Array.isArray(dailyPayload?.dailyCounts)
+            ? dailyPayload.dailyCounts
+            : [];
+          const dayLabels = Array.isArray(dailyPayload?.days)
+            ? dailyPayload.days
+            : [];
+
+          if (dailyCounts.length && dayLabels.length) {
+            const jsDay = new Date().getDay(); // 0..6, where 0 is Sunday
+            const weekLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+            const todayLabel = weekLabels[jsDay];
+            const idx = dayLabels.indexOf(todayLabel);
+            const todayCount = idx >= 0 ? Number(dailyCounts[idx] || 0) : 0;
+            hasTodayRecord = todayCount > 0;
+          }
+        } catch {
+          // If this check fails, we fall back to weekly summary logic below.
+        }
+
         const res = await api.get("/trend/bowel/weeklySummary", {
           params: { userId: auth.user.id },
         });
@@ -51,30 +85,64 @@ const Dashboard = () => {
 
         const score = Number(payload.score || 0);
         const changePercent = Number(payload.changePercent || 0);
-        const typeDistribution = Array.isArray(payload.typeDistribution)
-          ? payload.typeDistribution
-          : [];
-        const hasAnyType = typeDistribution.some((v) => (v || 0) > 0);
-
+        // We still keep weekly score and change for potential use elsewhere
         setBowelScore(score);
         setBowelChangePercent(changePercent);
 
-        if (!hasAnyType && score === 0) {
+        // If there is no bowel record today according to dailyCount,
+        // show "Not Recorded" regardless of weekly aggregates.
+        if (!hasTodayRecord) {
           setBowelStatus("Not Recorded");
           setBowelSegments(0);
           return;
         }
 
-        setBowelStatus(
-          typeof payload.status === "string" && payload.status.trim()
-            ? payload.status
-            : "Good"
-        );
+        // Derive *today's* bowel status/segments from the weekly distribution if available.
+        const typeDistribution = Array.isArray(payload.typeDistribution)
+          ? payload.typeDistribution
+          : [];
 
-        // Map 0–100 score into 0–5 filled segments (at least 1 if there is data)
-        const rawSegments = Math.round(score / 20);
-        const clampedSegments = Math.max(1, Math.min(5, rawSegments));
+        const hasAnyType = typeDistribution.some((v) => (v || 0) > 0);
+
+        if (!hasAnyType) {
+          setBowelStatus("Not Recorded");
+          setBowelSegments(0);
+          return;
+        }
+
+        // Heuristic: use today's score (if exposed) to determine a finer-grained status,
+        // otherwise fall back to the general weekly status.
+        const now = new Date();
+        const jsDay = now.getDay(); // 0..6, where 0 is Sunday
+
+        // If backend exposes `dailyScores`/`todayScore` in the weekly summary, prefer it.
+        const todayScore =
+          typeof payload.todayScore === "number"
+            ? payload.todayScore
+            : typeof payload.dailyScores?.[jsDay] === "number"
+            ? payload.dailyScores[jsDay]
+            : score;
+
+        // Map today's score 0–100 to 0–5 segments (0 means effectively "no data")
+        const rawSegments = Math.round(todayScore / 20);
+        const clampedSegments =
+          todayScore > 0 ? Math.max(1, Math.min(5, rawSegments)) : 0;
         setBowelSegments(clampedSegments);
+
+        let statusText = "";
+        if (todayScore <= 0 && !payload.status) {
+          statusText = "Not Recorded";
+        } else if (typeof payload.todayStatus === "string" && payload.todayStatus.trim()) {
+          statusText = payload.todayStatus;
+        } else if (todayScore < 40) {
+          statusText = "Needs attention";
+        } else if (todayScore < 70) {
+          statusText = "Fair";
+        } else {
+          statusText = "Good";
+        }
+
+        setBowelStatus(statusText);
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Failed to load bowel weekly summary for dashboard:", error);
@@ -157,17 +225,30 @@ const Dashboard = () => {
           return;
         }
 
-        // Assume last entry corresponds to the latest day in the selected week
-        const todayMl = mlPerDay[mlPerDay.length - 1] || 0;
-        const DAILY_TARGET_ML = 2000;
-        const rawPct = Math.round((todayMl / DAILY_TARGET_ML) * 100);
+        // Determine today's index in the weekly array (Mon=0 ... Sun=6)
+        const now = new Date();
+        const jsDay = now.getDay(); // 0..6, where 0 is Sunday
+        const todayIdx = jsDay === 0 ? 6 : jsDay - 1;
+
+        const todayMl = mlPerDay[todayIdx] || 0;
+
+        // Convert today's ml into percentage of user's daily water goal
+        const goal =
+          typeof auth?.user?.waterIntakeGoal === "number" &&
+          !Number.isNaN(auth.user.waterIntakeGoal)
+            ? auth.user.waterIntakeGoal
+            : 2000;
+
+        const rawPct = goal > 0 ? Math.round((todayMl / goal) * 100) : 0;
         const clampedPct = Math.max(0, Math.min(100, rawPct));
         setWaterIntakePercent(clampedPct);
 
         let statusText = "";
-        if (rawPct < 60) statusText = "Low Intake";
-        else if (rawPct <= 120) statusText = "On Track";
-        else statusText = "High Intake";
+        if (todayMl >= 2000) statusText = "Ideal water intake";
+        else if (todayMl >= 1500) statusText = "Basic standard met";
+        else if (todayMl >= 1000) statusText = "Normal";
+        else if (todayMl >= 600) statusText = "Mild insufficiency";
+        else statusText = "Moderate to severe dehydration";
         setWaterStatus(statusText);
       } catch (error) {
         // eslint-disable-next-line no-console
@@ -199,19 +280,29 @@ const Dashboard = () => {
           return;
         }
 
-        const avg = Math.round(
-          scores.reduce((sum, item) => sum + (Number(item.score || 0)), 0) /
-            scores.length
+        // Derive today's urine score from the weekly scores array
+        const now = new Date();
+        const jsDay = now.getDay(); // 0..6, where 0 is Sunday
+        const todayEntry = scores.find(
+          (item) => Number(item.day) === jsDay
         );
 
-        // Map average score 0–100 to segments 1–5
-        const rawSegments = Math.round(avg / 20);
+        const todayScore = todayEntry ? Number(todayEntry.score || 0) : 0;
+
+        if (!todayEntry || todayScore <= 0) {
+          setUrineSegments(0);
+          setUrineStatus("Not Recorded");
+          return;
+        }
+
+        // Map today's score 0–100 to segments 1–5
+        const rawSegments = Math.round(todayScore / 20);
         const clampedSegments = Math.max(1, Math.min(5, rawSegments));
         setUrineSegments(clampedSegments);
 
         let statusText = "";
-        if (avg < 40) statusText = "Needs attention";
-        else if (avg < 70) statusText = "Fair";
+        if (todayScore < 40) statusText = "Needs attention";
+        else if (todayScore < 70) statusText = "Fair";
         else statusText = "Good";
         setUrineStatus(statusText);
       } catch (error) {
@@ -256,27 +347,35 @@ const Dashboard = () => {
                   <span className="text-primary-muted text-sm">
                     Bowel Status
                   </span>
-                  <div className="flex gap-2">
-                    {Array.from({ length: 5 }).map((_, index) => {
-                      const isActive = index < bowelSegments;
-                      const baseClass =
-                        "h-6 w-6 rounded-full transition-all duration-300";
-                      return (
-                        <p
-                          // eslint-disable-next-line react/no-array-index-key
-                          key={index}
-                          className={
-                            isActive
-                              ? `${baseClass} bg-custom-13`
-                              : `${baseClass} bg-[#dfe1db]`
-                          }
-                        />
-                      );
-                    })}
-                  </div>
-                  <p className="text-primary-muted text-xs">
-                    {bowelStatus}
-                  </p>
+                  {bowelLoading ? (
+                    <div className="flex items-center justify-start h-7 mt-1">
+                      <InlineLoader />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex gap-2">
+                        {Array.from({ length: 5 }).map((_, index) => {
+                          const isActive = index < bowelSegments;
+                          const baseClass =
+                            "h-6 w-6 rounded-full transition-all duration-300";
+                          return (
+                            <p
+                              // eslint-disable-next-line react/no-array-index-key
+                              key={index}
+                              className={
+                                isActive
+                                  ? `${baseClass} bg-custom-13`
+                                  : `${baseClass} bg-[#dfe1db]`
+                              }
+                            />
+                          );
+                        })}
+                      </div>
+                      <p className="text-primary-muted text-xs">
+                        {bowelStatus}
+                      </p>
+                    </>
+                  )}
                 </div>
                 <div className="flex items-center">
                   <FaChevronRight className="text-primary" size={24} />
@@ -310,18 +409,26 @@ const Dashboard = () => {
                       Today's Intake
                     </span>
                     <span className="text-primary text-sm ">
-                      {`${dietIntakePercent}%`}
+                      {dietLoading ? "--" : `${dietIntakePercent}%`}
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3 shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
-                    <div
-                      className="bg-[#ac95cc] h-3 rounded-full transition-all"
-                      style={{ width: `${dietIntakePercent}%` }}
-                    />
-                  </div>
-                  <p className="text-primary text-sm">
-                    {dietStatus}
-                  </p>
+                  {dietLoading ? (
+                    <div className="flex items-center justify-start h-3 mt-1">
+                      <InlineLoader />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="w-full bg-gray-200 rounded-full h-3 shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
+                        <div
+                          className="bg-[#ac95cc] h-3 rounded-full transition-all"
+                          style={{ width: `${dietIntakePercent}%` }}
+                        />
+                      </div>
+                      <p className="text-primary text-sm">
+                        {dietStatus}
+                      </p>
+                    </>
+                  )}
                 </div>
                 <div className="flex items-center">
                   <FaChevronRight className="text-primary" size={24} />
@@ -353,18 +460,26 @@ const Dashboard = () => {
                       Today's Intake
                     </span>
                     <span className="text-primary text-sm ">
-                      {`${waterIntakePercent}%`}
+                      {waterLoading ? "--" : `${waterIntakePercent}%`}
                     </span>
                   </div>
-                  <div className="w-full bg-white rounded-full h-3 shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
-                    <div
-                      className="bg-custom-13 h-3 rounded-full transition-all"
-                      style={{ width: `${waterIntakePercent}%` }}
-                    />
-                  </div>
-                  <p className="text-primary-muted text-xs">
-                    {waterStatus}
-                  </p>
+                  {waterLoading ? (
+                    <div className="flex items-center justify-start h-3 mt-1">
+                      <InlineLoader />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="w-full bg-white rounded-full h-3 shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
+                        <div
+                          className="bg-custom-13 h-3 rounded-full transition-all"
+                          style={{ width: `${waterIntakePercent}%` }}
+                        />
+                      </div>
+                      <p className="text-primary-muted text-xs">
+                        {waterStatus}
+                      </p>
+                    </>
+                  )}
                 </div>
                 <div className="flex items-center">
                   <FaChevronRight className="text-primary" size={24} />
@@ -396,27 +511,35 @@ const Dashboard = () => {
                   <span className="text-primary-muted text-sm">
                     Urine Status
                   </span>
-                  <div className="flex gap-1">
-                    {Array.from({ length: 5 }).map((_, index) => {
-                      const baseClass =
-                        "h-6 w-6 rounded-full transition-all duration-300";
-                      const isActive = index < urineSegments;
-                      return (
-                        // eslint-disable-next-line react/no-array-index-key
-                        <p
-                          key={index}
-                          className={
-                            isActive
-                              ? `${baseClass} bg-[#facc15]`
-                              : `${baseClass} bg-[#dfe1db]`
-                          }
-                        />
-                      );
-                    })}
-                  </div>
-                  <p className="text-primary-muted text-xs">
-                    {urineStatus}
-                  </p>
+                  {urineLoading ? (
+                    <div className="flex items-center justify-start h-7 mt-1">
+                      <InlineLoader />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex gap-1">
+                        {Array.from({ length: 5 }).map((_, index) => {
+                          const baseClass =
+                            "h-6 w-6 rounded-full transition-all duration-300";
+                          const isActive = index < urineSegments;
+                          return (
+                            // eslint-disable-next-line react/no-array-index-key
+                            <p
+                              key={index}
+                              className={
+                                isActive
+                                  ? `${baseClass} bg-[#facc15]`
+                                  : `${baseClass} bg-[#dfe1db]`
+                              }
+                            />
+                          );
+                        })}
+                      </div>
+                      <p className="text-primary-muted text-xs">
+                        {urineStatus}
+                      </p>
+                    </>
+                  )}
                 </div>
                 <div className="flex items-center">
                   <FaChevronRight className="text-primary" size={24} />
@@ -429,7 +552,9 @@ const Dashboard = () => {
 
       {isPageLoading && (
         <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-auto bg-black/5">
-          <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <div className="rounded-full bg-white px-4 py-3 shadow-md">
+            <InlineLoader />
+          </div>
         </div>
       )}
     </div>

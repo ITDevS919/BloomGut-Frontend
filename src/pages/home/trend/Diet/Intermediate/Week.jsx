@@ -13,6 +13,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 import Free from "../Free";
+import Loader from "@/components/common/Loader";
 
 ChartJS.register(
   RadialLinearScale,
@@ -69,6 +70,7 @@ const Week = ({ referenceDate }) => {
         const sugar = avg(payload.sugar);
         const sodium = 60; // neutral placeholder – sodium is not tracked in macroWeekly yet
 
+        console.log("Diet weekly payload", payload)
         setFiberAvg(fiber);
         setProteinAvg(protein);
         setFatAvg(fat);
@@ -202,15 +204,14 @@ const Week = ({ referenceDate }) => {
           </div>
 
           {/* Radar Chart */}
-          <div className="h-56">
-            {loading ? (
-              <div className="flex items-center justify-center h-full text-xs text-secondary">
-                Loading weekly diet data…
-              </div>
-            ) : (
-              <Radar data={radarData} options={options} />
-            )}
-          </div>
+        <div className="h-56 relative">
+          <Radar data={radarData} options={options} />
+          {loading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white/60">
+              <Loader />
+            </div>
+          )}
+        </div>
 
           {/* Diet Analysis */}
           {showAnalysis && (
@@ -218,7 +219,53 @@ const Week = ({ referenceDate }) => {
               <div className="rounded-[8px] bg-blue-50 p-4 text-sm space-y-2 shadow-[2px_0_10px_rgba(3,3,3,0.1)]">
                 <p className="font-medium text-primary">Diet Analysis</p>
                 {aiLoading ? (
-                  <p className="text-secondary text-sm">Analyzing this week&apos;s diet…</p>
+                  <div className="flex items-center justify-center py-2">
+                    <svg
+                      version="1.1"
+                      xmlns="http://www.w3.org/2000/svg"
+                      x="0px"
+                      y="0px"
+                      width="24px"
+                      height="30px"
+                      viewBox="0 0 24 30"
+                      style={{ enableBackground: "new 0 0 50 50" }}
+                      xmlSpace="preserve"
+                    >
+                      <rect x="0" y="0" width="4" height="10" fill="#ef4444">
+                        <animateTransform
+                          attributeType="xml"
+                          attributeName="transform"
+                          type="translate"
+                          values="0 0; 0 20; 0 0"
+                          begin="0"
+                          dur="0.6s"
+                          repeatCount="indefinite"
+                        />
+                      </rect>
+                      <rect x="10" y="0" width="4" height="10" fill="#ef4444">
+                        <animateTransform
+                          attributeType="xml"
+                          attributeName="transform"
+                          type="translate"
+                          values="0 0; 0 20; 0 0"
+                          begin="0.2s"
+                          dur="0.6s"
+                          repeatCount="indefinite"
+                        />
+                      </rect>
+                      <rect x="20" y="0" width="4" height="10" fill="#ef4444">
+                        <animateTransform
+                          attributeType="xml"
+                          attributeName="transform"
+                          type="translate"
+                          values="0 0; 0 20; 0 0"
+                          begin="0.4s"
+                          dur="0.6s"
+                          repeatCount="indefinite"
+                        />
+                      </rect>
+                    </svg>
+                  </div>
                 ) : aiAnalysis.length ? (
                   aiAnalysis.map((row, index) => (
                     <AnalysisRow
@@ -240,7 +287,53 @@ const Week = ({ referenceDate }) => {
               <div className="rounded-[8px] bg-green-50 p-4 text-sm space-y-1">
                 <p className="font-medium text-primary">Recommended</p>
                 {aiLoading ? (
-                  <p className="text-secondary text-sm">Loading recommendations…</p>
+                  <div className="flex items-center justify-center py-2">
+                    <svg
+                      version="1.1"
+                      xmlns="http://www.w3.org/2000/svg"
+                      x="0px"
+                      y="0px"
+                      width="24px"
+                      height="30px"
+                      viewBox="0 0 24 30"
+                      style={{ enableBackground: "new 0 0 50 50" }}
+                      xmlSpace="preserve"
+                    >
+                      <rect x="0" y="0" width="4" height="10" fill="#ef4444">
+                        <animateTransform
+                          attributeType="xml"
+                          attributeName="transform"
+                          type="translate"
+                          values="0 0; 0 20; 0 0"
+                          begin="0"
+                          dur="0.6s"
+                          repeatCount="indefinite"
+                        />
+                      </rect>
+                      <rect x="10" y="0" width="4" height="10" fill="#ef4444">
+                        <animateTransform
+                          attributeType="xml"
+                          attributeName="transform"
+                          type="translate"
+                          values="0 0; 0 20; 0 0"
+                          begin="0.2s"
+                          dur="0.6s"
+                          repeatCount="indefinite"
+                        />
+                      </rect>
+                      <rect x="20" y="0" width="4" height="10" fill="#ef4444">
+                        <animateTransform
+                          attributeType="xml"
+                          attributeName="transform"
+                          type="translate"
+                          values="0 0; 0 20; 0 0"
+                          begin="0.4s"
+                          dur="0.6s"
+                          repeatCount="indefinite"
+                        />
+                      </rect>
+                    </svg>
+                  </div>
                 ) : aiRecommendations.length ? (
                   aiRecommendations.map((line, index) => (
                     // eslint-disable-next-line react/no-array-index-key

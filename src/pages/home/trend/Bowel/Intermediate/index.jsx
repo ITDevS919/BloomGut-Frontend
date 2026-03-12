@@ -3,6 +3,7 @@ import DateRangeSelector from "@/components/custom/DateRangeSelector";
 import { Doughnut, Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { useState, useEffect } from "react";
+import Loader from "@/components/common/Loader";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
@@ -83,6 +84,8 @@ const Intermediate = () => {
     eveningPercent: 10,
   });
 
+  const [isLoading, setIsLoading] = useState(true);
+
   const monthlyData = {
     datasets: [
       {
@@ -129,7 +132,6 @@ const Intermediate = () => {
 
     const fetchWeeklySummary = async () => {
       try {
-        setWeeklyLoading(true);
         const response = await api.get("/trend/bowel/weeklySummary", {
           params: {
             userId: auth.user.id,
@@ -164,14 +166,11 @@ const Intermediate = () => {
         // eslint-disable-next-line no-console
         console.error("Failed to load bowel weekly stats:", error);
       } finally {
-        if (!isCancelled) {
-          setWeeklyLoading(false);
-        }
+        // handled in aggregate loading state
       }
     };
     const fetchMonthlyTime = async () => {
       try {
-        setMonthlyLoading(true);
         const response = await api.get("/trend/bowel/monthlyTime", {
           params: {
             userId: auth.user.id,
@@ -192,14 +191,19 @@ const Intermediate = () => {
           error
         );
       } finally {
-        if (!isCancelled) {
-          setMonthlyLoading(false);
-        }
+        // handled in aggregate loading state
       }
     };
 
-    fetchWeeklySummary();
-    fetchMonthlyTime();
+    const loadAll = async () => {
+      setIsLoading(true);
+      await Promise.all([fetchWeeklySummary(), fetchMonthlyTime()]);
+      if (!isCancelled) {
+        setIsLoading(false);
+      }
+    };
+
+    loadAll();
 
     return () => {
       isCancelled = true;
@@ -225,36 +229,30 @@ const Intermediate = () => {
               Weekly Stats
             </div>
             <div className="flex items-center gap-6 rounded-[27px] bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[20px]">
-              {weeklyLoading ? (
-                <div className="flex flex-1 items-center justify-center py-8">
-                  <div className="h-6 w-6 border-4 border-amber-200 border-t-amber-500 rounded-full animate-spin" />
+              <>
+                {/* Pie */}
+                <div className="w-40 h-40">
+                  <Pie data={weeklyData} options={weeklyoptions} />
                 </div>
-              ) : (
-                <>
-                  {/* Pie */}
-                  <div className="w-40 h-40">
-                    <Pie data={weeklyData} options={weeklyoptions} />
-                  </div>
 
-                  {/* Legend */}
-                  <div className="space-y-3 text-sm">
-                    {weeklyData.labels.map((label, i) => (
-                      <div key={label} className="flex items-center gap-2">
-                        <span
-                          className="h-3 w-3 rounded-full"
-                          style={{
-                            backgroundColor:
-                              weeklyData.datasets[0].backgroundColor[i],
-                          }}
-                        />
-                        <span className="text-secondary">
-                          {label} ({weeklyData.datasets[0].data[i]}%)
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
+                {/* Legend */}
+                <div className="space-y-3 text-sm">
+                  {weeklyData.labels.map((label, i) => (
+                    <div key={label} className="flex items-center gap-2">
+                      <span
+                        className="h-3 w-3 rounded-full"
+                        style={{
+                          backgroundColor:
+                            weeklyData.datasets[0].backgroundColor[i],
+                        }}
+                      />
+                      <span className="text-secondary">
+                        {label} ({weeklyData.datasets[0].data[i]}%)
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </>
             </div>
             <div className="flex items-center justify-center text-xs text-custom-12 pb-[46px]">
               Data for reference only
@@ -267,66 +265,60 @@ const Intermediate = () => {
               Stool Time %
             </div>
             <div className="rounded-[27px] bg-white p-6 shadow-md">
-              {monthlyLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="h-6 w-6 border-4 border-amber-200 border-t-amber-500 rounded-full animate-spin" />
+              <>
+                <h2 className="text-primary mb-4">Monthly</h2>
+                <div className="flex items-center gap-6">
+                  {/* Donut */}
+                  <div className="relative w-36 h-36">
+                    <Doughnut data={monthlyData} options={monthlyOptions} />
+
+                    {/* Center text */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-lg font-semibold text-gray-900">
+                        {monthlyTime.morningPercent}%
+                      </span>
+                      <span className="text-xs text-gray-500">Morning</span>
+                    </div>
+                  </div>
+
+                  {/* Stats */}
+                  <div className="space-y-2 text-sm">
+                    <Stat
+                      label="Avg Time"
+                      value="8 AM"
+                      valueColor="text-green-600"
+                    />
+                    <Stat
+                      label="Most"
+                      value="Thu"
+                      valueColor="text-green-600"
+                    />
+                    <Stat
+                      label="Regularity"
+                      value="Good"
+                      valueColor="text-green-600"
+                    />
+                  </div>
                 </div>
-              ) : (
-                <>
-                  <h2 className="text-primary mb-4">Monthly</h2>
-                  <div className="flex items-center gap-6">
-                    {/* Donut */}
-                    <div className="relative w-36 h-36">
-                      <Doughnut data={monthlyData} options={monthlyOptions} />
-
-                      {/* Center text */}
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-lg font-semibold text-gray-900">
-                          {monthlyTime.morningPercent}%
-                        </span>
-                        <span className="text-xs text-gray-500">Morning</span>
-                      </div>
-                    </div>
-
-                    {/* Stats */}
-                    <div className="space-y-2 text-sm">
-                      <Stat
-                        label="Avg Time"
-                        value="8 AM"
-                        valueColor="text-green-600"
-                      />
-                      <Stat
-                        label="Most"
-                        value="Thu"
-                        valueColor="text-green-600"
-                      />
-                      <Stat
-                        label="Regularity"
-                        value="Good"
-                        valueColor="text-green-600"
-                      />
-                    </div>
-                  </div>
-                  {/* Progress Bars */}
-                  <div className="text-x2 mb-3 text-primary mt-5">
-                    Stool Time %
-                  </div>
-                  <div className="space-y-3">
-                    <Progress
-                      value={monthlyTime.morningPercent}
-                      color="bg-[#C4B0F0]"
-                    />
-                    <Progress
-                      value={monthlyTime.noonPercent}
-                      color="bg-[#63C174]"
-                    />
-                    <Progress
-                      value={monthlyTime.eveningPercent}
-                      color="bg-[#FFD43B]"
-                    />
-                  </div>
-                </>
-              )}
+                {/* Progress Bars */}
+                <div className="text-x2 mb-3 text-primary mt-5">
+                  Stool Time %
+                </div>
+                <div className="space-y-3">
+                  <Progress
+                    value={monthlyTime.morningPercent}
+                    color="bg-[#C4B0F0]"
+                  />
+                  <Progress
+                    value={monthlyTime.noonPercent}
+                    color="bg-[#63C174]"
+                  />
+                  <Progress
+                    value={monthlyTime.eveningPercent}
+                    color="bg-[#FFD43B]"
+                  />
+                </div>
+              </>
             </div>
 
             <div className="flex items-center justify-center text-xs text-custom-12 mt-[20px] mb-[43px]">

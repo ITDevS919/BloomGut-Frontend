@@ -20,6 +20,7 @@ import Type3Image from "@/assets/Images/bowel-types/Type 3.png";
 import Type4Image from "@/assets/Images/bowel-types/Type 4.png";
 import Type5Image from "@/assets/Images/bowel-types/Type 5.png";
 import Upgrade from "./Upgrade";
+import Loader from "@/components/common/Loader";
 
 ChartJS.register(
   BarElement,
@@ -38,7 +39,8 @@ const Free = ({ showUpgrade = true }) => {
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
 
-  const [isLoading, setIsLoading] = useState(true);
+  const [loadingDailyCounts, setLoadingDailyCounts] = useState(false);
+  const [loadingWeeklySummary, setLoadingWeeklySummary] = useState(false);
 
   // Daily bowel count data
   const [dailyData, setDailyData] = useState([1, 2, 3, 1, 2, 0, 1]);
@@ -58,6 +60,8 @@ const Free = ({ showUpgrade = true }) => {
   const [change, setChange] = useState("+0% vs Last");
   const [scorePosition, setScorePosition] = useState(45);
   const [dailyTypeValues, setDailyTypeValues] = useState([15, 30, 35, 20, 0]);
+  const [aiWeeklySummary, setAiWeeklySummary] = useState("");
+  const [aiDayTooltips, setAiDayTooltips] = useState([]);
 
   useEffect(() => {
     if (!auth?.user?.id) return;
@@ -66,6 +70,7 @@ const Free = ({ showUpgrade = true }) => {
 
     const fetchDailyCounts = async () => {
       try {
+        setLoadingDailyCounts(true);
         const response = await api.get("/trend/bowel/dailyCount", {
           params: {
             userId: auth.user.id,
@@ -81,11 +86,16 @@ const Free = ({ showUpgrade = true }) => {
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Failed to load bowel daily counts:", error);
+      } finally {
+        if (!isCancelled) {
+          setLoadingDailyCounts(false);
+        }
       }
     };
 
     const fetchWeeklySummary = async () => {
       try {
+        setLoadingWeeklySummary(true);
         const response = await api.get("/trend/bowel/weeklySummary", {
           params: {
             userId: auth.user.id,
@@ -126,15 +136,15 @@ const Free = ({ showUpgrade = true }) => {
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Failed to load bowel weekly summary:", error);
+      } finally {
+        if (!isCancelled) {
+          setLoadingWeeklySummary(false);
+        }
       }
     };
 
     const loadAll = async () => {
-      setIsLoading(true);
       await Promise.all([fetchDailyCounts(), fetchWeeklySummary()]);
-      if (!isCancelled) {
-        setIsLoading(false);
-      }
     };
 
     loadAll();
@@ -143,17 +153,6 @@ const Free = ({ showUpgrade = true }) => {
       isCancelled = true;
     };
   }, [api, auth?.user?.id]);
-
-  // Tooltip data for each day
-  const tooltipData = [
-    { health: "60%", status: "Constipation", impact: "High", type: "1 (Hard)", factor: "Low Water" },
-    { health: "75%", status: "Normal", impact: "Medium", type: "2 (Lumpy)", factor: "Balanced" },
-    { health: "85%", status: "Good", impact: "Low", type: "3 (Firm)", factor: "Adequate" },
-    { health: "60%", status: "Constipation", impact: "High", type: "1 (Hard)", factor: "Low Water" },
-    { health: "75%", status: "Normal", impact: "Medium", type: "2 (Lumpy)", factor: "Balanced" },
-    { health: "40%", status: "Severe", impact: "Very High", type: "0 (None)", factor: "Multiple" },
-    { health: "60%", status: "Constipation", impact: "High", type: "1 (Hard)", factor: "Low Water" },
-  ];
 
   // Function to get color based on value
   const getPointColor = (value) => {
@@ -197,6 +196,75 @@ const Free = ({ showUpgrade = true }) => {
     if (value >= 61) return "#FBC02D"; // Yellow segment (61–80)
     return "#F66B6B"; // Red segment (0–60)
   };
+
+  // Fetch AI weekly bowel advice (OpenAI via backend) once data is available
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+    if (!Array.isArray(dailyData) || !dailyData.length) return;
+
+    const hasAnyData = dailyData.some((v) => Number(v || 0) > 0);
+    if (!hasAnyData) {
+      setAiWeeklySummary("");
+      return;
+    }
+
+    let isCancelled = false;
+
+    const run = async () => {
+      try {
+        const summaryPayload = {
+          score,
+          status,
+          changeText: change,
+          typeDistribution: dailyTypeValues,
+          dailyCounts: dailyData,
+        };
+        const response = await api.post(
+          "/trend/bowel/weeklyAdvice",
+          summaryPayload
+        );
+        const payload = response.data?.data || response.data;
+        if (isCancelled || !payload) return;
+
+        if (payload.summary) {
+          setAiWeeklySummary(payload.summary);
+        }
+        if (Array.isArray(payload.dayTooltips)) {
+          setAiDayTooltips(payload.dayTooltips);
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load bowel weekly AI advice:", error);
+      }
+    };
+
+    run();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [api, auth?.user?.id, score, status, change, dailyTypeValues, dailyData]);
+
+  const hasTodayBowelRecord = (() => {
+    if (!Array.isArray(days) || !Array.isArray(dailyData) || !days.length) {
+      return false;
+    }
+
+    const weekLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const todayLabel = weekLabels[new Date().getDay()];
+    const idx = days.indexOf(todayLabel);
+    const todayCount = idx >= 0 ? Number(dailyData[idx] || 0) : 0;
+
+    return todayCount > 0;
+  })();
+
+  const effectiveScore = hasTodayBowelRecord ? score : 0;
+  const effectiveStatus = hasTodayBowelRecord ? status : "Not Recorded";
+  const effectiveChange = hasTodayBowelRecord ? change : "";
+  const effectiveScorePosition = hasTodayBowelRecord ? scorePosition : 0;
+  const effectiveDailyTypeValues = hasTodayBowelRecord
+    ? dailyTypeValues
+    : [0, 0, 0, 0, 0];
 
   const dailyBowelChartData = {
     labels: days,
@@ -242,19 +310,60 @@ const Free = ({ showUpgrade = true }) => {
         boxPadding: 0,
         usePointStyle: false,
         callbacks: {
-          title: () => "Details",
+          title: (context) => {
+            const index = context[0]?.dataIndex ?? 0;
+            const dayLabel = days[index] ?? "";
+            return dayLabel ? `Details · ${dayLabel}` : "Details";
+          },
           label: (context) => {
             const index = context.dataIndex;
-            const data = tooltipData[index];
+            const value =
+              context.parsed?.y ?? context.dataset.data[index] ?? 0;
+
+            const aiTooltip =
+              Array.isArray(aiDayTooltips) && aiDayTooltips[index]
+                ? aiDayTooltips[index]
+                : null;
+
+            // If no bowel movement recorded that day
+            if (!value) {
+              if (aiTooltip) {
+                return [
+                  `Health: ${aiTooltip.health}`,
+                  `Status: ${aiTooltip.status}`,
+                  `Impact: ${aiTooltip.impact}`,
+                  `Type: ${aiTooltip.type}`,
+                  `Factor: ${aiTooltip.factor}`,
+                ];
+              }
+
+              return [
+                "Health: 0%",
+                "Status: Not Recorded",
+                "Impact: Low",
+                "Type: 0 (None)",
+                "Factor: Multiple",
+              ];
+            }
+
+            if (aiTooltip) {
+              return [
+                `Health: ${aiTooltip.health}`,
+                `Status: ${aiTooltip.status}`,
+                `Impact: ${aiTooltip.impact}`,
+                `Type: ${aiTooltip.type}`,
+                `Factor: ${aiTooltip.factor}`,
+              ];
+            }
+
+            // Fallback if AI tooltip is not available
             return [
-              `Health: ${data.health}`,
-              `Status: ${data.status}`,
-              `Impact: ${data.impact}`,
-              `Type: ${data.type}`,
-              `Factor: ${data.factor}`,
+              `Bowel movements: ${value}`,
+              "Keep observing your stool shape, color and frequency for patterns.",
             ];
           },
-          afterBody: () => ["Analyzed by System"],
+          afterBody: () =>
+            aiWeeklySummary ? ["Analyzed with System"] : [],
           footer: () => "",
           labelTextColor: () => "#6b7280",
           afterBodyColor: () => "#9ca3af",
@@ -306,14 +415,6 @@ const Free = ({ showUpgrade = true }) => {
       },
     },
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <div className="h-8 w-8 border-4 border-amber-200 border-t-amber-500 rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <div className="pr-[15px] pl-[15px]">
@@ -382,15 +483,19 @@ const Free = ({ showUpgrade = true }) => {
         }
       `}</style>
       {/* Score Card */}
-      <div className="bg-white rounded-[27px] p-[32px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[29px]">
+      <div className="bg-white rounded-[27px] p-[32px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[29px] relative">
         <>
           <div className="flex items-center justify-between mb-4">
             <div className="pl-[50px]">
-              <div className="text-3xl font-bold text-[#1abc9c]">{score}</div>
-              <div className="text-sm text-custom-12 text-center">{status}</div>
+              <div className="text-3xl font-bold text-[#1abc9c] text-center">
+                {effectiveScore}
+              </div>
+              <div className="text-sm text-custom-12 text-center">
+                {effectiveStatus}
+              </div>
             </div>
             <div className="text-base pr-[50px] text-center text-[#1abc9c]">
-              {change}
+              {effectiveChange}
             </div>
           </div>
 
@@ -412,24 +517,32 @@ const Free = ({ showUpgrade = true }) => {
               <div
                 className="absolute -top-2.5 w-5 h-5 rounded-full border border-[#9E9E9E] bg-white flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.12)]"
                 style={{
-                  left: `${scorePosition}%`,
+                  left: `${effectiveScorePosition}%`,
                   transform: "translateX(-50%)",
                 }}
               >
                 <div
                   className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: getIndicatorColor(scorePosition) }}
+                  style={{
+                    backgroundColor: getIndicatorColor(effectiveScorePosition),
+                  }}
                 />
               </div>
             </div>
           </div>
         </>
+
+        {loadingWeeklySummary && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/60">
+            <Loader />
+          </div>
+        )}
       </div>
       {/* Stool Type Cards */}
       <div className="text-base mb-3 font-medium pl-[15px] text-primary">Daily Types</div>
-      <div className="bg-white rounded-[20px] p-6 shadow-[2px_0_10px_rgba(3,3,3,0.1)] mb-[34px]">
+      <div className="bg-white rounded-[20px] p-6 shadow-[2px_0_10px_rgba(3,3,3,0.1)] mb-[34px] relative">
         <div className="flex items-end justify-between gap-2">
-          {dailyTypeValues.map((value, index) => (
+          {effectiveDailyTypeValues.map((value, index) => (
             <div key={index} className="flex flex-col items-center flex-1">
               {/* Colored Bar with Gray Background and Icon Inside */}
               <div
@@ -477,16 +590,28 @@ const Free = ({ showUpgrade = true }) => {
             </div>
           ))}
         </div>
+
+        {loadingWeeklySummary && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/60">
+            <Loader />
+          </div>
+        )}
       </div>
 
       {/* Daily Bowel Count */}
       <div className="text-base pl-[15px] font-medium mb-5 text-primary">
         Daily Bowel Count
       </div>
-      <div className="bg-white rounded-[27px] p-6 shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[35px]">
+      <div className="bg-white rounded-[27px] p-6 shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[35px] relative">
         <div className="h-50">
           <Line data={dailyBowelChartData} options={dailyBowelChartOptions} />
         </div>
+
+        {loadingDailyCounts && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/60">
+            <Loader />
+          </div>
+        )}
       </div>
 
       {showUpgrade && <Upgrade />}

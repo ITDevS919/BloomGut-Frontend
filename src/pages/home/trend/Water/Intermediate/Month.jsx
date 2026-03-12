@@ -16,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 import Free from "../Free";
+import Loader from "@/components/common/Loader";
 ChartJS.register(
   ArcElement,
   LineElement,
@@ -42,6 +43,12 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
   const api = useApiClient();
   const [selectedSession, setSelectedSession] = useState("Morning");
   const [tipsLoading, setTipsLoading] = useState(false);
+  const [loadingMonthlyTime, setLoadingMonthlyTime] = useState(false);
+  const [monthlyAdvice, setMonthlyAdvice] = useState(null);
+  const [bestTime, setBestTime] = useState({
+    name: "Morning",
+    description: "Best Hydration: 6–9 AM",
+  });
 
   const [sessions, setSessions] = useState([
     {
@@ -111,14 +118,18 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
     plugins: {
       legend: { display: false },
       tooltip: { enabled: false },
+      datalabels: { display: false },
     },
   };
 
   useEffect(() => {
     if (!auth?.user?.id) return;
 
+    let isCancelled = false;
+
     const fetchMonthlyTime = async () => {
       try {
+        setLoadingMonthlyTime(true);
         const ref =
           referenceDate && referenceDate.toISOString
             ? referenceDate.toISOString()
@@ -149,6 +160,17 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
 
         setSessions(updated);
 
+        // Derive best time based on highest percentage as baseline
+        if (updated.length) {
+          const top = updated.reduce((max, s) =>
+            (s.percentage || 0) > (max.percentage || 0) ? s : max
+          );
+          setBestTime({
+            name: top.name,
+            description: `Best hydration period: ${top.name}.`,
+          });
+        }
+
         setTipsLoading(true);
         try {
           const adviceRes = await api.post("/trend/water/monthlyAdvice", {
@@ -164,12 +186,15 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
             eveningPercent: payload.eveningPercent ?? 0,
           });
           const adviceData = adviceRes.data?.data ?? adviceRes.data;
+          setMonthlyAdvice(adviceData || null);
+
           const aiSessions = adviceData?.sessions;
           if (Array.isArray(aiSessions) && aiSessions.length > 0) {
             setSessions((prev) =>
               prev.map((s) => {
                 const ai = aiSessions.find((a) => a && a.name === s.name);
-                const tips = Array.isArray(ai?.tips) && ai.tips.length > 0 ? ai.tips : s.tips;
+                const tips =
+                  Array.isArray(ai?.tips) && ai.tips.length > 0 ? ai.tips : s.tips;
                 return { ...s, tips };
               })
             );
@@ -178,15 +203,25 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
           // eslint-disable-next-line no-console
           console.error("Failed to load monthly water advice:", err);
         } finally {
-          setTipsLoading(false);
+          if (!isCancelled) {
+            setTipsLoading(false);
+          }
         }
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Failed to load water monthly time distribution:", error);
+      } finally {
+        if (!isCancelled) {
+          setLoadingMonthlyTime(false);
+        }
       }
     };
 
     fetchMonthlyTime();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [api, auth?.user?.id, referenceDate]);
 
   useEffect(() => {
@@ -238,23 +273,23 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
       urineDailyVolumes.length
         ? urineDailyVolumes.map((d) => d.label)
         : [
-            "1st",
-            "3rd",
-            "5th",
-            "7th",
-            "9th",
-            "11th",
-            "13th",
-            "15th",
-            "17th",
-            "19th",
-            "21st",
-            "23rd",
-            "25th",
-            "27th",
-            "29th",
-            "31st",
-          ],
+          "1st",
+          "3rd",
+          "5th",
+          "7th",
+          "9th",
+          "11th",
+          "13th",
+          "15th",
+          "17th",
+          "19th",
+          "21st",
+          "23rd",
+          "25th",
+          "27th",
+          "29th",
+          "31st",
+        ],
     [urineDailyVolumes]
   );
 
@@ -263,9 +298,9 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
       urineDailyVolumes.length
         ? urineDailyVolumes.map((d) => d.volume)
         : [
-            2300, 1900, 2100, 1800, 1200, 1100, 1300, 1600, 1500, 1800, 2000,
-            1850, 2100, 3000, 3300, 3600,
-          ],
+          2300, 1900, 2100, 1800, 1200, 1100, 1300, 1600, 1500, 1800, 2000,
+          1850, 2100, 3000, 3300, 3600,
+        ],
     [urineDailyVolumes]
   );
 
@@ -335,6 +370,12 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
                 <span className="text-sm text-gray-500">ml</span>
               </div>
             </div>
+
+            {loadingMonthlyTime && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/60">
+                <Loader />
+              </div>
+            )}
           </div>
 
           {/* Stats */}
@@ -344,11 +385,24 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
               value={`${total} ml`}
               sub={`Daily Avg: ${total ? Math.round(total / 30) : 0} ml`}
             />
-            <StatCard title="Rate" value="-" sub="+0% vs Last Month" />
+            <StatCard
+              title="Rate"
+              value={
+                monthlyAdvice?.changePercent != null
+                  ? `${monthlyAdvice.changePercent > 0 ? "+" : ""}${monthlyAdvice.changePercent
+                  }%`
+                  : "-"
+              }
+              sub={
+                monthlyAdvice?.changePercent != null
+                  ? `${100 + monthlyAdvice.changePercent}% of Last Month`
+                  : "+0% vs Last Month"
+              }
+            />
             <StatCard
               title="Best Time"
-              value="Morning"
-              sub="Best Hydration: 6–9 AM"
+              value={bestTime.name}
+              sub={bestTime.description}
             />
           </div>
         </div>
@@ -368,7 +422,9 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
             </div>
             <div className="space-y-1">
               {tipsLoading ? (
-                <p className="text-sm text-[#3c74ed]">Loading tips…</p>
+                <div className="flex items-center justify-center py-2">
+                  <Loader />
+                </div>
               ) : (
                 (currentSession.tips || []).map((tip, index) => (
                   <p key={index} className="text-sm text-[#3c74ed]">

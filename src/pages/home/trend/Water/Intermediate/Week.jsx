@@ -14,6 +14,7 @@ import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 import Upgrade from "./Upgrade";
 import Free from "../Free";
+import Loader from "@/components/common/Loader";
 
 ChartJS.register(
   BarElement,
@@ -42,12 +43,16 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
   });
   const [advice, setAdvice] = useState({ message: "", tip: "" });
   const [adviceLoading, setAdviceLoading] = useState(false);
+  const [loadingTime, setLoadingTime] = useState(false);
 
   useEffect(() => {
     if (!auth?.user?.id) return;
 
+    let isCancelled = false;
+
     const fetchWeeklyTime = async () => {
       try {
+        setLoadingTime(true);
         const ref =
           referenceDate && referenceDate.toISOString
             ? referenceDate.toISOString()
@@ -73,10 +78,18 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Failed to load water weekly time distribution:", error);
+      } finally {
+        if (!isCancelled) {
+          setLoadingTime(false);
+        }
       }
     };
 
     fetchWeeklyTime();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [api, auth?.user?.id, referenceDate]);
 
   useEffect(() => {
@@ -259,7 +272,7 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
         Water Drinking Time
       </div>
       <div className="p-4">
-        <div className="w-full max-w-md rounded-[27px] bg-white p-5 shadow-md mb-[68px]">
+        <div className="w-full max-w-md rounded-[27px] bg-white p-5 shadow-md mb-[68px] relative">
           {/* Info Block */}
           <div className="mb-4 rounded-[12px] bg-[#eff6ff] px-4 py-3 text-sm text-custom-12">
             Chart shows intake by time period to check balance. Concentrated
@@ -278,7 +291,9 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
               <span className="text-secondary font-medium">Analysis & Advice</span>
             </div>
             {adviceLoading ? (
-              <p className="text-xs text-secondary">Loading advice…</p>
+              <div className="flex items-center justify-center py-2">
+                <Loader />
+              </div>
             ) : (
               <>
                 {advice.message && (
@@ -312,6 +327,12 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
           <p className="mt-[22px] italic text-center text-xs text-custom-12">
             Tap period for tips & impacts.
           </p>
+
+          {loadingTime && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white/60">
+              <Loader />
+            </div>
+          )}
         </div>
         {showUpgrade && <Upgrade />}
       </div>

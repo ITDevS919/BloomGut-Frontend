@@ -12,6 +12,7 @@ import Upgrade from "./Upgrade";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import Loader from "@/components/common/Loader";
 
 const WATER_PRIMARY_COLOR = "#4682B4";
 
@@ -145,13 +146,14 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
 
-  const [isLoading, setIsLoading] = useState(true);
-
   const [labels, setLabels] = useState(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]);
   const [mlPerDay, setMlPerDay] = useState([1600, 1850, 2100, 2300, 2200, 2450, 1900]);
   const [score, setScore] = useState(null);
   const [status, setStatus] = useState("Good");
   const [change, setChange] = useState("+0% vs Last");
+
+  const [loadingDailyMl, setLoadingDailyMl] = useState(false);
+  const [loadingWeeklySummary, setLoadingWeeklySummary] = useState(false);
 
   const totalWeekMl = mlPerDay.reduce((sum, v) => sum + v, 0);
   const avgMl = Math.round(totalWeekMl / (mlPerDay.length || 1));
@@ -185,6 +187,10 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Failed to load water daily ml:", error);
+      } finally {
+        if (!isCancelled) {
+          setLoadingDailyMl(false);
+        }
       }
     };
 
@@ -227,15 +233,17 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Failed to load water weekly summary:", error);
+      } finally {
+        if (!isCancelled) {
+          setLoadingWeeklySummary(false);
+        }
       }
     };
 
     const loadAll = async () => {
-      setIsLoading(true);
+      setLoadingDailyMl(true);
+      setLoadingWeeklySummary(true);
       await Promise.all([fetchDailyWater(), fetchWeeklySummary()]);
-      if (!isCancelled) {
-        setIsLoading(false);
-      }
     };
 
     loadAll();
@@ -245,31 +253,42 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
     };
   }, [api, auth?.user?.id, referenceDate]);
   const hydrationScore = toPercent(avgMl);
-  const effectiveScore = typeof score === "number" ? score : hydrationScore;
+  const baseScore = typeof score === "number" ? score : hydrationScore;
+
+  const hasTodayWaterRecord = (() => {
+    if (!Array.isArray(labels) || !Array.isArray(mlPerDay) || !labels.length) {
+      return false;
+    }
+
+    const weekLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const todayLabel = weekLabels[new Date().getDay()];
+    const idx = labels.indexOf(todayLabel);
+    const todayMl = idx >= 0 ? Number(mlPerDay[idx] || 0) : 0;
+
+    return todayMl > 0;
+  })();
+
+  const effectiveScore = hasTodayWaterRecord ? baseScore : 0;
+  const effectiveStatus = hasTodayWaterRecord ? status || "Hydration Score" : "Not Recorded";
+  const effectiveChange = hasTodayWaterRecord ? change : "";
   const scorePosition = getScorePosition(effectiveScore);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <div className="h-8 w-8 border-4 border-[#D6EAF8] border-t-[#79b6e2] rounded-full animate-spin" />
-      </div>
-    );
-  }
+  const loadingStats = loadingDailyMl || loadingWeeklySummary;
 
   return (
     <div className="pl-[15px] pr-[15px]">
-      <div className="bg-white rounded-[27px] p-[32px] shadow-md mb-[36px]">
+      <div className="bg-white rounded-[27px] p-[32px] shadow-md mb-[36px] relative">
         <div className="flex items-center justify-between">
           <div className="pl-[50px]">
             <div className="text-3xl font-medium text-[#4682B4] text-center">
               {effectiveScore}
             </div>
             <div className="text-sm text-custom-12 text-center">
-              {status || "Hydration Score"}
+              {effectiveStatus}
             </div>
           </div>
           <div className="text-sm text-[#4682B4] pr-[50px] text-right">
-            {change && <div>{change}</div>}
+            {effectiveChange && <div>{effectiveChange}</div>}
           </div>
         </div>
 
@@ -302,23 +321,41 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
             </div>
           </div>
         </div>
+
+        {loadingWeeklySummary && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/60">
+            <Loader />
+          </div>
+        )}
       </div>
 
       {/* daily intake */}
       <div className="text-base font-medium mb-5 text-primary">
         Daily Intake (ml)
       </div>
-      <div className="bg-white rounded-[12px] shadow p-6 mb-[39px]">
+      <div className="bg-white rounded-[12px] shadow p-6 mb-[39px] relative">
         <Bar data={buildChartData(labels, mlPerDay)} options={options} plugins={[goalLine]} />
+
+        {loadingDailyMl && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/60">
+            <Loader />
+          </div>
+        )}
       </div>
 
       <div className="text-base font-medium mb-[9px] text-primary">
         Daily Intake Rate
       </div>
-      <div className="bg-white rounded-[27px] shadow p-6 flex gap-8 justify-center mb-5">
+      <div className="bg-white rounded-[27px] shadow p-6 flex gap-8 justify-center mb-5 relative">
         <CircleStat value={toPercent(avgMl)} label="Avg" color="#1d4ed8" />
         <CircleStat value={toPercent(maxMl)} label="Max" color="#1d4ed8" />
         <CircleStat value={toPercent(minMl)} label="Min" color="#7dd3fc" />
+
+        {loadingStats && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/60">
+            <Loader />
+          </div>
+        )}
       </div>
 
       {showUpgrade && <Upgrade />}

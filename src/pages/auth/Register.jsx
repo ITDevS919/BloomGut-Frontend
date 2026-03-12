@@ -14,6 +14,7 @@ import {
 } from "@/utils/validators";
 import FormInput from "@/components/common/FormInput";
 import { ChevronLeft } from "lucide-react";
+import Loader from "@/components/common/Loader";
 
 const getPasswordStrength = (password = "") => {
   const length = password.length;
@@ -96,10 +97,9 @@ const Register = () => {
     }
   }, [isSignedIn, navigate]);
 
-  if (!isLoaded)
-    return (
-      <div className="flex justify-center items-center w-full">Loading...</div>
-    );
+  if (!isLoaded) {
+    return <Loader />;
+  }
 
   return (
     <>
