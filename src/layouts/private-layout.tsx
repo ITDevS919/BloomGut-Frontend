@@ -283,16 +283,15 @@ const PrivateLayout = ({ children }) => {
           <div className="fixed bottom-24 left-0 right-0 z-30 flex justify-center px-4 pointer-events-none">
             <div
               ref={modalRef}
-              className="bg-white rounded-[15px] shadow-[0_2px_8px_rgba(0,0,0,0.16)] px-6 py-5 pointer-events-auto"
+              className="bg-white rounded-[15px] shadow-[0_2px_8px_rgba(0,0,0,0.16)] px-2 py-2 sm:px-6 pointer-events-auto w-full max-w-[380px]"
               style={{
-                width: "auto",
-                maxWidth: "480px",
+                width: "100%",
               }}
             >
               <h3 className="text-base text-primary mb-4">
                 Choose Record
               </h3>
-              <div className="flex justify-between items-center gap-4">
+              <div className="grid grid-cols-2 sm:flex sm:flex-row sm:justify-between items-stretch gap-3">
                 {/* {recordOptions.map((option, index) => (
                   <button
                     key={index}
@@ -307,27 +306,39 @@ const PrivateLayout = ({ children }) => {
                     </p>
                   </button>
                 ))} */}
-                <button className="flex flex-col items-center gap-3 flex-1 cursor-pointer" onClick={() => { handleRecordOptionClick("/stool"); setSelectedRecordOption("toilet"); setSelectedTrendOption("") }}>
+                <button
+                  className="flex flex-col items-center justify-center gap-2 sm:gap-3 flex-1 cursor-pointer"
+                  onClick={() => { handleRecordOptionClick("/stool"); setSelectedRecordOption("toilet"); setSelectedTrendOption(""); }}
+                >
                   <FaToilet className={` ${selectedRecordOption === "toilet" ? "text-[#E29C53]" : "text-[#F3D5B2]"}`} size={32} />
-                  <p className="text-sm text-center leading-tight whitespace-nowrap" style={{ color: "#705D56" }}>
+                  <p className="text-xs sm:text-sm text-center leading-tight" style={{ color: "#705D56" }}>
                     Bowel Log
                   </p>
                 </button>
-                <button className="flex flex-col items-center gap-3 flex-1 cursor-pointer" onClick={() => { handleRecordOptionClick("/diet-record"); setSelectedRecordOption("utensils"); setSelectedTrendOption("") }}>
+                <button
+                  className="flex flex-col items-center justify-center gap-2 sm:gap-3 flex-1 cursor-pointer"
+                  onClick={() => { handleRecordOptionClick("/diet-record"); setSelectedRecordOption("utensils"); setSelectedTrendOption(""); }}
+                >
                   <FaUtensils className={` ${selectedRecordOption === "utensils" ? "text-[#6AA84F]" : "text-[#CFE4B8]"}`} size={32} />
-                  <p className="text-sm text-center leading-tight whitespace-nowrap" style={{ color: "#705D56" }}>
+                  <p className="text-xs sm:text-sm text-center leading-tight" style={{ color: "#705D56" }}>
                     Diet Log
                   </p>
                 </button>
-                <button className="flex flex-col items-center gap-3 flex-1 cursor-pointer" onClick={() => { handleRecordOptionClick("/water-record"); setSelectedRecordOption("water"); setSelectedTrendOption("") }}>
+                <button
+                  className="flex flex-col items-center justify-center gap-2 sm:gap-3 flex-1 cursor-pointer"
+                  onClick={() => { handleRecordOptionClick("/water-record"); setSelectedRecordOption("water"); setSelectedTrendOption(""); }}
+                >
                   <FaGlassWhiskey className={` ${selectedRecordOption === "water" ? "text-[#79b6e2]" : "text-[#D6EAF8]"}`} size={32} />
-                  <p className="text-sm text-center leading-tight whitespace-nowrap" style={{ color: "#705D56" }}>
+                  <p className="text-xs sm:text-sm text-center leading-tight" style={{ color: "#705D56" }}>
                     Water Log
                   </p>
                 </button>
-                <button className="flex flex-col items-center gap-3 flex-1 cursor-pointer" onClick={() => { handleRecordOptionClick("/urine-record"); setSelectedRecordOption("urine"); setSelectedTrendOption("") }}>
+                <button
+                  className="flex flex-col items-center justify-center gap-2 sm:gap-3 flex-1 cursor-pointer"
+                  onClick={() => { handleRecordOptionClick("/urine-record"); setSelectedRecordOption("urine"); setSelectedTrendOption(""); }}
+                >
                   <FaTint className={` ${selectedRecordOption === "urine" ? "text-[#F6C700]" : "text-[#FDE8B4]"}`} size={32} />
-                  <p className="text-sm text-center leading-tight whitespace-nowrap" style={{ color: "#705D56" }}>
+                  <p className="text-xs sm:text-sm text-center leading-tight" style={{ color: "#705D56" }}>
                     Urine Log
                   </p>
                 </button>
@@ -349,49 +360,48 @@ const PrivateLayout = ({ children }) => {
           <div className="fixed bottom-24 left-0 right-0 z-30 flex justify-center px-4 pointer-events-none">
             <div
               ref={trendModalRef}
-              className="bg-white rounded-[15px] shadow-[0_2px_8px_rgba(0,0,0,0.16)] px-6 py-5 pointer-events-auto"
+              className="bg-white rounded-[15px] shadow-[0_2px_8px_rgba(0,0,0,0.16)] px-4 py-5 sm:px-6 pointer-events-auto w-full max-w-[400px]"
               style={{
-                width: "auto",
-                maxWidth: "480px",
+                width: "100%",
               }}
             >
               <h3 className="text-base text-primary mb-4">
                 Choose Trend
               </h3>
-              <div className="flex justify-between items-center gap-4">
+              <div className="grid grid-cols-2 sm:flex sm:flex-row sm:justify-between items-stretch gap-2 sm:gap-3">
                 <button
-                  className="flex flex-col items-center gap-3 flex-1 cursor-pointer transition-opacity hover:opacity-80 active:opacity-70"
+                  className="flex flex-col items-center justify-center gap-1.5 sm:gap-2 flex-1 cursor-pointer transition-opacity hover:opacity-80 active:opacity-70"
                   onClick={() => { handleTrendOptionClick("bowel"); setSelectedTrendOption("toilet"); setSelectedRecordOption("") }}
                 >
-                  <FaToilet className={` ${selectedTrendOption === "toilet" ? "text-[#E29C53]" : "text-[#F3D5B2]"}`} size={32} />
-                  <p className="text-sm text-center leading-tight whitespace-nowrap text-secondary">
+                  <FaToilet className={` ${selectedTrendOption === "toilet" ? "text-[#E29C53]" : "text-[#F3D5B2]"}`} size={26} />
+                  <p className="text-xs sm:text-sm text-center leading-tight text-secondary">
                     Bowel Trend
                   </p>
                 </button>
                 <button
-                  className="flex flex-col items-center gap-3 flex-1 cursor-pointer transition-opacity hover:opacity-80 active:opacity-70"
+                  className="flex flex-col items-center justify-center gap-1.5 sm:gap-2 flex-1 cursor-pointer transition-opacity hover:opacity-80 active:opacity-70"
                   onClick={() => { handleTrendOptionClick("diet"); setSelectedTrendOption("utensils"); setSelectedRecordOption("") }}
                 >
-                  <FaUtensils className={` ${selectedTrendOption === "utensils" ? "text-[#6AA84F]" : "text-[#CFE4B8]"}`} size={32} />
-                  <p className="text-sm text-center leading-tight whitespace-nowrap text-secondary">
+                  <FaUtensils className={` ${selectedTrendOption === "utensils" ? "text-[#6AA84F]" : "text-[#CFE4B8]"}`} size={26} />
+                  <p className="text-xs sm:text-sm text-center leading-tight text-secondary">
                     Diet Trend
                   </p>
                 </button>
                 <button
-                  className="flex flex-col items-center gap-3 flex-1 cursor-pointer transition-opacity hover:opacity-80 active:opacity-70"
+                  className="flex flex-col items-center justify-center gap-1.5 sm:gap-2 flex-1 cursor-pointer transition-opacity hover:opacity-80 active:opacity-70"
                   onClick={() => { handleTrendOptionClick("water"); setSelectedTrendOption("water"); setSelectedRecordOption("") }}
                 >
-                  <FaGlassWhiskey className={` ${selectedTrendOption === "water" ? "text-[#79b6e2]" : "text-[#D6EAF8]"}`} size={32} />
-                  <p className="text-sm text-center leading-tight whitespace-nowrap text-secondary">
+                  <FaGlassWhiskey className={` ${selectedTrendOption === "water" ? "text-[#79b6e2]" : "text-[#D6EAF8]"}`} size={26} />
+                  <p className="text-xs sm:text-sm text-center leading-tight text-secondary">
                     Water Trend
                   </p>
                 </button>
                 <button
-                  className="flex flex-col items-center gap-3 flex-1 cursor-pointer transition-opacity hover:opacity-80 active:opacity-70"
+                  className="flex flex-col items-center justify-center gap-1.5 sm:gap-2 flex-1 cursor-pointer transition-opacity hover:opacity-80 active:opacity-70"
                   onClick={() => { handleTrendOptionClick("urine"); setSelectedTrendOption("urine"); setSelectedRecordOption("") }}
                 >
-                  <FaTint className={` ${selectedTrendOption === "urine" ? "text-[#F6C700]" : "text-[#FDE8B4]"}`} size={32} />
-                  <p className="text-sm text-center leading-tight whitespace-nowrap text-secondary">
+                  <FaTint className={` ${selectedTrendOption === "urine" ? "text-[#F6C700]" : "text-[#FDE8B4]"}`} size={26} />
+                  <p className="text-xs sm:text-sm text-center leading-tight text-secondary">
                     Urine Trend
                   </p>
                 </button>

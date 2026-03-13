@@ -336,10 +336,12 @@ const Year = ({ referenceDate }) => {
   };
 
   return (
-    <div className="pl-[15px] pr-[15px] mt-[15px]">
+    <div className="px-4 sm:px-[15px] mt-[15px]">
       {/* Annual Trend of Food */}
-      <div className="text-primary  font-medium text-base pl-[15px] mb-3">Annual Trend of Food</div>
-      <div className="w-full rounded-[20px] bg-white p-5 shadow-[2px_0_10px_rgba(0,0,0,0.15)]">
+      <div className="text-primary font-medium text-base pl-1 sm:pl-[15px] mb-3">
+        Annual Trend of Food
+      </div>
+      <div className="w-full rounded-[20px] bg-white px-4 py-5 sm:p-5 shadow-[2px_0_10px_rgba(0,0,0,0.15)]">
         <h2 className="mb-[10px] text-base text-secondary">
           Intake Ratio (%)
         </h2>
@@ -354,9 +356,9 @@ const Year = ({ referenceDate }) => {
       </div>
 
       {/* Next Month's Goals */}
-      <div className="w-full rounded-[12px] bg-[#EFF6FF] border border-custom-8 p-5 shadow-[0_2px_4px_rgba(0,0,0,0.08)] space-y-3 mt-5 relative">
+      <div className="w-full rounded-[12px] bg-[#EFF6FF] border border-custom-8 px-4 py-5 sm:p-5 shadow-[0_2px_4px_rgba(0,0,0,0.08)] space-y-3 mt-5 relative">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <h2 className="text-base font-medium text-primary">Next Month’s Goals</h2>
           <button
             type="button"
@@ -459,7 +461,7 @@ const Year = ({ referenceDate }) => {
       </div>
 
       {/* Key Transition */}
-      <div className="w-full rounded-[12px] bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.08)] space-y-3 mt-5 border border-[#d3d3d3]">
+      <div className="w-full rounded-[12px] bg-white px-4 py-6 sm:p-6 shadow-[0_2px_4px_rgba(0,0,0,0.08)] space-y-3 mt-5 border border-[#d3d3d3]">
         {/* Title */}
         <h2 className="text-sm text-primary">Key Transition</h2>
 
@@ -469,7 +471,7 @@ const Year = ({ referenceDate }) => {
             <Loader />
           </div>
         ) : (
-          <div className="flex justify-between text-sm text-gray-700">
+          <div className="flex flex-col sm:flex-row sm:justify-between gap-4 text-sm text-gray-700">
             {keyTransitions.slice(0, 2).map((kt, index) => (
               // eslint-disable-next-line react/no-array-index-key
               <div key={index} className="flex items-start gap-2">
@@ -492,8 +494,10 @@ const Year = ({ referenceDate }) => {
       </div>
 
       {/* Sensitive Foods */}
-      <div className="text-primary text-base font-medium pl-[15px] mb-3 mt-5">Top Sensitivie Foods</div>
-      <div className="w-full max-w-sm rounded-[20px] bg-white p-5 shadow-md space-y-4">
+      <div className="text-primary text-base font-medium pl-1 sm:pl-[15px] mb-3 mt-5">
+        Top Sensitivie Foods
+      </div>
+      <div className="w-full max-w-sm rounded-[20px] bg-white px-4 py-5 sm:p-5 shadow-md space-y-4 mx-auto">
         {/* Header */}
         <div>
           <h2 className="text-base mb-5 text-secondary">About Sensitive Foods</h2>
@@ -527,8 +531,10 @@ const Year = ({ referenceDate }) => {
       </div>
 
       {/* Diet & Bowel */}
-      <div className="text-primary text-base font-medium pl-[15px] mb-3 mt-5">Diet & Bowel</div>
-      <div className="w-full rounded-[20px] bg-white p-5 shadow-[2px_0_10px_rgba(0,0,0,0.15)] space-y-4">
+      <div className="text-primary text-base font-medium pl-1 sm:pl-[15px] mb-3 mt-5">
+        Diet & Bowel
+      </div>
+      <div className="w-full rounded-[20px] bg-white px-4 py-5 sm:p-5 shadow-[2px_0_10px_rgba(0,0,0,0.15)] space-y-4">
         {/* Header */}
         <div className="rounded-[12px] bg-[#EFF6FF] p-4 text-sm border border-custom-8">
           <div className="flex items-center justify-between mb-5">

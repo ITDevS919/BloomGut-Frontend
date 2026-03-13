@@ -387,7 +387,7 @@ const Week = ({ referenceDate }) => {
   return (
     <>
       <Free showUpgrade={false} />
-      <div className="flex items-center justify-center gap-20 text-sm mt-[38px]">
+      <div className="flex items-center justify-center gap-4 sm:gap-10 text-sm mt-[30px] flex-wrap">
         {tabs.map((tab) => (
           <button
             key={tab}
@@ -403,12 +403,12 @@ const Week = ({ referenceDate }) => {
         ))}
       </div>
 
-      <div className="w-full space-y-4 p-6">
+      <div className="w-full space-y-4 px-4 py-6">
         {active === "Day/Night" && (
           <>
             {/* Donut card */}
-            <div className="rounded-[27px] bg-white p-5 shadow-md">
-              <div className="relative mx-auto h-44 w-44">
+            <div className="rounded-[27px] bg-white px-4 py-5 sm:p-5 shadow-md">
+              <div className="relative mx-auto h-40 w-40 sm:h-44 sm:w-44">
                 {chartLoading ? (
                   <div className="flex h-full items-center justify-center">
                     <Loader />
@@ -441,7 +441,7 @@ const Week = ({ referenceDate }) => {
             </div>
 
             {/* Stat cards */}
-            <div className="grid grid-cols-3 gap-3 mb-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-5">
               {chartLoading ? (
                 <div className="col-span-3 flex items-center justify-center text-xs text-secondary">
                   <Loader />
@@ -462,7 +462,7 @@ const Week = ({ referenceDate }) => {
             </div>
 
             {/* Analysis & Advice (AI) */}
-            <div className="bg-white rounded-[27px] shadow-md p-6">
+            <div className="bg-white rounded-[27px] shadow-md px-4 py-6 sm:p-6">
               <div className="space-y-3">
                 <h3 className="text-base font-medium text-primary">Analysis & Advice</h3>
                 {adviceLoading ? (
@@ -493,8 +493,8 @@ const Week = ({ referenceDate }) => {
         {active === "Clarity" && (
           <>
             {/* Clarity donut */}
-            <div className="rounded-[27px] bg-white p-5 shadow-md">
-              <div className="relative mx-auto h-44 w-44">
+            <div className="rounded-[27px] bg-white px-4 py-5 sm:p-5 shadow-md">
+              <div className="relative mx-auto h-40 w-40 sm:h-44 sm:w-44">
                 {clarityLoading ? (
                   <div className="flex h-full items-center justify-center">
                     <Loader />
@@ -544,7 +544,7 @@ const Week = ({ referenceDate }) => {
             </div>
 
             {/* Stat cards */}
-            <div className="grid grid-cols-3 gap-3 mb-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-5">
               {clarityLoading ? (
                 <div className="col-span-3 flex items-center justify-center text-xs text-secondary">
                   <Loader />
@@ -601,8 +601,8 @@ const Week = ({ referenceDate }) => {
         {active === "Time" && (
           <>
             {/* Time distribution donut */}
-            <div className="rounded-[27px] bg-white p-5 shadow-md">
-              <div className="relative mx-auto h-44 w-44">
+            <div className="rounded-[27px] bg-white px-4 py-5 sm:p-5 shadow-md">
+              <div className="relative mx-auto h-40 w-40 sm:h-44 sm:w-44">
                 {timeLoading ? (
                   <div className="flex h-full items-center justify-center">
                     <Loader />

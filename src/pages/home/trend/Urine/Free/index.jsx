@@ -207,11 +207,11 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
   const loadingTips = !tipsLoaded;
 
   return (
-    <div className="pl-[15px] pr-[15px]">
+    <div className="px-4 sm:px-[15px]">
       {/* Score Card */}
-      <div className="bg-white rounded-[27px] p-[32px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[28px] relative">
-        <div className="flex items-center justify-between">
-          <div className="pl-[50px]">
+      <div className="bg-white rounded-[27px] px-4 py-5 sm:px-8 sm:py-8 shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[20px] sm:mb-[28px] relative">
+        <div className="flex items-center justify-between gap-3">
+          <div className="pl-0 sm:pl-[50px] flex-1">
             <div className="text-3xl font-medium text-[#F09129] text-center">
               {effectiveWeekScore}
             </div>
@@ -219,7 +219,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
               {effectiveStatus}
             </div>
           </div>
-          <div className="text-sm pr-[50px] text-[#F09129]">
+          <div className="text-sm pr-0 sm:pr-[50px] text-[#F09129] text-right">
             {effectiveChangeText}
           </div>
         </div>
@@ -261,10 +261,12 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         )}
       </div>
 
-      <div className="text-primary font-medium mb-5 pl-[15px]">Weekly Urine Report</div>
-      <div className="w-full max-w-sm rounded-[20px] bg-white p-4 shadow-[2px_0_10px_rgba(3,3,3,0.1)] space-y-4 relative">
+      <div className="text-primary font-medium mb-4 sm:mb-5 pl-1 sm:pl-[15px]">
+        Weekly Urine Report
+      </div>
+      <div className="w-full max-w-sm rounded-[20px] bg-white p-4 shadow-[2px_0_10px_rgba(3,3,3,0.1)] space-y-4 relative mx-auto">
         {/* Status dots */}
-        <div className="flex justify-between">
+        <div className="flex justify-between gap-2">
           {dotData.map((d) => (
             <div key={d.day} className="flex flex-col items-center gap-1">
               <span className={`h-8 w-8 rounded-full ${colors[d.status]}`} />
@@ -281,7 +283,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         </div>
 
         {/* Summary */}
-        <div className="space-y-1 text-sm mb-5">
+        <div className="space-y-1 text-sm mb-4 sm:mb-5">
           <div className="flex items-center gap-1">
             <FaSmile className="w-4 h-4 text-[#f09129]" />
             <span className="text-[15px] font-medium text-primary">
@@ -295,7 +297,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
                 : "Abnormal"}
             </span>
           </div>
-          <p className="text-primary text-[15px] pl-[20px]">
+          <p className="text-primary text-[15px] pl-3 sm:pl-[20px]">
             Weekly Clarity Rate: {clarityRate}%
           </p>
         </div>
@@ -309,7 +311,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         </div>
 
         {/* Counts */}
-        <div className="flex justify-between text-[15px] text-primary text-center pl-[20px] pr-[20px] mb-5">
+        <div className="flex justify-between text-[15px] text-primary text-center px-3 sm:pl-[20px] sm:pr-[20px] mb-4 sm:mb-5">
           <span className="text-[15px] text-primary">
             Clear
             <br />
