@@ -93,7 +93,15 @@ const DietRecord = (props) => {
   };
 
   useEffect(() => {
+    if (!props.recordResult) {
+      return;
+    }
+    // When a transcript comes back from FoodRecord, prefill the search,
+    // open the nutrition label UI, and immediately run analysis.
     setSearchValue(props.recordResult);
+    setClickedNutritionLabel(true);
+    handleSearch(props.recordResult);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.recordResult]);
 
   // Load gut impact calendar colors from backend whenever month changes
