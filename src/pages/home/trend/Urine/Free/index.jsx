@@ -207,10 +207,9 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
   const loadingTips = !tipsLoaded;
 
   return (
-    <div className="px-4 sm:px-[15px]">
-      {/* Score Card */}
-      <div className="bg-white rounded-[27px] px-4 py-5 sm:px-8 sm:py-8 shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[20px] sm:mb-[28px] relative">
-        <div className="flex items-center justify-between gap-3">
+    <div className="pl-[15px] pr-[15px]">
+      <div className="bg-white rounded-[27px] p-[32px] shadow-md mb-[36px] relative">
+        <div className="flex items-center justify-between">
           <div className="pl-[50px]">
             <div className="text-3xl font-medium text-[#F09129] text-center">
               {effectiveWeekScore}

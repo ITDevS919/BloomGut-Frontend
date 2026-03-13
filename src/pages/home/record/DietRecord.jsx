@@ -24,7 +24,6 @@ const DietRecord = (props) => {
   const [state, setState] = useState("idle");
   const [clickedNutritionLabel, setClickedNutritionLabel] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [dietLoading, setDietLoading] = useState(false);
   const [nutritionSummary, setNutritionSummary] = useState(null);
   const [gutAnalysis, setGutAnalysis] = useState("");
   const [eatTips, setEatTips] = useState([]);
@@ -37,7 +36,6 @@ const DietRecord = (props) => {
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const [dateColors, setDateColors] = useState({});
-  const [calendarLoading, setCalendarLoading] = useState(false);
 
   const getDaysInMonth = (date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -101,7 +99,6 @@ const DietRecord = (props) => {
     if (!auth?.user?.id) return;
 
     const fetchCalendar = async () => {
-      setCalendarLoading(true);
       try {
         const response = await api.get("/trend/diet/gutImpactCalendar", {
           params: {
@@ -120,7 +117,7 @@ const DietRecord = (props) => {
         console.error("Failed to load diet gut impact calendar:", error);
         setDateColors({});
       } finally {
-        setCalendarLoading(false);
+        // no-op
       }
     };
 
@@ -131,7 +128,6 @@ const DietRecord = (props) => {
     const trimmed = (value || "").trim();
     if (!trimmed) return;
     setState("submitting");
-    setDietLoading(true);
     try {
       const response = await api.post("/third-party/diet", {
         prompt: trimmed,
@@ -228,7 +224,6 @@ const DietRecord = (props) => {
       setDrinkTips([]);
       setRelaxTips([]);
     } finally {
-      setDietLoading(false);
       setState("idle");
     }
   };
@@ -332,10 +327,7 @@ const DietRecord = (props) => {
       <div className={`bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.15)] p-6 text-custom-12 ${searchValue ? "mb-[10px]" : "mb-[28px]"}`}
         onClick={() => setClickedNutritionLabel(true)}
       >
-        {dietLoading && (
-          <div className="text-sm text-secondary">Analyzing your meal…</div>
-        )}
-        {!dietLoading && nutritionSummary && (
+        {nutritionSummary && (
           <div className="text-sm space-y-2">
             <div className="flex justify-between">
               <span>Total calories</span>
@@ -355,7 +347,7 @@ const DietRecord = (props) => {
             </div>
           </div>
         )}
-        {!dietLoading && !nutritionSummary && (
+        {!nutritionSummary && (
           <span>No data yet, record your first meal</span>
         )}
       </div>
@@ -369,11 +361,10 @@ const DietRecord = (props) => {
         Gut Impact Analysis
       </div>
       <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] p-6 text-custom-12 text-sm mb-[28px]">
-        {dietLoading && <div className="text-sm text-secondary">Analyzing gut impact…</div>}
-        {!dietLoading && gutAnalysis && (
+        {gutAnalysis && (
           <p className="text-sm text-primary">{gutAnalysis}</p>
         )}
-        {!dietLoading && !gutAnalysis && (
+        {!gutAnalysis && (
           <p>No records yet, start your log</p>
         )}
       </div>
@@ -386,9 +377,7 @@ const DietRecord = (props) => {
           </div>
           <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] p-6 text-custom-12 text-sm mb-[28px]">
             <div className="flex flex-col space-y-2 text-xs text-custom-12">
-              {dietLoading ? (
-                <p>Loading eating tips…</p>
-              ) : eatTips.length ? (
+              {eatTips.length ? (
                 eatTips.map((tip, idx) => <p key={idx}>{tip}</p>)
               ) : (
                 <>
@@ -409,9 +398,7 @@ const DietRecord = (props) => {
           </div>
           <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] p-6 text-custom-12 text-sm mb-[28px]">
             <div className="flex flex-col space-y-2 text-xs text-custom-12">
-              {dietLoading ? (
-                <p>Loading drinking tips…</p>
-              ) : drinkTips.length ? (
+              {drinkTips.length ? (
                 drinkTips.map((tip, idx) => <p key={idx}>{tip}</p>)
               ) : (
                 <>
@@ -432,9 +419,7 @@ const DietRecord = (props) => {
           </div>
           <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] p-6 text-custom-12 text-sm mb-[28px]">
             <div className="flex flex-col space-y-2 text-xs text-custom-12">
-              {dietLoading ? (
-                <p>Loading relaxation tips…</p>
-              ) : relaxTips.length ? (
+              {relaxTips.length ? (
                 relaxTips.map((tip, idx) => <p key={idx}>{tip}</p>)
               ) : (
                 <>
@@ -471,19 +456,13 @@ const DietRecord = (props) => {
 
       {!clickedNutritionLabel ? (
         <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.15)] p-6 text-custom-12 mb-[28px] text-sm">
-          {dietLoading ? "Analyzing diet records…" : "No records found"}
+          No records found
         </div>
       ) : (
         <>
           {searchValue ? (
             <div className="rounded-[27px]  p-2 mb-[28px]">
-              {calendarLoading ? (
-                <div className="flex flex-col items-center justify-center py-8 text-xs text-secondary gap-2">
-                  <div className="h-6 w-6 border-2 border-amber-200 border-t-amber-500 rounded-full animate-spin" />
-                  <span>Loading gut impact calendar…</span>
-                </div>
-              ) : (
-                <>
+              <>
                   {/* Calendar Header */}
                   <div className="flex items-center justify-between mb-4">
                     <button
@@ -585,8 +564,7 @@ const DietRecord = (props) => {
                   <p className="text-xs text-custom-12 text-center mt-4">
                     Click on calendar date/expand for details
                   </p>
-                </>
-              )}
+              </>
             </div>
           ) : (
             <div className="mb-[40px] mt-[40px] text-sm text-custom-12">
