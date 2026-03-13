@@ -99,6 +99,7 @@ const Profile = () => {
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
   const fileInputRef = useRef(null);
   const [avatarUrl, setAvatarUrl] = useState(auth?.user?.imageUrl || "");
+  const [avatarLoading, setAvatarLoading] = useState(true);
 
   const handleAvatarFileChange = async (e) => {
     const file = e.target.files && e.target.files[0];
@@ -109,6 +110,7 @@ const Profile = () => {
     if (avatarUrl && avatarUrl.startsWith("blob:")) {
       URL.revokeObjectURL(avatarUrl);
     }
+    setAvatarLoading(true);
     setAvatarUrl(previewUrl);
 
     if (!user) {
@@ -178,7 +180,10 @@ const Profile = () => {
         }
         if (payload.height != null) setHeight(String(payload.height));
         if (payload.weight != null) setWeight(String(payload.weight));
-        if (payload.avatar) setAvatarUrl(payload.avatar);
+        if (payload.avatar) {
+          setAvatarLoading(true);
+          setAvatarUrl(payload.avatar);
+        }
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Failed to load user profile:", error);
@@ -263,13 +268,21 @@ const Profile = () => {
         </div>
 
         <div style={styles.avatarWrap} className="mb-[43px]">
-          <div style={styles.avatar}>
+          <div style={styles.avatar} className="relative">
             <div style={{ fontSize: 36, color: "#6b4d43" }}>
+              {avatarLoading && (
+                <div className="absolute inset-0 rounded-full bg-[#e9ece8] flex items-center justify-center animate-pulse">
+                  <span className="text-[#c4b8aa] text-3xl">• • •</span>
+                </div>
+              )}
               <img
                 src={avatarUrl || auth?.user?.imageUrl}
                 className="rounded-full"
                 width="100px"
                 height="100px"
+                alt="Profile avatar"
+                onLoad={() => setAvatarLoading(false)}
+                onError={() => setAvatarLoading(false)}
               />
             </div>
             <div

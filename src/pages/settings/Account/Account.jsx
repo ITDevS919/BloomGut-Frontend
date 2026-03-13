@@ -4,6 +4,7 @@ import {
   User,
   Plus,
 } from "lucide-react";
+import { useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { FaShieldAlt } from "react-icons/fa";
@@ -12,6 +13,7 @@ import { FaLink, FaLock } from "react-icons/fa6";
 
 const Account = () => {
   const navigate = useNavigate();
+  const [avatarLoading, setAvatarLoading] = useState(true);
   const accountItems = [
     {
       icon: <MdFolderShared size={24} className="text-[#705D56]" />,
@@ -54,11 +56,20 @@ const Account = () => {
       <div className="bg-white flex items-center justify-between shadow-[0_4px_12px_rgba(0,0,0,0.08)] p-[14px] mb-[16px] rounded-[8px]">
         <div className="flex items-center gap-4">
           {auth?.user?.imageUrl ? (
-            <img
-              src={auth.user.imageUrl}
-              alt={auth.user.username || "avatar"}
-              className="w-[50px] h-[50px] border-[#e5e7eb] rounded-full object-cover"
-            />
+            <div className="relative w-[50px] h-[50px]">
+              {avatarLoading && (
+                <div className="absolute inset-0 rounded-full bg-[#f6f1ec] flex items-center justify-center animate-pulse">
+                  <User className="text-[#c4b8aa]" />
+                </div>
+              )}
+              <img
+                src={auth.user.imageUrl}
+                alt={auth.user.username || "avatar"}
+                className="w-[50px] h-[50px] border-[#e5e7eb] rounded-full object-cover"
+                onLoad={() => setAvatarLoading(false)}
+                onError={() => setAvatarLoading(false)}
+              />
+            </div>
           ) : (
             <div className="w-12 h-12 rounded-full bg-[#f6f1ec] flex items-center justify-center text-primary">
               <User />

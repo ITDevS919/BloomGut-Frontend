@@ -209,16 +209,16 @@ const PrivateLayout = ({ children }) => {
   const [selectedRecordOption, setSelectedRecordOption] = useState("");
   const [selectedTrendOption, setSelectedTrendOption] = useState("");
   return (
-    // Center the mobile app frame and use fixed viewport height so inner area can scroll
+    // Center the mobile app frame and allow it to grow slightly on larger screens
     <div className="flex justify-center h-[100dvh]">
-      <div className="flex flex-col w-full max-w-[480px] h-[100dvh] relative">
+      <div className="flex flex-col w-full max-w-[480px] md:max-w-[640px] h-[100dvh] relative">
         {/* Scrollable content area with space reserved for bottom nav */}
         <div className="flex-1 overflow-y-auto pb-24 min-h-0">{children}</div>
 
         {/* Fixed, centered bottom navbar that respects safe area insets */}
         <div className="fixed inset-x-0 bottom-0 z-20 flex justify-center pointer-events-none">
           <div
-            className="flex justify-between items-center w-full max-w-[430px] px-2 py-4 bg-[#EFEBE4] shadow-md border-t border-custom-8 pointer-events-auto"
+            className="flex justify-between items-center w-full max-w-[430px] md:max-w-[430px] px-2 py-3 sm:py-4 bg-[#EFEBE4] shadow-md border-t border-custom-8 pointer-events-auto"
             style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
           >
         {navItems.map((item) => {
@@ -291,7 +291,7 @@ const PrivateLayout = ({ children }) => {
               <h3 className="text-base text-primary mb-4">
                 Choose Record
               </h3>
-              <div className="grid grid-cols-2 sm:flex sm:flex-row sm:justify-between items-stretch gap-3">
+              <div className="flex flex-row items-stretch justify-between gap-3 flex-nowrap">
                 {/* {recordOptions.map((option, index) => (
                   <button
                     key={index}
@@ -368,7 +368,7 @@ const PrivateLayout = ({ children }) => {
               <h3 className="text-base text-primary mb-4">
                 Choose Trend
               </h3>
-              <div className="grid grid-cols-2 sm:flex sm:flex-row sm:justify-between items-stretch gap-2 sm:gap-3">
+              <div className="flex flex-row items-stretch justify-between gap-2 sm:gap-3 flex-nowrap">
                 <button
                   className="flex flex-col items-center justify-center gap-1.5 sm:gap-2 flex-1 cursor-pointer transition-opacity hover:opacity-80 active:opacity-70"
                   onClick={() => { handleTrendOptionClick("bowel"); setSelectedTrendOption("toilet"); setSelectedRecordOption("") }}
