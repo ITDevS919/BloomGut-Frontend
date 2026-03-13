@@ -31,11 +31,13 @@ const DietRecord = (props) => {
   const [relaxTips, setRelaxTips] = useState([]);
   const [dietItems, setDietItems] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [dietLoading, setDietLoading] = useState(false);
 
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const [dateColors, setDateColors] = useState({});
+  const [calendarLoading, setCalendarLoading] = useState(false);
 
   const getDaysInMonth = (date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -99,6 +101,7 @@ const DietRecord = (props) => {
     if (!auth?.user?.id) return;
 
     const fetchCalendar = async () => {
+      setCalendarLoading(true);
       try {
         const response = await api.get("/trend/diet/gutImpactCalendar", {
           params: {
@@ -117,7 +120,7 @@ const DietRecord = (props) => {
         console.error("Failed to load diet gut impact calendar:", error);
         setDateColors({});
       } finally {
-        // no-op
+        setCalendarLoading(false);
       }
     };
 
@@ -128,6 +131,7 @@ const DietRecord = (props) => {
     const trimmed = (value || "").trim();
     if (!trimmed) return;
     setState("submitting");
+    setDietLoading(true);
     try {
       const response = await api.post("/third-party/diet", {
         prompt: trimmed,
@@ -224,6 +228,7 @@ const DietRecord = (props) => {
       setDrinkTips([]);
       setRelaxTips([]);
     } finally {
+      setDietLoading(false);
       setState("idle");
     }
   };
@@ -268,7 +273,7 @@ const DietRecord = (props) => {
       </>}
       <>
         {/* Search Bar */}
-        {clickedNutritionLabel && <>
+        {(clickedNutritionLabel || props.recordResult) && <>
 
           <div className="flex justify-center">
             <div className="relative flex items-center bg-white rounded-full shadow-md overflow-hidden w-full max-w-md mb-5">
@@ -327,7 +332,10 @@ const DietRecord = (props) => {
       <div className={`bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.15)] p-6 text-custom-12 ${searchValue ? "mb-[10px]" : "mb-[28px]"}`}
         onClick={() => setClickedNutritionLabel(true)}
       >
-        {nutritionSummary && (
+        {dietLoading && (
+          <div className="text-sm text-secondary">Analyzing your meal…</div>
+        )}
+        {!dietLoading && nutritionSummary && (
           <div className="text-sm space-y-2">
             <div className="flex justify-between">
               <span>Total calories</span>
@@ -347,7 +355,7 @@ const DietRecord = (props) => {
             </div>
           </div>
         )}
-        {!nutritionSummary && (
+        {!dietLoading && !nutritionSummary && (
           <span>No data yet, record your first meal</span>
         )}
       </div>
@@ -361,10 +369,11 @@ const DietRecord = (props) => {
         Gut Impact Analysis
       </div>
       <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] p-6 text-custom-12 text-sm mb-[28px]">
-        {gutAnalysis && (
+        {dietLoading && <div className="text-sm text-secondary">Analyzing gut impact…</div>}
+        {!dietLoading && gutAnalysis && (
           <p className="text-sm text-primary">{gutAnalysis}</p>
         )}
-        {!gutAnalysis && (
+        {!dietLoading && !gutAnalysis && (
           <p>No records yet, start your log</p>
         )}
       </div>
@@ -377,7 +386,9 @@ const DietRecord = (props) => {
           </div>
           <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] p-6 text-custom-12 text-sm mb-[28px]">
             <div className="flex flex-col space-y-2 text-xs text-custom-12">
-              {eatTips.length ? (
+              {dietLoading ? (
+                <p>Loading eating tips…</p>
+              ) : eatTips.length ? (
                 eatTips.map((tip, idx) => <p key={idx}>{tip}</p>)
               ) : (
                 <>
@@ -398,7 +409,9 @@ const DietRecord = (props) => {
           </div>
           <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] p-6 text-custom-12 text-sm mb-[28px]">
             <div className="flex flex-col space-y-2 text-xs text-custom-12">
-              {drinkTips.length ? (
+              {dietLoading ? (
+                <p>Loading drinking tips…</p>
+              ) : drinkTips.length ? (
                 drinkTips.map((tip, idx) => <p key={idx}>{tip}</p>)
               ) : (
                 <>
@@ -419,7 +432,9 @@ const DietRecord = (props) => {
           </div>
           <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] p-6 text-custom-12 text-sm mb-[28px]">
             <div className="flex flex-col space-y-2 text-xs text-custom-12">
-              {relaxTips.length ? (
+              {dietLoading ? (
+                <p>Loading relaxation tips…</p>
+              ) : relaxTips.length ? (
                 relaxTips.map((tip, idx) => <p key={idx}>{tip}</p>)
               ) : (
                 <>
@@ -463,107 +478,105 @@ const DietRecord = (props) => {
           {searchValue ? (
             <div className="rounded-[27px]  p-2 mb-[28px]">
               <>
-                  {/* Calendar Header */}
-                  <div className="flex items-center justify-between mb-4">
-                    <button
-                      onClick={() => navigateMonth("prev")}
-                      className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                      aria-label="Previous month"
-                    >
-                      <ChevronLeft className="w-5 h-5 text-primary" />
-                    </button>
-                    <h3 className="text-lg font-medium text-primary">
-                      {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-                    </h3>
-                    <button
-                      onClick={() => navigateMonth("next")}
-                      className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                      aria-label="Next month"
-                    >
-                      <ChevronRight className="w-5 h-5 text-primary" />
-                    </button>
-                  </div>
+                {/* Calendar Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <button
+                    onClick={() => navigateMonth("prev")}
+                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                    aria-label="Previous month"
+                  >
+                    <ChevronLeft className="w-5 h-5 text-primary" />
+                  </button>
+                  <h3 className="text-lg font-medium text-primary">
+                    {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+                  </h3>
+                  <button
+                    onClick={() => navigateMonth("next")}
+                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                    aria-label="Next month"
+                  >
+                    <ChevronRight className="w-5 h-5 text-primary" />
+                  </button>
+                </div>
 
-                  {/* Days of Week Header */}
-                  <div className="grid grid-cols-7 gap-2 mb-2">
-                    {dayNames.map((day) => (
+                {/* Days of Week Header */}
+                <div className="grid grid-cols-7 gap-2 mb-2">
+                  {dayNames.map((day) => (
+                    <div
+                      key={day}
+                      className="text-center text-xs text-gray-600 font-medium py-2"
+                    >
+                      {day}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Calendar Grid */}
+                <div className="grid grid-cols-7 gap-2">
+                  {renderCalendar().map((day, index) => {
+                    const color = day ? getDateColor(day) : null;
+                    return (
                       <div
-                        key={day}
-                        className="text-center text-xs text-gray-600 font-medium py-2"
-                      >
-                        {day}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Calendar Grid */}
-                  <div className="grid grid-cols-7 gap-2">
-                    {renderCalendar().map((day, index) => {
-                      const color = day ? getDateColor(day) : null;
-                      return (
-                        <div
-                          key={index}
-                          className={`aspect-square flex items-center justify-center text-sm ${
-                            day ? "cursor-pointer hover:bg-gray-50 rounded-full" : ""
+                        key={index}
+                        className={`aspect-square flex items-center justify-center text-sm ${day ? "cursor-pointer hover:bg-gray-50 rounded-full" : ""
                           }`}
-                        >
-                          {day && (
-                            color === "pink" ? (
-                              <div
-                                className={`w-8 h-8 flex items-center justify-center ${getColorClass(
-                                  color
-                                )} text-white`}
-                                style={{
-                                  clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
-                                }}
-                              >
-                                {day}
-                              </div>
-                            ) : (
-                              <div
-                                className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                                  color
-                                    ? `${getColorClass(color)} text-white`
-                                    : "text-secondary"
+                      >
+                        {day && (
+                          color === "pink" ? (
+                            <div
+                              className={`w-8 h-8 flex items-center justify-center ${getColorClass(
+                                color
+                              )} text-white`}
+                              style={{
+                                clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
+                              }}
+                            >
+                              {day}
+                            </div>
+                          ) : (
+                            <div
+                              className={`w-8 h-8 rounded-full flex items-center justify-center ${color
+                                  ? `${getColorClass(color)} text-white`
+                                  : "text-secondary"
                                 }`}
-                              >
-                                {day}
-                              </div>
-                            )
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
+                            >
+                              {day}
+                            </div>
+                          )
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
 
-                  {/* Legend */}
-                  <div className="flex flex-wrap items-center justify-center gap-4 mt-6 text-xs text-secondary">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-[#66BB6A]" />
-                      <span>Beneficial</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-[#FFEB3B]" />
-                      <span>Neutral</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-[#EF5350]" />
-                      <span>Irritating</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-[#BDBDBD]" />
-                      <span>Unrecorded</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-[#F8C8C8]" />
-                      <span>Incomplete</span>
-                    </div>
+                {/* Legend */}
+                <div className="flex flex-wrap items-center justify-center gap-4 mt-6 text-xs text-secondary">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-[#66BB6A]" />
+                    <span>Beneficial</span>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-[#FFEB3B]" />
+                    <span>Neutral</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-[#EF5350]" />
+                    <span>Irritating</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-[#BDBDBD]" />
+                    <span>Unrecorded</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-[#F8C8C8]" />
+                    <span>Incomplete</span>
+                  </div>
+                </div>
 
-                  {/* Instruction Text */}
-                  <p className="text-xs text-custom-12 text-center mt-4">
-                    Click on calendar date/expand for details
-                  </p>
+                {/* Instruction Text */}
+                <p className="text-xs text-custom-12 text-center mt-4">
+                  Click on calendar date/expand for details
+                </p>
               </>
             </div>
           ) : (
