@@ -97,21 +97,30 @@ const FoodRecord = (props) => {
     recognition.onresult = (event) => {
       let interimTranscript = '';
       let finalTranscript = '';
-      
+
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
+        const piece = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
-          finalTranscript += transcript + ' ';
+          finalTranscript += piece + ' ';
         } else {
-          interimTranscript += transcript;
+          interimTranscript += piece;
         }
       }
-      
-      setTranscript(finalTranscript || interimTranscript);
-      
-      // If we have final results, move to processing state
-      if (finalTranscript) {
-        setState("processing");
+
+      const combined = (finalTranscript || interimTranscript).trim();
+      setTranscript(combined);
+
+      // If we have a final transcript, automatically stop recording
+      // and return to diet record with the recognized text.
+      if (finalTranscript.trim()) {
+        setState("complete");
+        if (recognitionRef.current) {
+          recognitionRef.current.stop();
+        }
+        if (combined) {
+          props.setRecordUI("diet record");
+          props.setRecordResult(combined);
+        }
       }
     };
     
