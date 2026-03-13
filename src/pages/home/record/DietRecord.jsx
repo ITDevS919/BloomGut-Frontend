@@ -13,6 +13,14 @@ import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 import { toast } from "sonner";
 
+const InlineLoader = () => (
+  <div className="dash-load-3">
+    <span className="dash-line" />
+    <span className="dash-line" />
+    <span className="dash-line" />
+  </div>
+);
+
 const DietRecord = (props) => {
   const navigate = useNavigate();
   const auth = useSelector((state) => state.auth);
@@ -339,7 +347,9 @@ const DietRecord = (props) => {
         onClick={() => setClickedNutritionLabel(true)}
       >
         {dietLoading && (
-          <div className="text-sm text-secondary">Analyzing your meal…</div>
+          <div className="flex justify-center items-center py-1">
+            <InlineLoader />
+          </div>
         )}
         {!dietLoading && nutritionSummary && (
           <div className="text-sm space-y-2">
@@ -375,7 +385,11 @@ const DietRecord = (props) => {
         Gut Impact Analysis
       </div>
       <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] p-6 text-custom-12 text-sm mb-[28px]">
-        {dietLoading && <div className="text-sm text-secondary">Analyzing gut impact…</div>}
+        {dietLoading && (
+          <div className="flex justify-center items-center py-1">
+            <InlineLoader />
+          </div>
+        )}
         {!dietLoading && gutAnalysis && (
           <p className="text-sm text-primary">{gutAnalysis}</p>
         )}
@@ -393,7 +407,9 @@ const DietRecord = (props) => {
           <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] p-6 text-custom-12 text-sm mb-[28px]">
             <div className="flex flex-col space-y-2 text-xs text-custom-12">
               {dietLoading ? (
-                <p>Loading eating tips…</p>
+                <div className="flex justify-center items-center py-1">
+                  <InlineLoader />
+                </div>
               ) : eatTips.length ? (
                 eatTips.map((tip, idx) => <p key={idx}>{tip}</p>)
               ) : (
@@ -416,7 +432,9 @@ const DietRecord = (props) => {
           <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] p-6 text-custom-12 text-sm mb-[28px]">
             <div className="flex flex-col space-y-2 text-xs text-custom-12">
               {dietLoading ? (
-                <p>Loading drinking tips…</p>
+                <div className="flex justify-center items-center py-1">
+                  <InlineLoader />
+                </div>
               ) : drinkTips.length ? (
                 drinkTips.map((tip, idx) => <p key={idx}>{tip}</p>)
               ) : (
@@ -439,7 +457,9 @@ const DietRecord = (props) => {
           <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] p-6 text-custom-12 text-sm mb-[28px]">
             <div className="flex flex-col space-y-2 text-xs text-custom-12">
               {dietLoading ? (
-                <p>Loading relaxation tips…</p>
+                <div className="flex justify-center items-center py-1">
+                  <InlineLoader />
+                </div>
               ) : relaxTips.length ? (
                 relaxTips.map((tip, idx) => <p key={idx}>{tip}</p>)
               ) : (
@@ -483,6 +503,12 @@ const DietRecord = (props) => {
         <>
           {searchValue ? (
             <div className="rounded-[27px]  p-2 mb-[28px]">
+              {calendarLoading ? (
+                <div className="flex flex-col items-center justify-center py-4 text-xs text-secondary gap-2">
+                  <InlineLoader />
+                  <span>Loading gut impact calendar…</span>
+                </div>
+              ) : (
               <>
                 {/* Calendar Header */}
                 <div className="flex items-center justify-between mb-4">
@@ -584,6 +610,7 @@ const DietRecord = (props) => {
                   Click on calendar date/expand for details
                 </p>
               </>
+              )}
             </div>
           ) : (
             <div className="mb-[40px] mt-[40px] text-sm text-custom-12">
