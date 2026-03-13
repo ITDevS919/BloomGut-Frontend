@@ -736,7 +736,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
               // eslint-disable-next-line react/no-array-index-key
               key={index}
               className="flex flex-col items-center flex-1"
-              title={`${dailyTypeLabels[index].label}: ${value}% of this week's diet calories`}
+              title={`${dailyTypeLabels[index].label}: ${value}% of today’s diet calories`}
             >
               {/* Colored Bar with Gray Background and Icon Inside */}
               <div
