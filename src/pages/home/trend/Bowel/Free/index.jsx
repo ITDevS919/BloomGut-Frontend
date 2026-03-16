@@ -71,9 +71,13 @@ const Free = ({ showUpgrade = true }) => {
     const fetchDailyCounts = async () => {
       try {
         setLoadingDailyCounts(true);
+        const referenceDate = new Date().toISOString();
+        const timezoneOffsetMinutes = new Date().getTimezoneOffset();
         const response = await api.get("/trend/bowel/dailyCount", {
           params: {
             userId: auth.user.id,
+            referenceDate,
+            timezoneOffsetMinutes,
           },
         });
         const payload = response.data?.data || response.data;
@@ -96,9 +100,13 @@ const Free = ({ showUpgrade = true }) => {
     const fetchWeeklySummary = async () => {
       try {
         setLoadingWeeklySummary(true);
+        const referenceDate = new Date().toISOString();
+        const timezoneOffsetMinutes = new Date().getTimezoneOffset();
         const response = await api.get("/trend/bowel/weeklySummary", {
           params: {
             userId: auth.user.id,
+            referenceDate,
+            timezoneOffsetMinutes,
           },
         });
         const payload = response.data?.data || response.data;
