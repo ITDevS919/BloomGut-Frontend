@@ -12,7 +12,6 @@ import { AlertTriangle, CheckCircle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
-import { toLocalISOString } from "@/utils/time";
 import Free from "../Free";
 import Loader from "@/components/common/Loader";
 
@@ -52,7 +51,8 @@ const Week = ({ referenceDate }) => {
         const res = await api.get("/trend/diet/macroWeekly", {
           params: {
             userId: auth.user.id,
-            referenceDate: referenceDate ? toLocalISOString(referenceDate) : undefined,
+            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+            timezoneOffsetMinutes: new Date().getTimezoneOffset(),
           },
         });
         const payload = res.data?.data ?? res.data;

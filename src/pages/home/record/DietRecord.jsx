@@ -11,7 +11,6 @@ import { FaGlassWhiskey } from "react-icons/fa";
 import { CustomCheckboxWater } from "@/components/custom/CustomCheckbox(Water)";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
-import { toLocalISOString } from "@/utils/time";
 import { toast } from "sonner";
 
 const InlineLoader = () => (
@@ -111,7 +110,7 @@ const DietRecord = (props) => {
         const response = await api.get("/trend/diet/gutImpactCalendar", {
           params: {
             userId: auth.user.id,
-            referenceDate: toLocalISOString(currentDate),
+            referenceDate: currentDate.toISOString(),
           },
         });
         const payload = response.data?.data ?? response.data;

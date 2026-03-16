@@ -3,7 +3,6 @@ import { FaSmile } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
-import { toLocalISOString } from "@/utils/time";
 import Loader from "@/components/common/Loader";
 
 const URINE_PRIMARY_COLOR = "#F09129";
@@ -47,7 +46,8 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         const response = await api.get("/trend/urine/weeklyScore", {
           params: {
             userId: auth.user.id,
-            referenceDate: referenceDate ? toLocalISOString(referenceDate) : undefined,
+            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+            timezoneOffsetMinutes: new Date().getTimezoneOffset(),
           },
         });
         const payload = response.data?.data || response.data;
@@ -111,7 +111,8 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         const response = await api.get("/trend/urine/compareWeeklyScore", {
           params: {
             userId: auth.user.id,
-            referenceDate: referenceDate ? toLocalISOString(referenceDate) : undefined,
+            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+            timezoneOffsetMinutes: new Date().getTimezoneOffset(),
           },
         });
         const payload = response.data?.data || response.data;

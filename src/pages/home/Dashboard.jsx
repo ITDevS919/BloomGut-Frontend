@@ -10,7 +10,6 @@ import { useNavigate } from "react-router-dom";
 
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
-import { toLocalISOString } from "@/utils/time";
 
 const InlineLoader = () => (
   <div className="dash-load-3">
@@ -164,7 +163,11 @@ const Dashboard = () => {
       setDietLoading(true);
       try {
         const res = await api.get("/trend/diet/dailySummary", {
-          params: { userId: auth.user.id },
+          params: {
+            userId: auth.user.id,
+            referenceDate: new Date().toISOString(),
+            timezoneOffsetMinutes: new Date().getTimezoneOffset(),
+          },
         });
         const payload = res.data?.data ?? res.data;
         if (!payload) {
@@ -216,7 +219,11 @@ const Dashboard = () => {
       setWaterLoading(true);
       try {
         const res = await api.get("/trend/water/dailyMl", {
-          params: { userId: auth.user.id },
+          params: {
+            userId: auth.user.id,
+            referenceDate: new Date().toISOString(),
+            timezoneOffsetMinutes: new Date().getTimezoneOffset(),
+          },
         });
         const payload = res.data?.data ?? res.data;
         const mlPerDay = Array.isArray(payload?.mlPerDay) ? payload.mlPerDay : [];
@@ -270,9 +277,13 @@ const Dashboard = () => {
     const fetchUrineWeek = async () => {
       setUrineLoading(true);
       try {
-        const ref = toLocalISOString(new Date());
+        const ref = new Date().toISOString();
         const res = await api.get("/trend/urine/weeklyScore", {
-          params: { userId: auth.user.id, referenceDate: ref },
+          params: {
+            userId: auth.user.id,
+            referenceDate: ref,
+            timezoneOffsetMinutes: new Date().getTimezoneOffset(),
+          },
         });
         const payload = res.data?.data ?? res.data;
         const scores = Array.isArray(payload) ? payload : [];

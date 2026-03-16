@@ -32,7 +32,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
-import { toLocalISOString } from "@/utils/time";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { MdErrorOutline, MdOutlineErrorOutline } from "react-icons/md";
 import Upgrade from "./Upgrade";
@@ -60,7 +59,8 @@ const Month = ({ referenceDate }) => {
         const response = await api.get("/trend/urine/monthlyDailyVolume", {
           params: {
             userId: auth.user.id,
-            referenceDate: referenceDate ? toLocalISOString(referenceDate) : undefined,
+            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+            timezoneOffsetMinutes: new Date().getTimezoneOffset(),
           },
         });
         const payload = response.data?.data || response.data;

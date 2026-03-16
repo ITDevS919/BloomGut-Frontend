@@ -57,8 +57,9 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
           referenceDate && referenceDate.toISOString
             ? referenceDate.toISOString()
             : undefined;
+        const timezoneOffsetMinutes = new Date().getTimezoneOffset();
         const response = await api.get("/trend/water/weeklyTime", {
-          params: { userId: auth.user.id, referenceDate: ref },
+          params: { userId: auth.user.id, referenceDate: ref, timezoneOffsetMinutes },
         });
         const payload = response.data?.data || response.data;
         if (!payload) return;

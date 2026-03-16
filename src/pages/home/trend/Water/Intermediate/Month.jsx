@@ -15,7 +15,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
-import { toLocalISOString } from "@/utils/time";
 import Free from "../Free";
 import Loader from "@/components/common/Loader";
 ChartJS.register(
@@ -133,10 +132,11 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
         setLoadingMonthlyTime(true);
         const ref =
           referenceDate && referenceDate.toISOString
-            ? toLocalISOString(referenceDate)
+            ? referenceDate.toISOString()
             : undefined;
+        const timezoneOffsetMinutes = new Date().getTimezoneOffset();
         const response = await api.get("/trend/water/monthlyTime", {
-          params: { userId: auth.user.id, referenceDate: ref },
+          params: { userId: auth.user.id, referenceDate: ref, timezoneOffsetMinutes },
         });
         const payload = response.data?.data || response.data;
         if (!payload) return;
@@ -232,10 +232,11 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
       try {
         const ref =
           referenceDate && referenceDate.toISOString
-            ? toLocalISOString(referenceDate)
+            ? referenceDate.toISOString()
             : undefined;
+        const timezoneOffsetMinutes = new Date().getTimezoneOffset();
         const response = await api.get("/trend/urine/weeklyScore", {
-          params: { userId: auth.user.id, referenceDate: ref },
+          params: { userId: auth.user.id, referenceDate: ref, timezoneOffsetMinutes },
         });
         const payload = response.data?.data || response.data;
         if (!Array.isArray(payload)) return;

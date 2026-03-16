@@ -61,8 +61,10 @@ const WaterRecord = () => {
   const fetchTodayRecords = useCallback(async () => {
     if (!auth?.user?.id) return;
     try {
+      const referenceDate = new Date().toISOString();
+      const timezoneOffsetMinutes = new Date().getTimezoneOffset();
       const res = await api.get("/record/water/today", {
-        params: { userId: auth.user.id },
+        params: { userId: auth.user.id, referenceDate, timezoneOffsetMinutes },
       });
       const data = res.data?.data ?? res.data;
       setTodayRecords(Array.isArray(data) ? data : []);
