@@ -140,7 +140,12 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
     const fetchWeeklyDots = async () => {
       try {
         const response = await api.get("/trend/urine/weeklyScore", {
-          params: { userId: auth.user.id },
+          params: {
+            userId: auth.user.id,
+            referenceDate: referenceDate
+              ? referenceDate.toISOString()
+              : new Date().toISOString(),
+          },
         });
         const payload = response.data?.data || response.data;
         if (!Array.isArray(payload)) return;

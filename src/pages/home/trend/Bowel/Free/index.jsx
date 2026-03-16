@@ -104,6 +104,8 @@ const Free = ({ showUpgrade = true }) => {
         const payload = response.data?.data || response.data;
         if (!payload) return;
 
+        console.log("bowel score ", payload)
+
         if (typeof payload.score === "number") {
           const rounded = Math.round(payload.score);
           if (!isCancelled) {

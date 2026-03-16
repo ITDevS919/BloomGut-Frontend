@@ -269,8 +269,9 @@ const Dashboard = () => {
     const fetchUrineWeek = async () => {
       setUrineLoading(true);
       try {
+        const ref = new Date().toISOString();
         const res = await api.get("/trend/urine/weeklyScore", {
-          params: { userId: auth.user.id },
+          params: { userId: auth.user.id, referenceDate: ref },
         });
         const payload = res.data?.data ?? res.data;
         const scores = Array.isArray(payload) ? payload : [];
