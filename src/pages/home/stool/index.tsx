@@ -120,6 +120,7 @@ const StoolPage = () => {
       return;
     }
 
+    const now = new Date();
     const param = {
       userId: auth.user.id,
       shape: shapeValue,
@@ -133,6 +134,8 @@ const StoolPage = () => {
       textureCondition: textureConditionValue,
       odorCondition: odorConditionValue,
       otherSymptoms: otherSymptomsValue,
+      clientCreatedAt: now.toISOString(),
+      clientTimezoneOffsetMinutes: now.getTimezoneOffset(),
     };
 
     try {

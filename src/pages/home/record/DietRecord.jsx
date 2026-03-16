@@ -111,6 +111,7 @@ const DietRecord = (props) => {
           params: {
             userId: auth.user.id,
             referenceDate: currentDate.toISOString(),
+            timezoneOffsetMinutes: new Date().getTimezoneOffset(),
           },
         });
         const payload = response.data?.data ?? response.data;
