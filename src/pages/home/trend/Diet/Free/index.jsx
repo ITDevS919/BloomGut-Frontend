@@ -12,6 +12,7 @@ import Upgrade from "./Upgrade";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import { toLocalISOString } from "@/utils/time";
 import Loader from "@/components/common/Loader";
 import GrainsImage from "@/assets/Images/diet-types/Grains.png";
 import ProteinImage from "@/assets/Images/diet-types/Protein.png";
@@ -94,7 +95,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         const response = await api.get("/trend/diet/todayScore", {
           params: {
             userId: auth.user.id,
-            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+            referenceDate: referenceDate ? toLocalISOString(referenceDate) : undefined,
           },
         });
         const payload = response.data?.data || response.data;
@@ -113,7 +114,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         const response = await api.get("/trend/diet/dailySummary", {
           params: {
             userId: auth.user.id,
-            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+            referenceDate: referenceDate ? toLocalISOString(referenceDate) : undefined,
           },
         });
         const payload = response.data?.data ?? response.data;
@@ -143,8 +144,8 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
           params: {
             userId: auth.user.id,
             referenceDate: referenceDate
-              ? referenceDate.toISOString()
-              : new Date().toISOString(),
+              ? toLocalISOString(referenceDate)
+              : toLocalISOString(new Date()),
           },
         });
         const payload = response.data?.data || response.data;
@@ -197,7 +198,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         const res = await api.get("/trend/diet/category", {
           params: {
             userId: auth.user.id,
-            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+            referenceDate: referenceDate ? toLocalISOString(referenceDate) : undefined,
           },
         });
         const payload = res.data?.data ?? res.data;
@@ -217,7 +218,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         const res = await api.get("/trend/diet/macroWeekly", {
           params: {
             userId: auth.user.id,
-            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+            referenceDate: referenceDate ? toLocalISOString(referenceDate) : undefined,
           },
         });
         const payload = res.data?.data ?? res.data;
@@ -241,7 +242,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         const res = await api.get("/trend/bowel/dailyTrendForDiet", {
           params: {
             userId: auth.user.id,
-            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+            referenceDate: referenceDate ? toLocalISOString(referenceDate) : undefined,
           },
         });
         const payload = res.data?.data ?? res.data;

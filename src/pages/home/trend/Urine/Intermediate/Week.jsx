@@ -4,6 +4,7 @@ import { Doughnut } from "react-chartjs-2";
 import { Sun, Moon, AlertTriangle } from "lucide-react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import { toLocalISOString } from "@/utils/time";
 import Loader from "@/components/common/Loader";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -81,7 +82,7 @@ const Week = ({ referenceDate }) => {
         const response = await api.get("/trend/urine/weeklyDayNight", {
           params: {
             userId: auth.user.id,
-            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+            referenceDate: referenceDate ? toLocalISOString(referenceDate) : undefined,
           },
         });
         const payload = response.data?.data || response.data;
@@ -186,7 +187,7 @@ const Week = ({ referenceDate }) => {
         const response = await api.get("/trend/urine/weeklyScore", {
           params: {
             userId: auth.user.id,
-            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+            referenceDate: referenceDate ? toLocalISOString(referenceDate) : undefined,
           },
         });
         const payload = response.data?.data || response.data;

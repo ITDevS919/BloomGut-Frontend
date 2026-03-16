@@ -23,6 +23,7 @@ import { useEffect, useState } from "react";
 import Loader from "@/components/common/Loader";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import { toLocalISOString } from "@/utils/time";
 
 const Year = ({ referenceDate }) => {
   const auth = useSelector((state) => state.auth);
@@ -68,7 +69,7 @@ const Year = ({ referenceDate }) => {
         const res = await api.get("/trend/diet/yearlySummary", {
           params: {
             userId: auth.user.id,
-            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+            referenceDate: referenceDate ? toLocalISOString(referenceDate) : undefined,
           },
         });
         const payload = res.data?.data ?? res.data;
@@ -86,7 +87,7 @@ const Year = ({ referenceDate }) => {
         try {
           const adviceRes = await api.post("/trend/diet/yearlyAdvice", {
             userId: auth.user.id,
-            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+            referenceDate: referenceDate ? toLocalISOString(referenceDate) : undefined,
           });
           const advicePayload = adviceRes.data?.data ?? adviceRes.data;
           if (advicePayload) {

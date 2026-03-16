@@ -12,6 +12,7 @@ import Upgrade from "./Upgrade";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import { toLocalISOString } from "@/utils/time";
 import Loader from "@/components/common/Loader";
 
 const WATER_PRIMARY_COLOR = "#4682B4";
@@ -172,7 +173,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
       try {
         const ref =
           referenceDate && referenceDate.toISOString
-            ? referenceDate.toISOString()
+            ? toLocalISOString(referenceDate)
             : undefined;
         const response = await api.get("/trend/water/dailyMl", {
           params: { userId: auth.user.id, referenceDate: ref },
@@ -198,7 +199,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
       try {
         const ref =
           referenceDate && referenceDate.toISOString
-            ? referenceDate.toISOString()
+            ? toLocalISOString(referenceDate)
             : undefined;
 
         const response = await api.get("/trend/water/weeklySummary", {

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import { toLocalISOString } from "@/utils/time";
 import Loader from "@/components/common/Loader";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -39,7 +40,7 @@ const Month = ({ referenceDate }) => {
       try {
         const res = await api.post("/trend/diet/monthlyAdvice", {
           userId: auth.user.id,
-          referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+          referenceDate: referenceDate ? toLocalISOString(referenceDate) : undefined,
         });
         const payload = res.data?.data ?? res.data;
         if (!payload) return;

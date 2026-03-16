@@ -15,6 +15,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import { toLocalISOString } from "@/utils/time";
 import Free from "../Free";
 import Loader from "@/components/common/Loader";
 ChartJS.register(
@@ -132,7 +133,7 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
         setLoadingMonthlyTime(true);
         const ref =
           referenceDate && referenceDate.toISOString
-            ? referenceDate.toISOString()
+            ? toLocalISOString(referenceDate)
             : undefined;
         const response = await api.get("/trend/water/monthlyTime", {
           params: { userId: auth.user.id, referenceDate: ref },
@@ -231,7 +232,7 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
       try {
         const ref =
           referenceDate && referenceDate.toISOString
-            ? referenceDate.toISOString()
+            ? toLocalISOString(referenceDate)
             : undefined;
         const response = await api.get("/trend/urine/weeklyScore", {
           params: { userId: auth.user.id, referenceDate: ref },

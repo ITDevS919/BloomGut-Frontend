@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useApiClient from "@/hooks/useApiClient";
 import { useSelector } from "react-redux";
+import { toLocalISOString } from "@/utils/time";
 import Loader from "@/components/common/Loader";
 
 ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend);
@@ -288,7 +289,7 @@ const PremiumYear = () => {
     const fetchTopFoods = async () => {
       setFoodsLoading(true);
       try {
-        const ref = new Date().toISOString();
+        const ref = toLocalISOString(new Date());
         const res = await api.get("/trend/bowel/yearlyTopFoods", {
           params: { userId: auth.user.id, referenceDate: ref },
         });
@@ -348,13 +349,13 @@ const PremiumYear = () => {
             api.get("/trend/bowel/weeklySummary", {
               params: {
                 userId: auth.user.id,
-                referenceDate: currentRef.toISOString(),
+                referenceDate: toLocalISOString(currentRef),
               },
             }),
             api.get("/trend/bowel/weeklySummary", {
               params: {
                 userId: auth.user.id,
-                referenceDate: lastYearRef.toISOString(),
+                referenceDate: toLocalISOString(lastYearRef),
               },
             }),
           ]);

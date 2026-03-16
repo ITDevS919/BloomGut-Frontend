@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import { toLocalISOString } from "@/utils/time";
 import Loader from "@/components/common/Loader";
 
 ChartJS.register(LinearScale, PointElement, Tooltip);
@@ -133,7 +134,7 @@ const Week = ({ referenceDate }) => {
         const res = await api.get("/trend/diet/macroWeekly", {
           params: {
             userId: auth.user.id,
-            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+            referenceDate: referenceDate ? toLocalISOString(referenceDate) : undefined,
           },
         });
         const payload = res.data?.data ?? res.data;

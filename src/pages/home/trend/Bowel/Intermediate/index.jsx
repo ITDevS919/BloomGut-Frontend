@@ -7,6 +7,7 @@ import Loader from "@/components/common/Loader";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import { toLocalISOString } from "@/utils/time";
 import Upgrade from "./Upgrade";
 import DateRangeSelectorYellowUpdate from "@/components/custom/DateRangeSelectorYellow(Update)";
 import DateRangeSelectorYellow from "@/components/custom/DateRangeSelectorYellow";
@@ -135,7 +136,7 @@ const Intermediate = () => {
         const response = await api.get("/trend/bowel/weeklySummary", {
           params: {
             userId: auth.user.id,
-            referenceDate: referenceDate.toISOString(),
+            referenceDate: toLocalISOString(referenceDate),
           },
         });
         const payload = response.data?.data || response.data;
@@ -174,7 +175,7 @@ const Intermediate = () => {
         const response = await api.get("/trend/bowel/monthlyTime", {
           params: {
             userId: auth.user.id,
-            referenceDate: referenceDate.toISOString(),
+            referenceDate: toLocalISOString(referenceDate),
           },
         });
         const payload = response.data?.data || response.data;

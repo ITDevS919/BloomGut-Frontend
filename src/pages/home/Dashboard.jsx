@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import { toLocalISOString } from "@/utils/time";
 
 const InlineLoader = () => (
   <div className="dash-load-3">
@@ -269,7 +270,7 @@ const Dashboard = () => {
     const fetchUrineWeek = async () => {
       setUrineLoading(true);
       try {
-        const ref = new Date().toISOString();
+        const ref = toLocalISOString(new Date());
         const res = await api.get("/trend/urine/weeklyScore", {
           params: { userId: auth.user.id, referenceDate: ref },
         });
