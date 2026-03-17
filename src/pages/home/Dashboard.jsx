@@ -357,13 +357,13 @@ const Dashboard = () => {
             <div className="flex-1 flex flex-col text-start gap-2">
               <div className="flex gap-2 items-center">
                 <span className="text-primary font-medium text-lg">Poop</span>
-                <span className="text-primary-muted text-sm">
+                <span className="text-primary-muted text-base">
                   Monitor your Bowel health
                 </span>
               </div>
               <div className="flex gap-4">
                 <div className="flex flex-col w-full gap-1">
-                  <span className="text-primary-muted text-sm">
+                  <span className="text-primary-muted text-base">
                     Bowel Status
                   </span>
                   {bowelLoading ? (
@@ -390,7 +390,7 @@ const Dashboard = () => {
                           );
                         })}
                       </div>
-                      <p className="text-primary-muted text-xs">
+                      <p className="text-primary-muted text-base">
                         {bowelStatus}
                       </p>
                     </>
@@ -417,17 +417,17 @@ const Dashboard = () => {
                 <span className="text-primary font-medium text-lg">
                   Diet Record
                 </span>
-                <span className="text-primary-muted text-sm">
+                <span className="text-primary-muted text-base">
                   Help Adjust Eating
                 </span>
               </div>
               <div className="flex gap-4">
                 <div className="flex flex-col w-full gap-1">
                   <div className="flex justify-between items-center">
-                    <span className="text-primary text-sm ">
+                    <span className="text-primary text-[20px] ">
                       Today's Intake
                     </span>
-                    <span className="text-primary text-sm ">
+                    <span className="text-primary text-[20px] ">
                       {dietLoading ? "--" : `${dietIntakePercent}%`}
                     </span>
                   </div>
@@ -437,13 +437,13 @@ const Dashboard = () => {
                     </div>
                   ) : (
                     <>
-                      <div className="w-full bg-gray-200 rounded-full h-3 shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
+                      <div className="w-full bg-gray-200 rounded-full h-[12px] shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
                         <div
-                          className="bg-[#ac95cc] h-3 rounded-full transition-all"
+                          className="bg-[#ac95cc] h-[12px] rounded-full transition-all"
                           style={{ width: `${dietIntakePercent}%` }}
                         />
                       </div>
-                      <p className="text-primary text-sm">
+                      <p className="text-primary text-base">
                         {dietStatus}
                       </p>
                     </>
@@ -468,17 +468,17 @@ const Dashboard = () => {
             <div className="flex-1 flex flex-col text-start gap-2">
               <div className="flex gap-2 items-center">
                 <span className="text-primary font-medium text-lg">Water</span>
-                <span className="text-primary-muted text-sm">
+                <span className="text-primary-muted text-base">
                   Track Water Intake
                 </span>
               </div>
               <div className="flex gap-4">
                 <div className="flex flex-col w-full gap-1">
                   <div className="flex justify-between items-center">
-                    <span className="text-primary text-sm ">
+                    <span className="text-primary text-[20px] ">
                       Today's Intake
                     </span>
-                    <span className="text-primary text-sm ">
+                    <span className="text-primary text-[20px] ">
                       {waterLoading ? "--" : `${waterIntakePercent}%`}
                     </span>
                   </div>
@@ -488,9 +488,9 @@ const Dashboard = () => {
                     </div>
                   ) : (
                     <>
-                      <div className="w-full bg-white rounded-full h-3 shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
+                      <div className="w-full bg-white rounded-full h-[12px] shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
                         <div
-                          className="bg-custom-13 h-3 rounded-full transition-all"
+                          className="bg-custom-13 h-[12px] rounded-full transition-all"
                           style={{
                             width: `${Math.max(
                               0,
@@ -499,7 +499,7 @@ const Dashboard = () => {
                           }}
                         />
                       </div>
-                      <p className="text-primary-muted text-xs">
+                      <p className="text-primary-muted text-base">
                         {waterStatus}
                       </p>
                     </>
@@ -526,13 +526,13 @@ const Dashboard = () => {
                 <span className="text-primary font-bold text-lg">
                   Urine Record
                 </span>
-                <span className="text-primary-muted text-sm">
+                <span className="text-primary-muted text-base">
                   Check Urine Health
                 </span>
               </div>
               <div className="flex gap-4">
                 <div className="flex flex-col w-full gap-1">
-                  <span className="text-primary-muted text-sm">
+                  <span className="text-primary-muted text-base">
                     Urine Status
                   </span>
                   {urineLoading ? (
@@ -559,7 +559,7 @@ const Dashboard = () => {
                           );
                         })}
                       </div>
-                      <p className="text-primary-muted text-xs">
+                      <p className="text-primary-muted text-base">
                         {urineStatus}
                       </p>
                     </>

@@ -255,12 +255,14 @@ const PrivateLayout = ({ children }) => {
                 style={{ color: item.color }}
                 className="shrink-0"
               /> */}
-              <img
-                src={selectedIcon === item.selectionIcon ? item.selectionIcon : item.icon}
-                alt={item.label}
-                className="object-contain"
-                style={{ width: item.width, height: item.height }}
-              />
+              <div className="flex items-center justify-center w-12 h-12">
+                <img
+                  src={selectedIcon === item.selectionIcon ? item.selectionIcon : item.icon}
+                  alt={item.label}
+                  className="object-contain max-w-full max-h-full"
+                  style={{ width: item.width, height: item.height }}
+                />
+              </div>
               <p className="text-sm" style={{ color: "#705D56" }}>
                 {item.label}
               </p>

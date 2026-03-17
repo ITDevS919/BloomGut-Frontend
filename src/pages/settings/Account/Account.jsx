@@ -43,7 +43,7 @@ const Account = () => {
       <div className="flex items-center gap-4 mb-[84px]">
         <button
           type="button"
-          className="text-primary text-xl leading-none"
+          className="text-primary text-xl leading-none w-12 h-12 flex items-center justify-center"
           aria-label="back"
           onClick={() => window.history.back()}
         >
@@ -91,7 +91,7 @@ const Account = () => {
 
         <button
           type="button"
-          className="rounded-full bg-secondary flex items-center justify-center"
+          className="rounded-full bg-secondary flex items-center justify-center w-12 h-12"
           aria-label="add"
         >
           <Plus className="text-white text-[12px]" width="24px" height="24px"/>
