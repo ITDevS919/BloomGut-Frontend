@@ -94,7 +94,6 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         setDotData(baseDots);
       } catch (err) {
         // eslint-disable-next-line no-console
-        console.log(err);
       } finally {
         setDotsLoaded(true);
       }
@@ -122,7 +121,6 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         setWeekScore(currentWeekScore);
       } catch (err) {
         // eslint-disable-next-line no-console
-        console.log(err);
       } finally {
         setScoreLoaded(true);
       }
@@ -192,15 +190,15 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
       ? effectiveWeekScore > 75
         ? "Excellent"
         : effectiveWeekScore > 50
-        ? "Good"
-        : effectiveWeekScore > 25
-        ? "Fair"
-        : "Poor"
+          ? "Good"
+          : effectiveWeekScore > 25
+            ? "Fair"
+            : "Poor"
       : "Not Recorded";
   const effectiveChangeText = hasTodayUrineRecord
     ? `${beforeWeekScore > effectiveWeekScore ? "-" : "+"}${Math.abs(
-        beforeWeekScore - effectiveWeekScore
-      )}% vs Last`
+      beforeWeekScore - effectiveWeekScore
+    )}% vs Last`
     : "";
   const scorePosition = getScorePosition(effectiveWeekScore);
 
@@ -209,18 +207,18 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
   const loadingTips = !tipsLoaded;
 
   return (
-    <div className="pl-[15px] pr-[15px]">
+    <main className="pl-[15px] pr-[15px]">
       <div className="bg-white rounded-[27px] p-[32px] shadow-md mb-[36px] relative">
         <div className="flex items-center justify-between">
           <div className="pl-[50px]">
             <div className="text-3xl font-medium text-[#F09129] text-center">
               {effectiveWeekScore}
             </div>
-            <div className="text-sm text-[#F09129] text-center">
+            <div className="text-sm text-custom-12 text-center">
               {effectiveStatus}
             </div>
           </div>
-          <div className="text-sm pr-0 sm:pr-[50px] text-[#F09129] text-right">
+          <div className="text-sm pr-[50px] text-[#F09129] text-right">
             {effectiveChangeText}
           </div>
         </div>
@@ -292,10 +290,10 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
               {clarityRate >= 80
                 ? "Good"
                 : clarityRate >= 60
-                ? "Fair"
-                : clarityRate >= 40
-                ? "Deviation"
-                : "Abnormal"}
+                  ? "Fair"
+                  : clarityRate >= 40
+                    ? "Deviation"
+                    : "Abnormal"}
             </span>
           </div>
           <p className="text-primary text-[15px] pl-3 sm:pl-[20px]">
@@ -363,9 +361,8 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         )}
       </div>
 
-      {/* <Upgrade /> */}
       {showUpgrade && <Upgrade />}
-    </div>
+    </main>
   );
 };
 

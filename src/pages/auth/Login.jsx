@@ -90,7 +90,7 @@ const Login = () => {
   }
 
   return (
-    <div className="flex flex-col h-full p-6">
+    <main className="flex flex-col h-full p-6">
       <p className="w-full flex items-start">
         <NavLink to="/home">
           <Icon name={"ArrowLeft"} size={30} />
@@ -241,7 +241,7 @@ const Login = () => {
           </div>
         </form>
       </div>
-    </div>
+    </main>
   );
 };
 

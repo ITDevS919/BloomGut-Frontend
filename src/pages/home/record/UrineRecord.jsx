@@ -176,7 +176,6 @@ const UrineRecord = () => {
         frequency: urinationFrequencyValue,
         nocturnalUrination: nocturnalUrinationValue,
       };
-      console.log("Saving data:", auth);
 
       try {
         const response = await api.put("/record/urine", {
@@ -296,14 +295,13 @@ const UrineRecord = () => {
             onSelect={setEstimatedUrinationTimeValue}
             onInfoClick={(option) => {
               // Show modal or tooltip with more info
-              console.log("Info for:", option);
             }}
           />
         ))}
       </div>
 
       {/* clarity and odor */}
-      <CustomHeading label="Clarity and Odor" isRequired />
+      <CustomHeading label="Clarity" isRequired />
       <div className="mt-4 space-y-3 mb-10">
         {ClarityOptions.map((option) => (
           <CustomRadioButtonGreen
@@ -313,11 +311,11 @@ const UrineRecord = () => {
             onSelect={setClarityValue}
             onInfoClick={(option) => {
               // Show modal or tooltip with more info
-              console.log("Info for:", option);
             }}
           />
         ))}
 
+        <CustomHeading label="Odor" className="mt-10" isRequired />
         {OdorOptions.map((option) => (
           <CustomRadioButtonGreen
             key={option.id}
@@ -326,7 +324,6 @@ const UrineRecord = () => {
             onSelect={setOdorValue}
             onInfoClick={(option) => {
               // Show modal or tooltip with more info
-              console.log("Info for:", option);
             }}
           />
         ))}
@@ -343,7 +340,6 @@ const UrineRecord = () => {
             onSelect={setUrinationFrequencyValue}
             onInfoClick={(option) => {
               // Show modal or tooltip with more info
-              console.log("Info for:", option);
             }}
           />
         ))}
@@ -359,7 +355,6 @@ const UrineRecord = () => {
             onSelect={setNocturnalUrinationValue}
             onInfoClick={(option) => {
               // Show modal or tooltip with more info
-              console.log("Info for:", option);
             }}
           />
         ))}

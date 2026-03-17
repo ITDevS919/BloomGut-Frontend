@@ -372,7 +372,6 @@ const Profile = () => {
                 <button
                   onClick={() => {
                     if (!confirm("Delete current avatar?")) return;
-                  /* placeholder */ console.log("Delete avatar");
                     setAvatarUrl("");
                     setShowAvatarMenu(false);
                   }}
@@ -398,7 +397,7 @@ const Profile = () => {
           <div className="mb-[20px]">
             <label style={styles.label}>
               <span style={styles.required}>*</span>Username or{" "}
-              <small style={{ color: "#9b9b9b" }}>Nickname</small>
+              <small style={{ color: "#4b5563" }}>Nickname</small>
             </label>
             <input
               className="w-full text-sm placeholder-custom-12 bg-white px-4 py-3 rounded-[8px] border border-[#ccc]"
@@ -411,7 +410,7 @@ const Profile = () => {
           <div className="mb-[20px]">
             <label style={styles.label}>
               <span style={styles.required}>*</span>Email:{" "}
-              <small style={{ color: "#9b9b9b" }}>
+              <small style={{ color: "#4b5563" }}>
                 Please enter your email address
               </small>
             </label>

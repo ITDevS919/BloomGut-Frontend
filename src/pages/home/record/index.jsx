@@ -6,13 +6,13 @@ const Record = () => {
   const [recordUI, setRecordUI] = useState("diet record");
   const [recordResult, setRecordResult] = useState(null);
   return (
-    <div>
+    <main>
       {recordUI == "diet record" ? (
         <DietRecord setRecordUI={setRecordUI} recordResult={recordResult} />
       ) : (
         <FoodRecord setRecordUI={setRecordUI} setRecordResult={setRecordResult} />
       )}
-    </div>
+    </main>
   );
 };
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ChevronLeft, Lock, LockKeyhole, ChevronRight } from "lucide-react";
+import { ChevronLeft, Lock, LockKeyhole, ChevronRight, Tag } from "lucide-react";
 import { Search, Mic } from "lucide-react";
 import { CustomCheckbox } from "@/components/custom/CustomCheckbox";
 import CustomHeading from "@/components/custom/CustomHeading";
@@ -33,6 +33,7 @@ const DietRecord = (props) => {
   const [clickedNutritionLabel, setClickedNutritionLabel] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [nutritionSummary, setNutritionSummary] = useState(null);
+  const [gutImpactStatus, setGutImpactStatus] = useState("");
   const [gutAnalysis, setGutAnalysis] = useState("");
   const [eatTips, setEatTips] = useState([]);
   const [drinkTips, setDrinkTips] = useState([]);
@@ -100,6 +101,71 @@ const DietRecord = (props) => {
     return colorMap[color] || "";
   };
 
+  const formatFoodLabel = (name) => {
+    if (!name) return "";
+    const lower = name.toLowerCase();
+    if (lower.includes("milk")) return "Milk";
+    if (lower.includes("toast")) return "Toast";
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  };
+
+  const getFriendlyTagsForItem = (item) => {
+    const tags = Array.isArray(item?.nutrient_tags) ? item.nutrient_tags : [];
+    const friendly = [];
+
+    if (tags.includes("high_sugar")) {
+      friendly.push("High Sugar");
+    }
+    if (tags.includes("high_saturated_fat")) {
+      friendly.push("Saturated Fat");
+    }
+    if (tags.includes("processed_food")) {
+      friendly.push("Processed");
+    }
+    if (tags.includes("high_carb")) {
+      friendly.push("High Carb");
+    }
+
+    // Special case: high carb + low fiber → refined carbs style wording
+    if (tags.includes("high_carb") && tags.includes("low_fiber")) {
+      friendly.push("Refined Carbs");
+    }
+
+    return friendly;
+  };
+
+  const getGutImpactFromItems = (items) => {
+    const allTags = items.flatMap((it) => it?.nutrient_tags || []);
+    const hasHighSugar = allTags.includes("high_sugar");
+    const hasLowFiber = allTags.includes("low_fiber");
+
+    // Default
+    let status = "";
+    let message = "";
+
+    if (!items.length) {
+      return { status, message };
+    }
+
+    // Match the example for "Low-fat milk & toast"
+    if (hasHighSugar || hasLowFiber) {
+      status = "Neutral";
+      message = "This meal may cause gut discomfort due to high sugar or low fiber";
+    } else {
+      status = "Neutral";
+      message = "This meal looks generally balanced for gut comfort.";
+    }
+
+    return { status, message };
+  };
+
+  const getGutImpactBadgeColor = (status) => {
+    if (status === "Beneficial") return "bg-[#66BB6A]";
+    if (status === "Irritating") return "bg-[#EF5350]";
+    if (status === "Neutral") return "bg-[#FFEB3B]";
+    return "bg-[#BDBDBD]";
+  };
+
   // Load gut impact calendar colors from backend whenever month changes
   useEffect(() => {
     if (!auth?.user?.id) return;
@@ -145,6 +211,7 @@ const DietRecord = (props) => {
       const items = Array.isArray(payload?.items) ? payload.items : [];
       if (!items.length) {
         setNutritionSummary(null);
+        setGutImpactStatus("");
         setGutAnalysis("");
         setEatTips([]);
         setDrinkTips([]);
@@ -152,62 +219,79 @@ const DietRecord = (props) => {
         return;
       }
 
-      const totals = items.reduce(
-        (acc, item) => ({
-          calories: acc.calories + (item.calories || 0),
-          protein_g: acc.protein_g + (item.protein_g || 0),
-          fat_g: acc.fat_g + (item.fat_g || 0),
-          carb_g: acc.carb_g + (item.carb_g || 0),
-          fiber_g: acc.fiber_g + (item.fiber_g || 0),
-          sugar_g: acc.sugar_g + (item.sugar_g || 0),
-          sodium_mg: acc.sodium_mg + (item.sodium_mg || 0),
-        }),
-        {
-          calories: 0,
-          protein_g: 0,
-          fat_g: 0,
-          carb_g: 0,
-          fiber_g: 0,
-          sugar_g: 0,
-          sodium_mg: 0,
+      const totals = payload?.totals
+        ? {
+          calories: Number(payload.totals.calories || 0),
+          protein_g: Number(payload.totals.protein_g || 0),
+          fat_g: Number(payload.totals.fat_g || 0),
+          carb_g: Number(payload.totals.carb_g || 0),
+          fiber_g: Number(payload.totals.fiber_g || 0),
+          sugar_g: Number(payload.totals.sugar_g || 0),
+          sodium_mg: Number(payload.totals.sodium_mg || 0),
         }
-      );
+        : items.reduce(
+          (acc, item) => ({
+            calories: acc.calories + (item.calories || 0),
+            protein_g: acc.protein_g + (item.protein_g || 0),
+            fat_g: acc.fat_g + (item.fat_g || 0),
+            carb_g: acc.carb_g + (item.carb_g || 0),
+            fiber_g: acc.fiber_g + (item.fiber_g || 0),
+            sugar_g: acc.sugar_g + (item.sugar_g || 0),
+            sodium_mg: acc.sodium_mg + (item.sodium_mg || 0),
+          }),
+          {
+            calories: 0,
+            protein_g: 0,
+            fat_g: 0,
+            carb_g: 0,
+            fiber_g: 0,
+            sugar_g: 0,
+            sodium_mg: 0,
+          }
+        );
+
+      setDietItems(items);
 
       setNutritionSummary({
         totals,
         itemCount: items.length,
       });
-      setDietItems(items);
+
+      const gutImpact = getGutImpactFromItems(items);
+      setGutImpactStatus(gutImpact.status);
+      setGutAnalysis(gutImpact.message);
 
       // Simple gut impact heuristics based on totals
       const gutMessages = [];
-      const eat = [];
+      const eatFromHeuristics = [];
       const drink = [];
       const relax = [];
 
       if (totals.fiber_g < 20) {
         gutMessages.push("Fiber intake looks on the low side for the day.");
-        eat.push("Add more vegetables, fruits, or whole grains to increase fiber for smoother digestion.");
+        eatFromHeuristics.push("Add more vegetables, fruits, or whole grains to increase fiber for smoother digestion.");
       } else {
         gutMessages.push("Fiber intake is roughly within a gut‑friendly range.");
       }
 
       if (totals.sugar_g > 40) {
         gutMessages.push("Added sugar is relatively high, which may upset blood sugar and gut balance.");
-        eat.push("Reduce sugary drinks and desserts; swap for fruit or unsweetened options where possible.");
+        eatFromHeuristics.push("Reduce sugary drinks and desserts; swap for fruit or unsweetened options where possible.");
       }
 
       if (totals.sodium_mg > 2300) {
         gutMessages.push("Sodium is on the high side, which may increase bloating and water retention.");
-        eat.push("Limit processed or very salty foods at your next meals.");
+        eatFromHeuristics.push("Limit processed or very salty foods at your next meals.");
         drink.push("Drink extra water across the day to help flush excess sodium.");
       }
 
       if (totals.calories < 800) {
         gutMessages.push("Total calories are quite low; make sure you are not under‑fueling.");
-        eat.push("Include a balanced meal with protein, complex carbs, and healthy fats.");
+        eatFromHeuristics.push("Include a balanced meal with protein, complex carbs, and healthy fats.");
       }
 
+      // We now rely on tag‑based gut impact messaging above for the UI example;
+      // keep this as a softer, aggregate note if needed.
       if (!gutMessages.length) {
         gutMessages.push("Today’s foods look generally balanced for gut comfort.");
       }
@@ -220,14 +304,20 @@ const DietRecord = (props) => {
         relax.push("Take 5–10 minutes after meals for gentle walking or deep breathing to support digestion.");
       }
 
-      setGutAnalysis(gutMessages.join(" "));
-      setEatTips(eat);
+      // If tag‑based gut analysis has not set a message, fall back to this aggregate text.
+      if (!gutImpact.message) {
+        setGutAnalysis(gutMessages.join(" "));
+      }
+
+      const eatTipsFromApi = Array.isArray(payload?.eatTips) ? payload.eatTips.filter((t) => typeof t === "string" && t.trim()) : [];
+      setEatTips(eatTipsFromApi.length ? eatTipsFromApi : eatFromHeuristics);
       setDrinkTips(drink);
       setRelaxTips(relax);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error("Failed to analyze diet:", error);
       setNutritionSummary(null);
+      setGutImpactStatus("");
       setGutAnalysis("");
       setEatTips([]);
       setDrinkTips([]);
@@ -352,27 +442,23 @@ const DietRecord = (props) => {
             <InlineLoader />
           </div>
         )}
-        {!dietLoading && nutritionSummary && (
-          <div className="text-sm space-y-2">
-            <div className="flex justify-between">
-              <span>Total calories</span>
-              <span>{Math.round(nutritionSummary.totals.calories)} kcal</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Protein</span>
-              <span>{Math.round(nutritionSummary.totals.protein_g)} g</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Carbs</span>
-              <span>{Math.round(nutritionSummary.totals.carb_g)} g</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Fat</span>
-              <span>{Math.round(nutritionSummary.totals.fat_g)} g</span>
-            </div>
+        {!dietLoading && dietItems.length > 0 && (
+          <div className="text-sm space-y-3">
+            {dietItems.map((item, idx) => {
+              const friendlyTags = getFriendlyTagsForItem(item);
+              return (
+                <div key={`${item.food_name || idx}-${idx}`} className="flex">
+                  <span className="font-medium mr-1 text-secondary">{formatFoodLabel(item.food_name)}:</span>
+                  <span><Tag className="rotate-90 w-4 h-4 text-[#F8DE8A]"/></span>
+                  <span className="text-xs text-secondary">
+                    {friendlyTags.length ? friendlyTags.join(", ") : "No special flags"}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         )}
-        {!dietLoading && !nutritionSummary && (
+        {!dietLoading && !dietItems.length && (
           <span>No data yet, record your first meal</span>
         )}
       </div>
@@ -382,8 +468,11 @@ const DietRecord = (props) => {
         </div>
       }
 
-      <div className="flex flex-col gap-4 text-primary font-medium mb-3">
+      <div className="flex flex-col gap-1 text-primary font-medium mb-3">
         Gut Impact Analysis
+        <span className="text-xs font-normal text-secondary">
+          Suggestions based on general health principles
+        </span>
       </div>
       <div className="bg-white rounded-[27px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] p-6 text-custom-12 text-sm mb-[28px]">
         {dietLoading && (
@@ -391,10 +480,19 @@ const DietRecord = (props) => {
             <InlineLoader />
           </div>
         )}
-        {!dietLoading && gutAnalysis && (
-          <p className="text-sm text-primary">{gutAnalysis}</p>
+        {!dietLoading && gutImpactStatus && gutAnalysis && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="font-medium text-primary">Current Impact:</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-primary">{gutImpactStatus}</span>
+                <span className={`w-3 h-3 rounded-full ${getGutImpactBadgeColor(gutImpactStatus)}`} />
+              </div>
+            </div>
+            <p className="text-sm text-primary">{gutAnalysis}</p>
+          </div>
         )}
-        {!dietLoading && !gutAnalysis && (
+        {!dietLoading && !gutImpactStatus && !gutAnalysis && (
           <p>No records yet, start your log</p>
         )}
       </div>

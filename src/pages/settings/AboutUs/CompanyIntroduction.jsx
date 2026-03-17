@@ -20,7 +20,7 @@ const CompanyIntroduction = () => {
         <div>
           <img
             src={logo}
-            alt="logo"
+            alt="BloomGut company logo"
             width="66px"
             height="66px"
             className="rounded-[6px]"

@@ -4,7 +4,6 @@ import { useSelector } from "react-redux";
 
 const MailboxSetting = () => {
   const auth = useSelector((state) => state.auth);
-  console.log(auth);
   const [verifyEmail, setVerifyEmail] = useState("");
   const [code, setCode] = useState("");
   const [newEmail, setNewEmail] = useState("");
@@ -25,7 +24,6 @@ const MailboxSetting = () => {
 
   const maskEmail = (email) => {
     const [local, domain] = email.split("@");
-    console.log(local);
     return "*".repeat(local.length) + "@" + domain;
   };
 

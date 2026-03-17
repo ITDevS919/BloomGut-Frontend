@@ -17,7 +17,7 @@ const Home = () => {
     }
   }, [isSignedIn, navigate]);
   return (
-    <div className="flex flex-col justify-center items-center h-full">
+    <main className="flex flex-col justify-center items-center h-full">
       <div className="flex flex-col gap-2 text-center mt-21">
         <h2 className="font-bold text-2xl text-primary">Welcome to BloomGut</h2>
         <p className="text-primary-muted">Your Personal Health</p>
@@ -57,7 +57,7 @@ const Home = () => {
           <p className="text-primary">Health Trends</p>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

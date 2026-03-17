@@ -1,15 +1,5 @@
-import {
-  Chart as ChartJS,
-  BarElement,
-  ArcElement,
-  CategoryScale,
-  LinearScale,
-  Tooltip,
-} from "chart.js";
-import { Bar, Doughnut } from "react-chartjs-2";
-import ChartDataLabels from "chartjs-plugin-datalabels";
+import { Suspense, lazy, useEffect, useState } from "react";
 import Upgrade from "./Upgrade";
-import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 import Loader from "@/components/common/Loader";
@@ -25,21 +15,20 @@ const getIndicatorColor = (value) => {
   return "#F66B6B"; // Red segment (0–60)
 };
 
-ChartJS.register(
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  Tooltip,
-  ChartDataLabels
+// Lazy‑load heavy Chart.js / react-chartjs-2 charts
+const WaterBarChart = lazy(() =>
+  import("./WaterCharts").then((mod) => ({ default: mod.WaterBarChart }))
 );
-ChartJS.register(ArcElement);
+const WaterCircleStat = lazy(() =>
+  import("./WaterCharts").then((mod) => ({ default: mod.WaterCircleStat }))
+);
 
 const goalLine = {
   id: "goalLine",
   afterDatasetsDraw(chart) {
     const {
       ctx,
-      chartArea: { left, right },
+      chartArea: { left, right, top },
       scales: { y },
     } = chart;
 
@@ -59,13 +48,24 @@ const goalLine = {
     ctx.setLineDash([]);
     ctx.fillStyle = "#f59e0b";
     ctx.font = "12px sans-serif";
-    ctx.fillText("Goal: 2000ml", left + 6, yPos - 6);
+    ctx.textBaseline = "bottom";
+
+    const labelY = Math.max(top + 14, yPos - 4);
+    ctx.fillText("Goal: 2000ml", left + 6, labelY);
     ctx.restore();
   },
 };
 
 const options = {
   responsive: true,
+  layout: {
+    padding: {
+      top: 24,
+      right: 8,
+      left: 8,
+      bottom: 8,
+    },
+  },
   plugins: {
     legend: { display: false },
     tooltip: { enabled: false },
@@ -106,42 +106,6 @@ const buildChartData = (labels, values) => ({
   ],
 });
 
-const CircleStat = ({ value, label, color, showUpgrade = true }) => {
-  const data = {
-    datasets: [
-      {
-        data: [value, 100 - value],
-        backgroundColor: [color, "#e5e7eb"],
-        borderWidth: 0,
-      },
-    ],
-  };
-
-  const options = {
-    cutout: "80%",
-    plugins: {
-      tooltip: { enabled: false },
-      legend: { display: false },
-      datalabels: { display: false },
-    },
-  };
-
-  return (
-    <div className="relative w-24 h-24">
-      <Doughnut data={data} options={options} />
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-        <span className="text-xl font-bold" style={{ color }}>
-          {value}%
-        </span>
-        <span className="text-sm font-medium" style={{ color }}>
-          {label}
-        </span>
-      </div>
-      {/* {showUpgrade && <Upgrade />} */}
-    </div>
-  );
-};
-
 const Free = ({ showUpgrade = true, referenceDate }) => {
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
@@ -155,13 +119,21 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
   const [loadingDailyMl, setLoadingDailyMl] = useState(false);
   const [loadingWeeklySummary, setLoadingWeeklySummary] = useState(false);
 
-  const totalWeekMl = mlPerDay.reduce((sum, v) => sum + v, 0);
-  const avgMl = Math.round(totalWeekMl / (mlPerDay.length || 1));
-  const maxMl = mlPerDay.length ? Math.max(...mlPerDay) : 0;
-  const minMl = mlPerDay.length ? Math.min(...mlPerDay) : 0;
-
   const goal = 2000;
-  const toPercent = (ml) => Math.max(0, Math.min(100, Math.round((ml / goal) * 100)));
+  const toPercentRaw = (ml) => Math.round((ml / goal) * 100);
+  const toPercent = (ml, { cap = true } = {}) => {
+    const raw = toPercentRaw(ml);
+    if (!cap) return Math.max(0, raw);
+    return Math.max(0, Math.min(100, raw));
+  };
+
+  const dayPercents = mlPerDay.map((ml) => toPercent(ml, { cap: false }));
+  const totalWeekPercent = dayPercents.reduce((sum, v) => sum + v, 0);
+  const avgPercent = dayPercents.length
+    ? Math.round(totalWeekPercent / dayPercents.length)
+    : 0;
+  const maxPercent = dayPercents.length ? Math.max(...dayPercents) : 0;
+  const minPercent = dayPercents.length ? Math.min(...dayPercents) : 0;
 
   useEffect(() => {
     if (!auth?.user?.id) return;
@@ -230,7 +202,6 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         }
 
         if (payload.status && !isCancelled) {
-          console.log("payload.status", payload.status);
           setStatus(payload.status);
         }
       } catch (error) {
@@ -255,31 +226,43 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
       isCancelled = true;
     };
   }, [api, auth?.user?.id, referenceDate]);
-  const hydrationScore = toPercent(avgMl);
-  const baseScore = typeof score === "number" ? score : hydrationScore;
+  const weekLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const todayWeekIndex = new Date().getDay();
+  const todayLabel = weekLabels[todayWeekIndex];
+  const todayIndex = labels.indexOf(todayLabel);
+  const todayMl =
+    todayIndex >= 0 && Array.isArray(mlPerDay) ? Number(mlPerDay[todayIndex] || 0) : 0;
 
-  const hasTodayWaterRecord = (() => {
-    if (!Array.isArray(labels) || !Array.isArray(mlPerDay) || !labels.length) {
-      return false;
-    }
+  const yesterdayWeekIndex = (todayWeekIndex + 6) % 7;
+  const yesterdayLabel = weekLabels[yesterdayWeekIndex];
+  const yesterdayIndex = labels.indexOf(yesterdayLabel);
+  const yesterdayMl =
+    yesterdayIndex >= 0 && Array.isArray(mlPerDay) ? Number(mlPerDay[yesterdayIndex] || 0) : 0;
 
-    const weekLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const todayLabel = weekLabels[new Date().getDay()];
-    const idx = labels.indexOf(todayLabel);
-    const todayMl = idx >= 0 ? Number(mlPerDay[idx] || 0) : 0;
+  const hasTodayWaterRecord = todayMl > 0;
+  const todayScore = toPercent(todayMl);
 
-    return todayMl > 0;
-  })();
+  const getTodayStatus = (ml, percent) => {
+    if (!hasTodayWaterRecord) return "Not Recorded";
+    if (ml < goal * 0.6) return "Too Low";
+    if (ml <= goal * 1.2) return "Good";
+    return "Too High";
+  };
 
-  const effectiveScore = hasTodayWaterRecord ? baseScore : 0;
-  const effectiveStatus = hasTodayWaterRecord ? status || "Hydration Score" : "Not Recorded";
-  const effectiveChange = hasTodayWaterRecord ? change : "";
+  const effectiveScore = hasTodayWaterRecord ? todayScore : 0;
+  const effectiveStatus = getTodayStatus(todayMl, todayScore);
+  const changeVsYesterday =
+    hasTodayWaterRecord && yesterdayMl > 0
+      ? Math.round(((todayMl - yesterdayMl) / yesterdayMl) * 100)
+      : null;
+  const effectiveChange =
+    changeVsYesterday !== null ? `${changeVsYesterday >= 0 ? "+" : ""}${changeVsYesterday}% vs Last` : "";
   const scorePosition = getScorePosition(effectiveScore);
 
   const loadingStats = loadingDailyMl || loadingWeeklySummary;
 
   return (
-    <div className="pl-[15px] pr-[15px]">
+    <main className="pl-[15px] pr-[15px]">
       <div className="bg-white rounded-[27px] p-[32px] shadow-md mb-[36px] relative">
         <div className="flex items-center justify-between">
           <div className="pl-[50px]">
@@ -337,22 +320,38 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         Daily Intake (ml)
       </div>
       <div className="bg-white rounded-[12px] shadow p-6 mb-[39px] relative">
-        <Bar data={buildChartData(labels, mlPerDay)} options={options} plugins={[goalLine]} />
-
-        {loadingDailyMl && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/60">
-            <Loader />
-          </div>
-        )}
+        <Suspense
+          fallback={
+            <div className="absolute inset-0 flex items-center justify-center bg-white/60">
+              <Loader />
+            </div>
+          }
+        >
+          <WaterBarChart
+            data={buildChartData(labels, mlPerDay)}
+            options={options}
+            plugins={[goalLine]}
+            loading={loadingDailyMl}
+            Loader={Loader}
+          />
+        </Suspense>
       </div>
 
       <div className="text-base font-medium mb-[9px] text-primary">
         Daily Intake Rate
       </div>
       <div className="bg-white rounded-[27px] shadow p-6 flex gap-8 justify-center mb-5 relative">
-        <CircleStat value={toPercent(avgMl)} label="Avg" color="#1d4ed8" />
-        <CircleStat value={toPercent(maxMl)} label="Max" color="#1d4ed8" />
-        <CircleStat value={toPercent(minMl)} label="Min" color="#7dd3fc" />
+        <Suspense
+          fallback={
+            <div className="absolute inset-0 flex items-center justify-center bg-white/60">
+              <Loader />
+            </div>
+          }
+        >
+          <WaterCircleStat value={avgPercent} label="Avg" color="#1d4ed8" />
+          <WaterCircleStat value={maxPercent} label="Max" color="#1d4ed8" />
+          <WaterCircleStat value={minPercent} label="Min" color="#7dd3fc" />
+        </Suspense>
 
         {loadingStats && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/60">
@@ -362,7 +361,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
       </div>
 
       {showUpgrade && <Upgrade />}
-    </div>
+    </main>
   );
 };
 

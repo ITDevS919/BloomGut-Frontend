@@ -247,16 +247,22 @@ const Dashboard = () => {
             ? auth.user.waterIntakeGoal
             : 2000;
 
+        // Use the *raw* percentage for display (can exceed 100%)
         const rawPct = goal > 0 ? Math.round((todayMl / goal) * 100) : 0;
-        const clampedPct = Math.max(0, Math.min(100, rawPct));
-        setWaterIntakePercent(clampedPct);
+        setWaterIntakePercent(rawPct);
 
+        // Water health status aligned with Water Trend (Free) page
         let statusText = "";
-        if (todayMl >= 2000) statusText = "Ideal water intake";
-        else if (todayMl >= 1500) statusText = "Basic standard met";
-        else if (todayMl >= 1000) statusText = "Normal";
-        else if (todayMl >= 600) statusText = "Mild insufficiency";
-        else statusText = "Moderate to severe dehydration";
+        if (rawPct <= 0) {
+          statusText = "Not Recorded";
+        } else if (rawPct < 60) {
+          statusText = "Too Low";
+        } else if (rawPct <= 120) {
+          statusText = "Good";
+        } else {
+          statusText = "Too High";
+        }
+
         setWaterStatus(statusText);
       } catch (error) {
         // eslint-disable-next-line no-console
@@ -331,7 +337,7 @@ const Dashboard = () => {
     fetchUrineWeek();
   }, [api, auth?.user?.id]);
   return (
-    <div className="flex flex-col relative h-full p-4">
+    <main className="flex flex-col relative h-full p-4">
       {/* Upper Scrollable Area */}
       <div className="flex flex-col h-full overflow-y-auto">
         <div className="text-center">
@@ -485,7 +491,12 @@ const Dashboard = () => {
                       <div className="w-full bg-white rounded-full h-3 shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
                         <div
                           className="bg-custom-13 h-3 rounded-full transition-all"
-                          style={{ width: `${waterIntakePercent}%` }}
+                          style={{
+                            width: `${Math.max(
+                              0,
+                              Math.min(100, waterIntakePercent)
+                            )}%`,
+                          }}
                         />
                       </div>
                       <p className="text-primary-muted text-xs">
@@ -570,7 +581,7 @@ const Dashboard = () => {
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 };
 

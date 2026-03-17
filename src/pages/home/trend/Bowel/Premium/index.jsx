@@ -7,12 +7,12 @@ import PremiumYear from "./PreimumYear";
 const Premium = () => {
   const [viewMode, setViewMode] = useState("week");
   return (
-    <>
+    <main>
       <DateRangeSelectorUpdate setViewMode={setViewMode} />
       {viewMode === "week" && <PremiumWeek />}
       {viewMode === "month" && <PremiumMonth />}
       {viewMode === "year" && <PremiumYear />}
-    </>
+    </main>
   );
 };
 

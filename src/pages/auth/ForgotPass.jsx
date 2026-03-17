@@ -21,7 +21,6 @@ const ForgotPass = () => {
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      console.log("data", data);
       await resetPasswordForEmail(data);
       toast.success("Password reset link sent! Please check your email.");
     } catch (error) {

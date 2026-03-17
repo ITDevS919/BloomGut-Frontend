@@ -248,7 +248,7 @@ const PrivateLayout = ({ children }) => {
                   setSelectedTrendOption("");
                 }
               }}
-              className="flex flex-col justify-center items-center gap-1.5 flex-1 cursor-pointer transition-opacity hover:opacity-80 active:opacity-70 relative"
+              className="flex flex-col justify-center items-center gap-1.5 flex-1 min-h-12 cursor-pointer transition-opacity hover:opacity-80 active:opacity-70 relative"
             >
               {/* <IconComponent 
                 size={24} 

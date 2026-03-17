@@ -1,37 +1,17 @@
 // src/pages/home/trend/Bowel/Free.jsx
-import {
-  Chart as ChartJS,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  Tooltip,
-  Legend,
-  PointElement,
-  LineElement,
-} from "chart.js";
-import { Bar, Line } from "react-chartjs-2";
-import ChartDataLabels from "chartjs-plugin-datalabels";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState, lazy } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
-import Type1Image from "@/assets/Images/bowel-types/Type 1.png";
-import Type2Image from "@/assets/Images/bowel-types/Type 2.png";
-import Type3Image from "@/assets/Images/bowel-types/Type 3.png";
-import Type4Image from "@/assets/Images/bowel-types/Type 4.png";
-import Type5Image from "@/assets/Images/bowel-types/Type 5.png";
+import Type1Image from "@/assets/Images/bowel-types/Type 1.webp";
+import Type2Image from "@/assets/Images/bowel-types/Type 2.webp";
+import Type3Image from "@/assets/Images/bowel-types/Type 3.webp";
+import Type4Image from "@/assets/Images/bowel-types/Type 4.webp";
+import Type5Image from "@/assets/Images/bowel-types/Type 5.webp";
 import Upgrade from "./Upgrade";
 import Loader from "@/components/common/Loader";
 
-ChartJS.register(
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Tooltip,
-  Legend,
-  ChartDataLabels
-);
+// Lazy‑load the heavy Chart.js + react-chartjs-2 bundle
+const DailyBowelChart = lazy(() => import("./DailyBowelChart"));
 
 const BOWEL_PRIMARY_COLOR = "#1abc9c";
 
@@ -41,6 +21,7 @@ const Free = ({ showUpgrade = true }) => {
 
   const [loadingDailyCounts, setLoadingDailyCounts] = useState(false);
   const [loadingWeeklySummary, setLoadingWeeklySummary] = useState(false);
+  const [hasRequestedAdvice, setHasRequestedAdvice] = useState(false);
 
   // Daily bowel count data
   const [dailyData, setDailyData] = useState([1, 2, 3, 1, 2, 0, 1]);
@@ -112,9 +93,26 @@ const Free = ({ showUpgrade = true }) => {
         const payload = response.data?.data || response.data;
         if (!payload) return;
 
-        console.log("bowel score ", payload)
+        // Prefer explicit today/yesterday scores if backend provides them,
+        // since the UI copy compares "today" vs "yesterday".
+        const todayScore =
+          typeof payload.todayScore === "number"
+            ? Math.round(payload.todayScore)
+            : null;
+        const yesterdayScore =
+          typeof payload.yesterdayScore === "number"
+            ? Math.round(payload.yesterdayScore)
+            : null;
 
-        if (typeof payload.score === "number") {
+        if (todayScore !== null) {
+          if (!isCancelled) {
+            setScore(todayScore);
+          }
+          const clamped = Math.max(0, Math.min(100, todayScore));
+          if (!isCancelled) {
+            setScorePosition(clamped);
+          }
+        } else if (typeof payload.score === "number") {
           const rounded = Math.round(payload.score);
           if (!isCancelled) {
             setScore(rounded);
@@ -125,11 +123,20 @@ const Free = ({ showUpgrade = true }) => {
           }
         }
 
-        if (typeof payload.changePercent === "number") {
+        // Build the "today vs yesterday" change text.
+        let changeText = "";
+        if (todayScore !== null && yesterdayScore !== null) {
+          const diff = todayScore - yesterdayScore;
+          const absDiff = Math.abs(diff);
+          const sign = diff > 0 ? "+" : diff < 0 ? "-" : "";
+          changeText = `${sign}${absDiff}% vs Yesterday`;
+        } else if (typeof payload.changePercent === "number") {
           const sign = payload.changePercent > 0 ? "+" : "";
-          if (!isCancelled) {
-            setChange(`${sign}${payload.changePercent}% vs Last`);
-          }
+          changeText = `${sign}${payload.changePercent}% vs Last`;
+        }
+
+        if (!isCancelled && changeText) {
+          setChange(changeText);
         }
 
         if (payload.status) {
@@ -211,6 +218,8 @@ const Free = ({ showUpgrade = true }) => {
   useEffect(() => {
     if (!auth?.user?.id) return;
     if (!Array.isArray(dailyData) || !dailyData.length) return;
+    if (loadingDailyCounts || loadingWeeklySummary) return;
+    if (hasRequestedAdvice) return;
 
     const hasAnyData = dailyData.some((v) => Number(v || 0) > 0);
     if (!hasAnyData) {
@@ -242,6 +251,8 @@ const Free = ({ showUpgrade = true }) => {
         if (Array.isArray(payload.dayTooltips)) {
           setAiDayTooltips(payload.dayTooltips);
         }
+
+        setHasRequestedAdvice(true);
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Failed to load bowel weekly AI advice:", error);
@@ -253,7 +264,18 @@ const Free = ({ showUpgrade = true }) => {
     return () => {
       isCancelled = true;
     };
-  }, [api, auth?.user?.id, score, status, change, dailyTypeValues, dailyData]);
+  }, [
+    api,
+    auth?.user?.id,
+    score,
+    status,
+    change,
+    dailyTypeValues,
+    dailyData,
+    loadingDailyCounts,
+    loadingWeeklySummary,
+    hasRequestedAdvice,
+  ]);
 
   const hasTodayBowelRecord = (() => {
     if (!Array.isArray(days) || !Array.isArray(dailyData) || !days.length) {
@@ -427,7 +449,7 @@ const Free = ({ showUpgrade = true }) => {
   };
 
   return (
-    <div className="pr-[15px] pl-[15px]">
+    <main className="pr-[15px] pl-[15px]">
       <style>{`
         div[id*="chartjs-tooltip"],
         .chartjs-tooltip {
@@ -614,7 +636,18 @@ const Free = ({ showUpgrade = true }) => {
       </div>
       <div className="bg-white rounded-[27px] p-6 shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[35px] relative">
         <div className="h-50">
-          <Line data={dailyBowelChartData} options={dailyBowelChartOptions} />
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center py-8 text-sm text-custom-12">
+                Loading chart…
+              </div>
+            }
+          >
+            <DailyBowelChart
+              data={dailyBowelChartData}
+              options={dailyBowelChartOptions}
+            />
+          </Suspense>
         </div>
 
         {loadingDailyCounts && (
@@ -625,7 +658,7 @@ const Free = ({ showUpgrade = true }) => {
       </div>
 
       {showUpgrade && <Upgrade />}
-    </div>
+    </main>
   );
 };
 

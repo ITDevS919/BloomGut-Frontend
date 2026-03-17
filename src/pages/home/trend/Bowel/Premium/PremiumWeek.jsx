@@ -42,7 +42,6 @@ const PremiumWeek = () => {
         const res = await api.post("/trend/bowel/premiumWeekAdvice", {
           userId: auth.user.id,
         });
-        console.log("food vs symptom", res.data)
         const data = res.data?.data ?? res.data;
         if (data) {
           if (Array.isArray(data.foods) && data.foods.length) {

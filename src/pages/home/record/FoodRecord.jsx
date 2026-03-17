@@ -69,7 +69,11 @@ const FoodRecord = (props) => {
       
       return () => {
         if (audioContextRef.current) {
-          audioContextRef.current.close();
+          const ctx = audioContextRef.current;
+          if (typeof ctx.state === "string" && ctx.state !== "closed") {
+            ctx.close().catch(() => { });
+          }
+          audioContextRef.current = null;
         }
       };
     }
@@ -125,7 +129,6 @@ const FoodRecord = (props) => {
     };
     
     recognition.onerror = (event) => {
-      console.error("Speech recognition error:", event.error);
       
       if (event.error === 'no-speech') {
         // User didn't speak, wait a bit more or show error
@@ -205,7 +208,12 @@ const FoodRecord = (props) => {
       recognitionRef.current.stop();
     }
     if (audioContextRef.current) {
-      audioContextRef.current.close();
+      const ctx = audioContextRef.current;
+      // Only close if it's not already closed to avoid InvalidStateError
+      if (typeof ctx.state === "string" && ctx.state !== "closed") {
+        ctx.close().catch(() => { });
+      }
+      audioContextRef.current = null;
     }
     props.setRecordUI("diet record");
   };
@@ -217,7 +225,11 @@ const FoodRecord = (props) => {
         recognitionRef.current.stop();
       }
       if (audioContextRef.current) {
-        audioContextRef.current.close();
+        const ctx = audioContextRef.current;
+        if (typeof ctx.state === "string" && ctx.state !== "closed") {
+          ctx.close().catch(() => { });
+        }
+        audioContextRef.current = null;
       }
     };
   }, []);

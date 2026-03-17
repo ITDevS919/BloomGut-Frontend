@@ -84,6 +84,67 @@ const Intermediate = () => {
     eveningPercent: 10,
   });
 
+  const derivedMonthlyInsights = (() => {
+    const total =
+      (monthlyTime.morningPercent || 0) +
+      (monthlyTime.noonPercent || 0) +
+      (monthlyTime.eveningPercent || 0);
+
+    // Avg time of day, weighted by percentages
+    // Morning ~ 8:00, Noon ~ 13:00, Evening ~ 20:00
+    const hour =
+      (8 * (monthlyTime.morningPercent || 0) +
+        13 * (monthlyTime.noonPercent || 0) +
+        20 * (monthlyTime.eveningPercent || 0)) /
+      (total || 1);
+    const roundedHour = Math.round(hour);
+    const avgTimeLabel = `${roundedHour}:00`;
+
+    // Dominant time bucket
+    const timeEntries = [
+      { key: "Morning", value: monthlyTime.morningPercent || 0 },
+      { key: "Noon", value: monthlyTime.noonPercent || 0 },
+      { key: "Evening", value: monthlyTime.eveningPercent || 0 },
+    ];
+    const dominant = timeEntries.reduce(
+      (acc, curr) => (curr.value > acc.value ? curr : acc),
+      { key: "Morning", value: 0 }
+    );
+
+    // Regularity based on how concentrated the distribution is
+    const maxShare = total ? (dominant.value / total) * 100 : 0;
+    let regularity = "Good";
+    if (maxShare < 40) regularity = "Fair";
+    if (maxShare < 25) regularity = "Irregular";
+
+    return {
+      avgTimeLabel,
+      mostLabel: dominant.key,
+      regularity,
+    };
+  })();
+
+  const dominantStoolTime = (() => {
+    const entries = [
+      { key: "morning", value: monthlyTime.morningPercent },
+      { key: "noon", value: monthlyTime.noonPercent },
+      { key: "evening", value: monthlyTime.eveningPercent },
+    ];
+    const best = entries.reduce(
+      (acc, curr) => (curr.value > acc.value ? curr : acc),
+      { key: "morning", value: 0 }
+    );
+    const labelMap = {
+      morning: "Morning",
+      noon: "Noon",
+      evening: "Evening",
+    };
+    return {
+      label: labelMap[best.key],
+      value: best.value ?? 0,
+    };
+  })();
+
   const [isLoading, setIsLoading] = useState(true);
 
   const monthlyData = {
@@ -136,6 +197,7 @@ const Intermediate = () => {
           params: {
             userId: auth.user.id,
             referenceDate: referenceDate.toISOString(),
+            timezoneOffsetMinutes: new Date().getTimezoneOffset(),
           },
         });
         const payload = response.data?.data || response.data;
@@ -175,6 +237,7 @@ const Intermediate = () => {
           params: {
             userId: auth.user.id,
             referenceDate: referenceDate.toISOString(),
+            timezoneOffsetMinutes: new Date().getTimezoneOffset(),
           },
         });
         const payload = response.data?.data || response.data;
@@ -211,7 +274,7 @@ const Intermediate = () => {
   }, [api, auth?.user?.id, referenceDate]);
 
   return (
-    <div>
+    <main>
       {/* Date Range Selector Header */}
       <DateRangeSelector
         setViewMode={setViewMode}
@@ -275,9 +338,11 @@ const Intermediate = () => {
                     {/* Center text */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                       <span className="text-lg font-semibold text-gray-900">
-                        {monthlyTime.morningPercent}%
+                        {dominantStoolTime.value}%
                       </span>
-                      <span className="text-xs text-gray-500">Morning</span>
+                      <span className="text-xs text-gray-500">
+                        {dominantStoolTime.label}
+                      </span>
                     </div>
                   </div>
 
@@ -285,17 +350,17 @@ const Intermediate = () => {
                   <div className="space-y-2 text-sm">
                     <Stat
                       label="Avg Time"
-                      value="8 AM"
+                      value={derivedMonthlyInsights.avgTimeLabel}
                       valueColor="text-green-600"
                     />
                     <Stat
                       label="Most"
-                      value="Thu"
+                      value={derivedMonthlyInsights.mostLabel}
                       valueColor="text-green-600"
                     />
                     <Stat
                       label="Regularity"
-                      value="Good"
+                      value={derivedMonthlyInsights.regularity}
                       valueColor="text-green-600"
                     />
                   </div>
@@ -340,7 +405,7 @@ const Intermediate = () => {
         )}
 
       </div>
-    </div>
+    </main>
   );
 };
 

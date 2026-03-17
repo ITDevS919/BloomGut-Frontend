@@ -74,7 +74,6 @@ const Month = ({ referenceDate }) => {
         }));
 
         setDailyVolumes(series);
-        console.log("series--------------------",series);
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Failed to load urine monthly volumes:", error);

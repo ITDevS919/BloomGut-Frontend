@@ -17,7 +17,7 @@ const Premium = () => {
   };
 
   return (
-    <>
+    <main>
       <DateRangeSelectorBlueUpdate
         setViewMode={setViewMode}
         onDateChange={handleDateChange}
@@ -26,7 +26,7 @@ const Premium = () => {
       {viewMode === "week" && <Week referenceDate={referenceDate} />}
       {viewMode === "month" && <Month referenceDate={referenceDate} />}
       {viewMode === "year" && <Year referenceDate={referenceDate} />}
-    </>
+    </main>
   );
 };
 

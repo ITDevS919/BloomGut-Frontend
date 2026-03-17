@@ -51,7 +51,6 @@ const Week = ({ referenceDate }) => {
           },
         });
         const payload = response.data?.data || response.data;
-        console.log("payload----------------", payload);
         if (!Array.isArray(payload)) return;
 
         const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -93,7 +92,6 @@ const Week = ({ referenceDate }) => {
         const maxTotal = baseDots.length * 100 || 1;
         setClarityRate(Math.round((clarity / maxTotal) * 100));
         setDotData(baseDots);
-        console.log("baseDots----------------", baseDots);
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error("Failed to load urine weekly dots:", err);

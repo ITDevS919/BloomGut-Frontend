@@ -48,7 +48,7 @@ const OnBoardScreen = () => {
       <div className="relative w-80 h-65">
         <img
           src={BloomGut}
-          alt="Logo"
+          alt="BloomGut app logo"
           className="object-cover"
         />
       </div>

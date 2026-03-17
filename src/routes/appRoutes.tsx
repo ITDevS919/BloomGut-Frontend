@@ -1,42 +1,76 @@
+import { lazy } from "react";
 import PrivateLayout from "@/layouts/private-layout";
-import Login from "@/pages/auth/Login";
-import Register from "@/pages/auth/Register";
-import VerifyEmail from "@/pages/auth/VerifyEmail";
-import Dashboard from "@/pages/home/Dashboard";
-import Home from "@/pages/home/Home";
-import OnBoardScreen from "@/pages/home/OnBoardScreen";
-import Settings from "@/pages/settings/Settings";
-import StoolPage from "@/pages/home/stool";
-import SetupUsername from "@/pages/auth/SetUsername";
-import ForgotPass from "@/pages/auth/ForgotPass";
-import Account from "@/pages/settings/Account/Account";
-import AccountSecurity from "@/pages/settings/Account/AccountSecurity";
-import Profile from "@/pages/settings/Account/Profile";
-import Password from "@/pages/settings/Account/Password";
-import Notification from "@/pages/settings/Notification/Notification";
-import AboutUs from "@/pages/settings/AboutUs/AboutUs";
-import CompanyIntroduction from "@/pages/settings/AboutUs/CompanyIntroduction";
-import PrivacyPolicy from "@/pages/settings/Privacy/PrivacyPolicy";
-import TermsOfUse from "@/pages/settings/Privacy/TermsOfUse";
-import MobileSetting from "@/pages/settings/AppSetting/MobileSetting";
-import MailboxSetting from "@/pages/settings/AppSetting/MailboxSetting";
-import Binding from "@/pages/settings/AppSetting/Binding";
-import AppSetting from "@/pages/settings/AppSetting/AppSetting";
-import FontSize from "@/pages/settings/AppSetting/FontSize";
-import LanguageSetting from "@/pages/settings/AppSetting/LanguageSetting";
-import CheckUpdate from "@/pages/settings/AppSetting/CheckUpdate";
-import ContactUs from "@/pages/settings/AboutUs/ContactUs";
-import HelpSupport from "@/pages/settings/HelpSupport/HelpSupport";
-import Plan from "@/pages/settings/Plan/Plan";
-import SubScription from "@/pages/settings/Plan/SubScription";
-import FoodRecord from "@/pages/home/record/FoodRecord";
-import DietRecord from "@/pages/home/record/DietRecord";
-import Record from "@/pages/home/record";
-import Trend from "@/pages/home/trend";
-import UrineRecord from "@/pages/home/record/UrineRecord";
-import WaterRecord from "@/pages/home/record/WaterRecord";
-import CustomVolume from "@/pages/home/record/CustomVolume";
-import Reminders from "@/pages/home/record/Reminders";
+
+const Login = lazy(() => import("@/pages/auth/Login"));
+const Register = lazy(() => import("@/pages/auth/Register"));
+const VerifyEmail = lazy(() => import("@/pages/auth/VerifyEmail"));
+const Dashboard = lazy(() => import("@/pages/home/Dashboard"));
+const Home = lazy(() => import("@/pages/home/Home"));
+const OnBoardScreen = lazy(() => import("@/pages/home/OnBoardScreen"));
+const Settings = lazy(() => import("@/pages/settings/Settings"));
+const StoolPage = lazy(() => import("@/pages/home/stool"));
+const SetupUsername = lazy(() => import("@/pages/auth/SetUsername"));
+const ForgotPass = lazy(() => import("@/pages/auth/ForgotPass"));
+const Account = lazy(() => import("@/pages/settings/Account/Account"));
+const AccountSecurity = lazy(
+  () => import("@/pages/settings/Account/AccountSecurity"),
+);
+const Profile = lazy(() => import("@/pages/settings/Account/Profile"));
+const Password = lazy(() => import("@/pages/settings/Account/Password"));
+const Notification = lazy(
+  () => import("@/pages/settings/Notification/Notification"),
+);
+const AboutUs = lazy(() => import("@/pages/settings/AboutUs/AboutUs"));
+const CompanyIntroduction = lazy(
+  () => import("@/pages/settings/AboutUs/CompanyIntroduction"),
+);
+const PrivacyPolicy = lazy(
+  () => import("@/pages/settings/Privacy/PrivacyPolicy"),
+);
+const TermsOfUse = lazy(
+  () => import("@/pages/settings/Privacy/TermsOfUse"),
+);
+const MobileSetting = lazy(
+  () => import("@/pages/settings/AppSetting/MobileSetting"),
+);
+const MailboxSetting = lazy(
+  () => import("@/pages/settings/AppSetting/MailboxSetting"),
+);
+const Binding = lazy(() => import("@/pages/settings/AppSetting/Binding"));
+const AppSetting = lazy(
+  () => import("@/pages/settings/AppSetting/AppSetting"),
+);
+const FontSize = lazy(() => import("@/pages/settings/AppSetting/FontSize"));
+const LanguageSetting = lazy(
+  () => import("@/pages/settings/AppSetting/LanguageSetting"),
+);
+const CheckUpdate = lazy(
+  () => import("@/pages/settings/AppSetting/CheckUpdate"),
+);
+const ContactUs = lazy(
+  () => import("@/pages/settings/AboutUs/ContactUs"),
+);
+const HelpSupport = lazy(
+  () => import("@/pages/settings/HelpSupport/HelpSupport"),
+);
+const Plan = lazy(() => import("@/pages/settings/Plan/Plan"));
+const SubScription = lazy(
+  () => import("@/pages/settings/Plan/SubScription"),
+);
+const FoodRecord = lazy(() => import("@/pages/home/record/FoodRecord"));
+const DietRecord = lazy(() => import("@/pages/home/record/DietRecord"));
+const Record = lazy(() => import("@/pages/home/record"));
+const Trend = lazy(() => import("@/pages/home/trend"));
+const UrineRecord = lazy(
+  () => import("@/pages/home/record/UrineRecord"),
+);
+const WaterRecord = lazy(
+  () => import("@/pages/home/record/WaterRecord"),
+);
+const CustomVolume = lazy(
+  () => import("@/pages/home/record/CustomVolume"),
+);
+const Reminders = lazy(() => import("@/pages/home/record/Reminders"));
 
 export const ROUTES = [
   {

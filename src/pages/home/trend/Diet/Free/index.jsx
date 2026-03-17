@@ -1,33 +1,17 @@
-import {
-  Chart as ChartJS,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  Tooltip,
-} from "chart.js";
-import { Bar, Line } from "react-chartjs-2";
-import ChartDataLabels from "chartjs-plugin-datalabels";
+import { Suspense, useEffect, useState } from "react";
 import { Wheat, Beef, Salad, Milk, MoreHorizontal, UtensilsCrossed } from "lucide-react";
 import Upgrade from "./Upgrade";
-import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 import Loader from "@/components/common/Loader";
-import GrainsImage from "@/assets/Images/diet-types/Grains.png";
-import ProteinImage from "@/assets/Images/diet-types/Protein.png";
-import FruitsVegImage from "@/assets/Images/diet-types/Fruits.png";
-import DairyImage from "@/assets/Images/diet-types/Dairy.png";
-import OtherImage from "@/assets/Images/diet-types/Others.png";
+import GrainsImage from "@/assets/Images/diet-types/Grains.webp";
+import ProteinImage from "@/assets/Images/diet-types/Protein.webp";
+import FruitsVegImage from "@/assets/Images/diet-types/Fruits.webp";
+import DairyImage from "@/assets/Images/diet-types/Dairy.webp";
+import OtherImage from "@/assets/Images/diet-types/Others.webp";
 import { MdRamenDining } from "react-icons/md";
 import { FaPoo } from "react-icons/fa6";
-
-ChartJS.register(
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  Tooltip,
-  ChartDataLabels
-);
+import { DietLineChart, BowelLineChart } from "./DietTrendCharts";
 
 const DIET_PRIMARY_COLOR = "#B5A6D2";
 
@@ -102,7 +86,6 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         if (!payload) return;
         setWeekScore(payload.todayScore ?? 0);
         setBeforeWeekScore(payload.yesterdayScore ?? 0);
-        console.log("payload----------------", payload);
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Failed to load diet today score:", error);
@@ -684,7 +667,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
   const scorePosition = getScorePosition(effectiveScore);
 
   return (
-    <div className="pr-[15px] pl-[15px]">
+    <main className="pr-[15px] pl-[15px]">
       {/* Score Card (uses urine weekly score) */}
       <div className="bg-white rounded-[27px] p-[32px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[29px] relative">
         <div className="flex items-center justify-between">
@@ -816,11 +799,18 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
           {dates.map((d) => (
             <button
               key={d}
+              type="button"
               onClick={() => setSelectedDate(d)}
-              className={`px-2 py-1 rounded-full text-xs ${selectedDate === d
-                ? "bg-[#b5a6d2] text-white"
-                : "bg-[#f4f4f4] text-[#705d57]"
-                }`}
+              className={`px-2 py-1 rounded-full text-xs ${
+                selectedDate === d
+                  ? "bg-[#b5a6d2] text-white"
+                  : "bg-[#f4f4f4] text-[#705d57]"
+              }`}
+              aria-label={
+                selectedDate === d
+                  ? `Selected date ${d} in diet and bowel trends`
+                  : `Select date ${d} in diet and bowel trends`
+              }
             >
               {d}
             </button>
@@ -843,12 +833,20 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
             <span className="text-red-600">Sugar</span>
           </div>
           <div className="relative">
-            {loadingTrendData && (
-              <div className="absolute inset-0 flex items-center justify-center bg-white/60">
-                <Loader />
-              </div>
-            )}
-            <Line data={dietTrendData} options={dietTrendOptions} />
+            <Suspense
+              fallback={
+                <div className="absolute inset-0 flex items-center justify-center bg-white/60">
+                  <Loader />
+                </div>
+              }
+            >
+              <DietLineChart
+                data={dietTrendData}
+                options={dietTrendOptions}
+                loading={loadingTrendData}
+                Loader={Loader}
+              />
+            </Suspense>
           </div>
         </div>
 
@@ -868,11 +866,18 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
           {dates.map((d) => (
             <button
               key={d}
+              type="button"
               onClick={() => setSelectedDate(d)}
-              className={`px-2 py-1 rounded-full text-xs ${selectedDate === d
-                ? "bg-[#b5a6d2] text-white"
-                : "bg-[#f4f4f4] text-[#705d57]"
-                }`}
+              className={`px-2 py-1 rounded-full text-xs ${
+                selectedDate === d
+                  ? "bg-[#b5a6d2] text-white"
+                  : "bg-[#f4f4f4] text-[#705d57]"
+              }`}
+              aria-label={
+                selectedDate === d
+                  ? `Selected date ${d} in bowel trend`
+                  : `Select date ${d} in bowel trend`
+              }
             >
               {d}
             </button>
@@ -897,12 +902,20 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
           {/* CHART */}
           <div className="relative">
-            {loadingTrendData && (
-              <div className="absolute inset-0 flex items-center justify-center bg-white/60 z-10">
-                <Loader />
-              </div>
-            )}
-            <Line data={dietBoweldata} options={dietBowelOptions} />
+            <Suspense
+              fallback={
+                <div className="absolute inset-0 flex items-center justify-center bg-white/60 z-10">
+                  <Loader />
+                </div>
+              }
+            >
+              <BowelLineChart
+                data={dietBoweldata}
+                options={dietBowelOptions}
+                loading={loadingTrendData}
+                Loader={Loader}
+              />
+            </Suspense>
           </div>
         </div>
 
@@ -915,9 +928,8 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         </div>
       </div>
 
-      {/* <Upgrade /> */}
       {showUpgrade && <Upgrade />}
-    </div >
+    </main >
   );
 };
 

@@ -45,6 +45,10 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
   const [tipsLoading, setTipsLoading] = useState(false);
   const [loadingMonthlyTime, setLoadingMonthlyTime] = useState(false);
   const [monthlyAdvice, setMonthlyAdvice] = useState(null);
+  const [monthlySummary, setMonthlySummary] = useState({
+    totalMl: 0,
+    avgDailyMl: 0,
+  });
   const [bestTime, setBestTime] = useState({
     name: "Morning",
     description: "Best Hydration: 6–9 AM",
@@ -98,7 +102,7 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
   const currentSession =
     sessions.find((s) => s.name === selectedSession) || sessions[0];
 
-  const total = sessions.reduce((sum, s) => sum + (s.ml || 0), 0);
+  const total = monthlySummary.totalMl || 0;
   const segments = sessions.map((s) => s.percentage || 0);
 
   const data = {
@@ -117,7 +121,6 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
     responsive: true,
     plugins: {
       legend: { display: false },
-      tooltip: { enabled: false },
       datalabels: { display: false },
     },
   };
@@ -139,6 +142,7 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
           params: { userId: auth.user.id, referenceDate: ref, timezoneOffsetMinutes },
         });
         const payload = response.data?.data || response.data;
+        console.log("payload", payload);
         if (!payload) return;
 
         const updated = SESSION_NAMES.map((name, i) => ({
@@ -160,6 +164,20 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
         }));
 
         setSessions(updated);
+
+        const backendTotal =
+          typeof payload.totalMl === "number"
+            ? payload.totalMl
+            : updated.reduce((sum, s) => sum + (s.ml || 0), 0);
+        const backendAvgDaily =
+          typeof payload.avgDailyMl === "number"
+            ? payload.avgDailyMl
+            : Math.round(backendTotal / 30);
+
+        setMonthlySummary({
+          totalMl: backendTotal,
+          avgDailyMl: backendAvgDaily,
+        });
 
         // Derive best time based on highest percentage as baseline
         if (updated.length) {
@@ -385,7 +403,7 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
             <StatCard
               title="Monthly"
               value={`${total} ml`}
-              sub={`Daily Avg: ${total ? Math.round(total / 30) : 0} ml`}
+              sub={`Daily Avg: ${monthlySummary.avgDailyMl || 0} ml`}
             />
             <StatCard
               title="Rate"

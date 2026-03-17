@@ -91,7 +91,6 @@ const Account = () => {
 
         <button
           type="button"
-          onClick={() => console.log("add")}
           className="rounded-full bg-secondary flex items-center justify-center"
           aria-label="add"
         >

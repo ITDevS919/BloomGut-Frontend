@@ -16,7 +16,6 @@ function App() {
   useEffect(() => {
     const fetchToken = async () => {
       const token = await getToken();
-      console.log("token", token);
     };
 
     fetchToken();
@@ -31,7 +30,8 @@ function App() {
         username: user.username,
         firstName: user.firstName,
         lastName: user.lastName,
-        emailAddresses: user.emailAddresses,
+        // Store only serializable primitives in Redux
+        emailAddresses: user.emailAddresses?.map((e) => e.emailAddress) || [],
         primaryEmailAddress:
           user.primaryEmailAddress?.emailAddress || user.emailAddresses?.[0]?.emailAddress,
         imageUrl: user.profileImageUrl || user.imageUrl,

@@ -24,7 +24,7 @@ const Intermediate = () => {
   };
 
   return (
-    <>
+    <main>
       <DateRangeSelectorYellow
         setViewMode={setViewMode}
         initialViewMode={viewMode}
@@ -32,7 +32,7 @@ const Intermediate = () => {
       />
       {viewMode === "week" && <Week referenceDate={referenceDate} />}
       {viewMode === "month" && <Month referenceDate={referenceDate} />}
-    </>
+    </main>
   );
 };
 

@@ -38,7 +38,6 @@ const Password = () => {
       valid = false;
     }
     if ((newPassword !== confirmPassword) || (confirmPassword === "" && newPassword === "")) {
-      console.log(newPassword, confirmPassword);
       setConfirmPasswordError("Passwords do not match");
       valid = false;
     }

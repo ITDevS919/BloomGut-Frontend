@@ -71,7 +71,6 @@ const Week = ({ referenceDate }) => {
         const sugar = avg(payload.sugar);
         const sodium = 60; // neutral placeholder – sodium is not tracked in macroWeekly yet
 
-        console.log("Diet weekly payload", payload)
         setFiberAvg(fiber);
         setProteinAvg(protein);
         setFatAvg(fat);

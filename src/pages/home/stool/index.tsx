@@ -34,7 +34,6 @@ import { toast } from "sonner";
 const StoolPage = () => {
 
   const auth = useSelector((state) => state.auth);
-  console.log("fjdsk;lfjdsalk;fjdsaklf;jsdakl;fjk;fsfjs", auth)
   const api = useApiClient();
   const navigate = useNavigate();
 
@@ -69,6 +68,9 @@ const StoolPage = () => {
   const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
 
+  // Save loading state
+  const [isSaving, setIsSaving] = useState(false);
+
   // open
   const [mucusOpen, setMucusOpen] = useState(false);
   const [textureOpen, setTextureOpen] = useState(false);
@@ -76,6 +78,8 @@ const StoolPage = () => {
   const [otherSymptomsOpen, setOtherSymptomsOpen] = useState(false);
 
   const handleSaveRecord = async () => {
+    if (isSaving) return;
+
     // Reset validation errors
     setValidationErrors({});
 
@@ -138,6 +142,7 @@ const StoolPage = () => {
       clientTimezoneOffsetMinutes: now.getTimezoneOffset(),
     };
 
+    setIsSaving(true);
     try {
       const response = await api.put("/record/bowel", param);
       toast.success(response.data.data);
@@ -145,6 +150,8 @@ const StoolPage = () => {
       // eslint-disable-next-line no-console
       console.error("Error saving stool record:", error);
       toast.error("Failed to save stool record. Please try again.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -316,7 +323,7 @@ const StoolPage = () => {
         <img
           src={selectedStool ? selectedStool : Type1}
           className={`w-27 h-24.5 object-cover border border-custom-20 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.08)] transition-opacity duration-200 ${isMainImageLoaded ? "opacity-100" : "opacity-0"}`}
-          alt="Logo"
+          alt={selectedStoolImage ? `${selectedStoolImage} stool type illustration` : "Default stool type illustration"}
           onLoad={() => setIsMainImageLoaded(true)}
         />
       </div>
@@ -372,6 +379,7 @@ const StoolPage = () => {
           {colorOptions?.map((color, index) => {
             return (
               <div
+                key={color.label || index}
                 className={`w-10.5 h-10 cursor-pointer rounded-full flex items-center justify-center
                   ${selectedColor === color?.label ? "border-2 border-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]" : "shadow-[0_1px_3px_rgba(0,0,0,0.04)]"}`}
                 style={{ backgroundColor: color.colorCode }}
@@ -727,10 +735,18 @@ const StoolPage = () => {
       <div className="px-6.5 pb-6 flex justify-center">
         <button
           onClick={handleSaveRecord}
+          disabled={isSaving}
           aria-label="Save Record"
-          className="w-[242px] mx-auto transition-all duration-150 active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)] min-h-[48px] flex items-center justify-center gap-2 text-white text-base rounded-[24px] bg-[#C69C6D] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)]"
+          className={`w-[242px] mx-auto transition-all duration-150 min-h-[48px] flex items-center justify-center gap-2 text-white text-base rounded-[24px] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)] ${
+            isSaving
+              ? "bg-[#C69C6D]/70 cursor-not-allowed"
+              : "bg-[#C69C6D] active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)]"
+          }`}
         >
-          <span>Save</span>
+          {isSaving && (
+            <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          )}
+          <span>{isSaving ? "Saving..." : "Save"}</span>
         </button>
       </div>
 

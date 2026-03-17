@@ -281,183 +281,118 @@ const PremiumYear = () => {
   };
   const seasonLabels = ["Loose", "Rare", "Best", "Hard"];
 
-  // Load yearly top 3 gut‑sensitivity foods from backend
-  useEffect(() => {
-    if (!auth?.user?.id) return;
-
-    const fetchTopFoods = async () => {
-      setFoodsLoading(true);
-      try {
-        const ref = new Date().toISOString();
-        const res = await api.get("/trend/bowel/yearlyTopFoods", {
-          params: { userId: auth.user.id, referenceDate: ref },
-        });
-        const data = res.data?.data ?? res.data;
-        if (data && Array.isArray(data.foods) && data.foods.length) {
-          setFoods(
-            data.foods.map((f, idx) => ({
-              rank: f.rank ?? idx + 1,
-              name: f.name ?? f.food ?? `Food ${idx + 1}`,
-              sensit: f.sensit ?? "",
-              main: f.main ?? "",
-              second: f.second ?? "",
-              type: f.type ?? "",
-              bg: idx === 0 ? "#fcc" : "#fff0ac",
-            }))
-          );
-        }
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error("Failed to load yearly top foods:", err);
-      } finally {
-        setFoodsLoading(false);
-      }
-    };
-
-    fetchTopFoods();
-  }, [api, auth?.user?.id]);
-
-  // Load yearly gut index and seasonal trend from bowel weeklySummary (database-backed)
+  /**
+   * Load yearly top foods, yearly trend, and then AI yearly advice
+   * in a single coordinated flow to avoid extra or premature calls.
+   */
   useEffect(() => {
     if (!auth?.user?.id) return;
 
     let isCancelled = false;
 
-    const toSeasonScale = (avgScore) => {
-      if (!Number.isFinite(avgScore)) return 3;
-      const v = 1 + (4 * Math.max(0, Math.min(100, avgScore))) / 100;
-      return Math.round(v * 10) / 10;
-    };
-
-    const fetchYearlyTrend = async () => {
+    const loadYearlyDataAndAdvice = async () => {
+      setFoodsLoading(true);
       setTrendLoading(true);
+      setAnalysisLoading(true);
+
       try {
-        const now = new Date();
-        const year = now.getFullYear();
+        const referenceDate = new Date().toISOString();
+        const timezoneOffsetMinutes = new Date().getTimezoneOffset();
 
-        const currentScores = [];
-        const lastYearScores = [];
-
-        // sample one representative week per month for current year and previous year
-        for (let month = 0; month < 12; month += 1) {
-          const currentRef = new Date(year, month, 15);
-          const lastYearRef = new Date(year - 1, month, 15);
-
-          // eslint-disable-next-line no-await-in-loop
-          const [currentRes, lastRes] = await Promise.all([
-            api.get("/trend/bowel/weeklySummary", {
-              params: {
-                userId: auth.user.id,
-                referenceDate: currentRef.toISOString(),
-              },
-            }),
-            api.get("/trend/bowel/weeklySummary", {
-              params: {
-                userId: auth.user.id,
-                referenceDate: lastYearRef.toISOString(),
-              },
-            }),
-          ]);
-
-          const currentPayload = currentRes.data?.data ?? currentRes.data;
-          const lastPayload = lastRes.data?.data ?? lastRes.data;
-
-          currentScores.push(
-            typeof currentPayload?.score === "number" ? currentPayload.score : 0
-          );
-          lastYearScores.push(
-            typeof lastPayload?.score === "number" ? lastPayload.score : 0
-          );
-        }
+        const [foodsRes, trendRes] = await Promise.all([
+          api.get("/trend/bowel/yearlyTopFoods", {
+            params: { userId: auth.user.id, referenceDate },
+          }),
+          api.get("/trend/bowel/yearlyTrend", {
+            params: {
+              userId: auth.user.id,
+              referenceDate,
+              timezoneOffsetMinutes,
+            },
+          }),
+        ]);
 
         if (isCancelled) return;
 
-        setGutIndex(currentScores);
-        setLastYearIndex(lastYearScores);
+        const foodsPayload = foodsRes.data?.data ?? foodsRes.data;
+        if (foodsPayload && Array.isArray(foodsPayload.foods) && foodsPayload.foods.length) {
+          const mappedFoods = foodsPayload.foods.map((f, idx) => ({
+            rank: f.rank ?? idx + 1,
+            name: f.name ?? f.food ?? `Food ${idx + 1}`,
+            sensit: f.sensit ?? "",
+            main: f.main ?? "",
+            second: f.second ?? "",
+            type: f.type ?? "",
+            bg: idx === 0 ? "#fcc" : "#fff0ac",
+          }));
+          setFoods(mappedFoods);
+        }
 
-        // derive simple seasonal trend from current year scores
-        const springMonths = [2, 3, 4]; // Mar–May
-        const summerMonths = [5, 6, 7]; // Jun–Aug
-        const autumnMonths = [8, 9, 10]; // Sep–Nov
-        const winterMonths = [11, 0, 1]; // Dec, Jan, Feb
+        const trendPayload = trendRes.data?.data ?? trendRes.data;
+        if (trendPayload) {
+          if (Array.isArray(trendPayload.gutIndex)) {
+            setGutIndex(trendPayload.gutIndex);
+          }
+          if (Array.isArray(trendPayload.lastYearIndex)) {
+            setLastYearIndex(trendPayload.lastYearIndex);
+          }
+          if (Array.isArray(trendPayload.seasonalTrend)) {
+            setSeasonalTrend(trendPayload.seasonalTrend);
+          }
+        }
 
-        const avgFor = (indices) => {
-          const vals = indices
-            .map((idx) => currentScores[idx])
-            .filter((v) => typeof v === "number");
-          if (!vals.length) return 0;
-          return vals.reduce((sum, v) => sum + v, 0) / vals.length;
+        // After we have the latest foods + trend, request AI advice once.
+        const advicePayload = {
+          foods: (foodsPayload?.foods || []).map((f, idx) => ({
+            food: f.name ?? f.food ?? `Food ${idx + 1}`,
+            sensit: f.sensit,
+            main: f.main,
+            second: f.second,
+          })),
+          gutIndex: Array.isArray(trendPayload?.gutIndex) ? trendPayload.gutIndex : [],
+          lastYearIndex: Array.isArray(trendPayload?.lastYearIndex) ? trendPayload.lastYearIndex : [],
+          seasonalTrend: Array.isArray(trendPayload?.seasonalTrend) ? trendPayload.seasonalTrend : [],
         };
 
-        const spring = toSeasonScale(avgFor(springMonths));
-        const summer = toSeasonScale(avgFor(summerMonths));
-        const autumn = toSeasonScale(avgFor(autumnMonths));
-        const winter = toSeasonScale(avgFor(winterMonths));
+        const adviceRes = await api.post("/trend/bowel/premiumYearAdvice", advicePayload);
+        if (isCancelled) return;
 
-        setSeasonalTrend([spring, summer, autumn, winter]);
+        const adviceData = adviceRes.data?.data ?? adviceRes.data;
+        if (adviceData) {
+          setAnalysis({
+            foodTips: adviceData.foodTips ?? "",
+            seasonal: adviceData.seasonal ?? "",
+            actionPlan: adviceData.actionPlan ?? "",
+          });
+        }
       } catch (err) {
         // eslint-disable-next-line no-console
-        console.error("Failed to load yearly bowel trend:", err);
+        console.error("Failed to load yearly bowel data/advice:", err);
+        if (!isCancelled) {
+          setAnalysis({
+            foodTips:
+              "Milk, peanuts and seafood appear most associated with symptoms; adjust timing and portion or try alternatives.",
+            seasonal:
+              "Gut index dips in colder months, likely from lower water intake and heavier foods.",
+            actionPlan:
+              "Consider moderating trigger foods and increasing hydration during your weakest seasons; seek medical advice if pain or diarrhea persists.",
+          });
+        }
       } finally {
         if (!isCancelled) {
+          setFoodsLoading(false);
           setTrendLoading(false);
+          setAnalysisLoading(false);
         }
       }
     };
 
-    fetchYearlyTrend();
+    loadYearlyDataAndAdvice();
 
     return () => {
       isCancelled = true;
     };
   }, [api, auth?.user?.id]);
-
-  // Load AI yearly advice, using the database-backed series and top foods when available
-  useEffect(() => {
-    if (!auth?.user?.id) return;
-
-    const fetchYearAdvice = async () => {
-      try {
-        setAnalysisLoading(true);
-        const payload = {
-          foods: foods.map((f) => ({
-            food: f.name,
-            sensit: f.sensit,
-            main: f.main,
-            second: f.second,
-          })),
-          gutIndex,
-          lastYearIndex,
-          seasonalTrend,
-        };
-        const res = await api.post("/trend/bowel/premiumYearAdvice", payload);
-        const data = res.data?.data ?? res.data;
-        if (data) {
-          setAnalysis({
-            foodTips: data.foodTips ?? "",
-            seasonal: data.seasonal ?? "",
-            actionPlan: data.actionPlan ?? "",
-          });
-        }
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error("Failed to load PremiumYear bowel advice:", err);
-        setAnalysis({
-          foodTips:
-            "Milk, peanuts and seafood appear most associated with symptoms; adjust timing and portion or try alternatives.",
-          seasonal:
-            "Gut index dips in colder months, likely from lower water intake and heavier foods.",
-          actionPlan:
-            "Consider moderating trigger foods and increasing hydration during your weakest seasons; seek medical advice if pain or diarrhea persists.",
-        });
-      } finally {
-        setAnalysisLoading(false);
-      }
-    };
-
-    fetchYearAdvice();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth?.user?.id, gutIndex, lastYearIndex, seasonalTrend]);
 
   return (
     <div className="pl-[15px] pr-[15px]">

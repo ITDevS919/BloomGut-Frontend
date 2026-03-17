@@ -62,6 +62,7 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
           params: { userId: auth.user.id, referenceDate: ref, timezoneOffsetMinutes },
         });
         const payload = response.data?.data || response.data;
+        console.log("water weekly payload", payload);
         if (!payload) return;
 
         setTimeMl({
@@ -205,7 +206,7 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
     labels: timePeriods.map((t) => t.label),
     datasets: [
       {
-        data: timePeriods.map((t) => t.value),
+        data: timePeriods.map((t) => t.percentage),
         backgroundColor: timePeriods.map((t) => t.color),
         borderRadius: 6,
         barThickness: 18,
@@ -213,7 +214,7 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
     ],
   };
 
-  const maxValue = Math.max(...timePeriods.map((t) => t.value), 1000);
+  const maxValue = 100;
   const options = {
     indexAxis: "y", // Horizontal bars
     responsive: true,
@@ -241,8 +242,9 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
         min: 0,
         max: maxValue,
         ticks: {
-          stepSize: Math.max(200, Math.round(maxValue / 5)),
+          stepSize: 20,
           color: "#6b7280",
+          callback: (value) => `${value}%`,
           font: {
             size: 11,
           },
@@ -269,7 +271,7 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
   return (
     <div className=" mt-[44px]">
       <Free showUpgrade={false} referenceDate={referenceDate} />
-      <div className="pl-[20px] text-base font-medium mb-[10px] text-primary">
+      <div className="pl-[20px] text-base font-medium text-primary mt-[40px]">
         Water Drinking Time
       </div>
       <div className="p-4">

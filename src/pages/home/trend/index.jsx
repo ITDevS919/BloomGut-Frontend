@@ -39,10 +39,10 @@ const Trend = () => {
   }, [location.state]);
 
   return (
-    <>
+    <main>
       <TrendHeader setTrendType={setTrendType} />
       {trendType}
-    </>
+    </main>
   );
 };
 

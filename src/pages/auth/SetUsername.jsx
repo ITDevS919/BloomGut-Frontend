@@ -63,7 +63,6 @@ const SetupUsername = () => {
           session: res.createdSessionId,
           navigate: async ({ session }) => {
             if (session?.currentTask) {
-              console.log(session.currentTask);
               navigate("/sign-in/tasks");
               return;
             }

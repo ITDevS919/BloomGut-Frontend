@@ -37,7 +37,8 @@ html, body {
   --color-custom-9: #7f7f7f;
   --color-custom-10: #cdd3da;
   --color-custom-11: #b8b2a7;
-  --color-custom-12: #9e9e9e;
+  /* Muted text / placeholders – adjusted darker for WCAG AA */
+  --color-custom-12: #4b5563;
   --color-custom-13: #79b6e2;
   --color-custom-14: #2e2e2e;
   --color-custom-15: #cccccc;
