@@ -113,6 +113,8 @@ const DietRecord = (props) => {
     const tags = Array.isArray(item?.nutrient_tags) ? item.nutrient_tags : [];
     const friendly = [];
 
+    const sperated = [];
+    
     if (tags.includes("high_sugar")) {
       friendly.push("High Sugar");
     }
