@@ -445,13 +445,14 @@ const DietRecord = (props) => {
         {!dietLoading && dietItems.length > 0 && (
           <div className="text-sm space-y-3">
             {dietItems.map((item, idx) => {
+              console.log(dietItems);
               const friendlyTags = getFriendlyTagsForItem(item);
               return (
                 <div key={`${item.food_name || idx}-${idx}`} className="flex">
-                  <span className="font-medium mr-1 text-secondary">{formatFoodLabel(item.food_name)}:</span>
+                  <span className="font-medium mr-1 text-secondary">{item.food_name}:</span>
                   <span><Tag className="rotate-90 w-4 h-4 text-[#F8DE8A]"/></span>
                   <span className="text-xs text-secondary">
-                    {friendlyTags.length ? friendlyTags.join(", ") : "No special flags"}
+                    {item.nutrient_tags ? item.nutrient_tags.join(", ") : "No special flags"}
                   </span>
                 </div>
               );
