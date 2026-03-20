@@ -2,6 +2,7 @@
 import { Suspense, useEffect, useState, lazy } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import usePremiumEntitlement from "@/hooks/usePremiumEntitlement";
 import Type1Image from "@/assets/Images/bowel-types/Type 1.webp";
 import Type2Image from "@/assets/Images/bowel-types/Type 2.webp";
 import Type3Image from "@/assets/Images/bowel-types/Type 3.webp";
@@ -18,6 +19,7 @@ const BOWEL_PRIMARY_COLOR = "#1abc9c";
 const Free = ({ showUpgrade = true }) => {
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
+  const { premiumEntitled } = usePremiumEntitlement();
 
   const [loadingDailyCounts, setLoadingDailyCounts] = useState(false);
   const [loadingWeeklySummary, setLoadingWeeklySummary] = useState(false);
@@ -216,7 +218,7 @@ const Free = ({ showUpgrade = true }) => {
 
   // Fetch AI weekly bowel advice (OpenAI via backend) once data is available
   useEffect(() => {
-    if (!auth?.user?.id) return;
+    if (!auth?.user?.id || !premiumEntitled) return;
     if (!Array.isArray(dailyData) || !dailyData.length) return;
     if (loadingDailyCounts || loadingWeeklySummary) return;
     if (hasRequestedAdvice) return;

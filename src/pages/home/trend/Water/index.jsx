@@ -1,26 +1,17 @@
 import { useSearchParams } from "react-router-dom";
 import Free from "./Free";
-import Intermediate from "./Intermediate";
 import Premium from "./Premium";
+import usePremiumEntitlement from "@/hooks/usePremiumEntitlement";
 
 const Water = () => {
   const [searchParams] = useSearchParams();
   const plan = searchParams.get("plan");
+  const { premiumEntitled } = usePremiumEntitlement();
 
-  const renderComponent = () => {
-    switch (plan) {
-      case "free":
-        return <Free />;
-      case "intermediate":
-        return <Intermediate />;
-      case "premium":
-        return <Premium />;
-      default:
-        return <Free />;
-    }
-  };
+  const wantsPremium =
+    plan === "premium" || plan === "intermediate" || plan === "pro";
 
-  return <>{renderComponent()}</>;
+  return <>{wantsPremium && premiumEntitled ? <Premium /> : <Free />}</>;
 };
 
 export default Water;

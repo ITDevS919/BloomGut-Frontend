@@ -308,7 +308,11 @@ const PremiumWeek = () => {
       <div className="flex items-center justify-center mt-[27px]">
         <button
           className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
-          onClick={() => navigate("/trend-analysis?plan=intermediate", { state: { trendType: "bowel", viewMode: "month", subscribed: true } })}
+          onClick={() =>
+            navigate("/trend-analysis?plan=premium", {
+              state: { trendType: "bowel", viewMode: "month", subscribed: true },
+            })
+          }
         >
           OverView
         </button>

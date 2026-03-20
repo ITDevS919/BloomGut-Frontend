@@ -20,7 +20,9 @@ const Upgrade = () => {
           See bowel–health link & get tips
         </div>
         <button className="bg-[#fbb657] text-white px-6 py-2 rounded-full shadow-md cursor-pointer"
-          onClick={() => navigate("/setting/upgrade-plan?plan=standard")}
+          onClick={() =>
+            navigate("/setting/upgrade-plan/subscription?plan=premium&trendType=bowel")
+          }
         >
           Upgrade Now
         </button>

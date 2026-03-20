@@ -53,7 +53,7 @@ const ContactUs = lazy(
 const HelpSupport = lazy(
   () => import("@/pages/settings/HelpSupport/HelpSupport"),
 );
-const Plan = lazy(() => import("@/pages/settings/Plan/Plan"));
+const Plan = lazy(() => import("@/pages/settings/Plan/PlanTwoTier"));
 const SubScription = lazy(
   () => import("@/pages/settings/Plan/SubScription"),
 );

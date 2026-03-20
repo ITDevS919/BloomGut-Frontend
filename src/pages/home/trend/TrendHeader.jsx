@@ -8,6 +8,7 @@ import Diet from "./Diet";
 import { FaToilet, FaUtensils } from "react-icons/fa6";
 import { FaGlassWhiskey, FaTint } from "react-icons/fa";
 import { MdLocalDrink } from "react-icons/md";
+import usePremiumEntitlement from "@/hooks/usePremiumEntitlement";
 
 const TrendHeader = (props) => {
   const location = useLocation();
@@ -15,6 +16,9 @@ const TrendHeader = (props) => {
   const [selectedIcon, setSelectedIcon] = useState("toilet");
   const [searchParams] = useSearchParams();
   const plan = searchParams.get("plan");
+  const { premiumEntitled } = usePremiumEntitlement();
+  const isPremiumRoute = plan === "premium" || plan === "intermediate" || plan === "pro";
+  const showPremium = premiumEntitled && isPremiumRoute;
 
   const handleBackClick = () => {
     if (location.state?.trendType === "bowel" || selectedIcon === "toilet") {
@@ -83,26 +87,18 @@ const TrendHeader = (props) => {
         <h2 className="text-lg text-primary">Health Trends</h2>
       </div>
 
-      <div className={`flex justify-end ${plan === "premium" ? "mt-5 mb-[40px]" : "mt-5"}`}>
+      <div className={`flex justify-end ${showPremium ? "mt-5 mb-[40px]" : "mt-5"}`}>
         <button
           type="button"
-          className={`border border-custom-8 text-sm px-6 py-1 rounded-full shadow-[0_2px_6px_rgba(0,0,0,0.12)] mr-5 cursor-pointer ${plan === "premium"
+          className={`border border-custom-8 text-sm px-6 py-1 rounded-full shadow-[0_2px_6px_rgba(0,0,0,0.12)] mr-5 cursor-pointer ${showPremium
               ? "bg-[#fff5c0] text-secondary"
               : "bg-[#E2F1DB] text-[#4F7E4E]"
             }`}
           aria-label={
-            plan === "intermediate"
-              ? "Current plan: Intermediate"
-              : plan === "premium"
-              ? "Current plan: Premium"
-              : "Current plan: Free, 7 days"
+            showPremium ? "Current plan: Premium" : "Current plan: Free, 7 days"
           }
         >
-          {plan === "intermediate"
-            ? "Intermediate"
-            : plan === "premium"
-              ? "Premium"
-              : "Free/7 Days"}
+          {showPremium ? "Premium" : "Free/7 Days"}
         </button>
       </div>
 
@@ -146,7 +142,7 @@ const TrendHeader = (props) => {
             </div>
             <div className="flex flex-col items-center text-sm text-gray-500">
               <FaGlassWhiskey
-                className={`w-8 h-8 cursor-pointer ${selectedIcon === "water" ? "text-[#79b6e2]" : "text-[#D6EAF8]"}`}
+                className={`w-8 h-8 cursor-pointer ${selectedIcon === "water" ? "text-custom-13" : "text-[#D6EAF8]"}`}
                 onClick={() => { setSelectedIcon("water"); props.setTrendType(<Water />) }}
                 role="button"
                 tabIndex={0}
