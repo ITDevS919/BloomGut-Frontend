@@ -163,7 +163,7 @@ const Plan = () => {
               )}
 
               {/* STANDARD Title with Star - Below Hot Badge */}
-              <div className="flex items-center justify-center gap-2 mb-[33px]">
+              <div className="flex items-center justify-end gap-2 mb-[33px]">
                 <span className="text-base font-medium text-primary uppercase">
                   {plans[currentPlan].name}
                 </span>
@@ -175,9 +175,7 @@ const Plan = () => {
               {/* Current Price (updates with selection) */}
               <div className="text-center mb-2">
                 <div className="text-[32px] text-primary mb-[10px]">
-                  {selectedPricing === "month"
-                    ? plans[currentPlan].price
-                    : plans[currentPlan].priceQuarter}
+                  {selectedPricing === "month" ? plans[currentPlan].price : plans[currentPlan].priceQuarter}
                 </div>
                 <div className="text-xs text-primary">
                   {selectedPricing === "month" ? "/ Month" : "/ Quarter"}
@@ -276,7 +274,7 @@ const Plan = () => {
                         : "text-secondary"
                     }`}
                   >
-                    {plans[currentPlan].price}/6 mo
+                    {plans[currentPlan].price} / 6 mo
                   </button>
                   <button
                     type="button"
