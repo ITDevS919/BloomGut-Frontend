@@ -174,16 +174,13 @@ const Plan = () => {
 
               {/* Current Price (updates with selection) */}
               <div className="text-center mb-2">
-                <div className="text-[32px] text-primary mb-[10px]">
+                <div className="text-[20px] text-primary mb-[10px]">
                   {selectedPricing === "month" ? plans[currentPlan].price : plans[currentPlan].priceQuarter}
                   {selectedPricing === "month" ? "/ Month" : "/ Quarter"}
                 </div>
-                <div className="text-xs text-primary">
-                  
-                </div>
 
                 {/* Pricing Options */}
-                <div className="flex items-center justify-center gap-3 mt-2">
+                <div className="flex items-center justify-center gap-2 mt-2">
                   <button
                     type="button"
                     onClick={() => setSelectedPricing("month")}
