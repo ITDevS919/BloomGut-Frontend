@@ -4,11 +4,39 @@ import { FaCrown } from "react-icons/fa";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 const SubScription = () => {
-  const expiry = "Sep 9, 2025";
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const trendType = searchParams.get("trendType");
   const plan = searchParams.get("plan");
+  const interval = searchParams.get("interval"); // "month" | "quarter" | "6mo" | "year"
+
+  const addMonths = (date, months) => {
+    const d = new Date(date);
+    d.setMonth(d.getMonth() + months);
+    return d;
+  };
+
+  const resolveExpiry = () => {
+    const now = new Date();
+    const monthsMap = {
+      month: 1,
+      quarter: 3,
+      "6mo": 6,
+      year: 12,
+    };
+
+    const monthsToAdd = monthsMap[interval] ?? 1;
+    const expiryDate = addMonths(now, monthsToAdd);
+    return expiryDate.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const expiry = resolveExpiry();
+  const isPremium = plan === "premium";
+  const memberTierLabel = isPremium ? "Premium Member" : "Intermediate Member";
 
   return (
     <div className="bg-ivory min-h-full p-6 text-primary font-['Noto_Sans_TC', sans-serif]">
@@ -36,7 +64,7 @@ const SubScription = () => {
         </h3>
 
         {/* Member Tier */}
-        <p className="text-lg text-primary mb-5">Mid-tier Member</p>
+        <p className="text-lg text-primary mb-5">{memberTierLabel}</p>
 
         {/* Description */}
         <p className="text-sm text-secondary">
@@ -54,7 +82,7 @@ const SubScription = () => {
             className="w-[159px] px-3 py-2 mx-auto bg-ivory rounded-md shadow-sm text-sm text-secondary flex items-center justify-center mb-[31px]"
             onClick={() => {
               // Premium subscribe -> go to Premium trend
-              if (plan === "premium") {
+              if (isPremium) {
                 navigate("/trend-analysis?plan=premium", {
                   state: { trendType: trendType || "bowel" },
                 });

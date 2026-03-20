@@ -172,25 +172,42 @@ const Plan = () => {
                 )}
               </div>
 
-              {/* Pricing Options */}
-              <div className="flex items-center justify-center gap-3 mb-2">
-                <button
-                  type="button"
-                  onClick={() => setSelectedPricing("month")}
-                  className="text-sm text-secondary rounded-[8px] px-4 py-2 shadow-md"
-                >
-                  {plans[currentPlan].price} / Month
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedPricing("quarter")}
-                  className={`text-sm transition-colors ${selectedPricing === "quarter"
-                    ? "text-secondary"
-                    : "text-secondary"
+              {/* Current Price (updates with selection) */}
+              <div className="text-center mb-2">
+                <div className="text-[32px] text-primary mb-[10px]">
+                  {selectedPricing === "month"
+                    ? plans[currentPlan].price
+                    : plans[currentPlan].priceQuarter}
+                </div>
+                <div className="text-xs text-primary">
+                  {selectedPricing === "month" ? "/ Month" : "/ Quarter"}
+                </div>
+
+                {/* Pricing Options */}
+                <div className="flex items-center justify-center gap-3 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPricing("month")}
+                    className={`text-sm rounded-[8px] px-4 py-2 shadow-md transition-colors ${
+                      selectedPricing === "month"
+                        ? "bg-white border border-gray-300 text-primary shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+                        : "text-secondary bg-white"
                     }`}
-                >
-                  {plans[currentPlan].priceQuarter} / Quarter
-                </button>
+                  >
+                    {plans[currentPlan].price} / Month
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPricing("quarter")}
+                    className={`text-sm rounded-[8px] px-4 py-2 shadow-md transition-colors ${
+                      selectedPricing === "quarter"
+                        ? "bg-white border border-gray-300 text-primary shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+                        : "text-secondary bg-white"
+                    }`}
+                  >
+                    {plans[currentPlan].priceQuarter} / Quarter
+                  </button>
+                </div>
               </div>
 
               {/* Subtitle */}
@@ -213,9 +230,14 @@ const Plan = () => {
                 type="button"
                 className="w-[183px] flex items-center justify-center mx-auto py-2 rounded-lg text-secondary text-sm bg-[#FBB667] shadow-sm mb-[52px]"
                 onClick={() => {
-                  const url = trendTypeParam 
-                    ? `/setting/upgrade-plan/subscription?trendType=${trendTypeParam}`
-                    : "/setting/upgrade-plan/subscription";
+                  const interval = selectedPricing; // "month" | "quarter"
+                  const url = trendTypeParam
+                    ? `/setting/upgrade-plan/subscription?trendType=${encodeURIComponent(
+                        trendTypeParam
+                      )}&plan=intermediate&interval=${encodeURIComponent(interval)}`
+                    : `/setting/upgrade-plan/subscription?plan=intermediate&interval=${encodeURIComponent(
+                        interval
+                      )}`;
                   navigate(url);
                 }}
               >
@@ -232,28 +254,42 @@ const Plan = () => {
                 </span>
               </div>
 
-              {/* Pricing Options */}
-              <div className="flex items-center justify-center gap-3 mb-[26px] mt-[36px]">
-                <button
-                  type="button"
-                  onClick={() => setSelectedProPricing("6mo")}
-                  className={`text-sm rounded-[8px] px-4 py-2 shadow-sm ${selectedProPricing === "6mo"
-                    ? "bg-white border-gray-300 text-primary shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
-                    : "text-secondary"
+              {/* Current Price (updates with selection) */}
+              <div className="text-center mb-[22px] mt-[36px]">
+                <div className="text-[32px] text-primary mb-[10px]">
+                  {selectedProPricing === "6mo"
+                    ? plans[currentPlan].price
+                    : plans[currentPlan].priceYear}
+                </div>
+                <div className="text-xs text-primary">
+                  {selectedProPricing === "6mo" ? "/ 6 mo" : "/ Year"}
+                </div>
+
+                {/* Pricing Options */}
+                <div className="flex items-center justify-center gap-3 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedProPricing("6mo")}
+                    className={`text-sm rounded-[8px] px-4 py-2 shadow-sm ${
+                      selectedProPricing === "6mo"
+                        ? "bg-white border-gray-300 text-primary shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+                        : "text-secondary"
                     }`}
-                >
-                  {plans[currentPlan].price} / 6 mo
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedProPricing("year")}
-                  className={`text-sm transition-colors ${selectedProPricing === "year"
-                    ? "text-secondary"
-                    : "text-secondary"
+                  >
+                    {plans[currentPlan].price} / 6 mo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedProPricing("year")}
+                    className={`text-sm rounded-[8px] px-4 py-2 shadow-sm transition-colors ${
+                      selectedProPricing === "year"
+                        ? "bg-white border-gray-300 text-primary shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+                        : "text-secondary"
                     }`}
-                >
-                  {plans[currentPlan].priceYear} / Year
-                </button>
+                  >
+                    {plans[currentPlan].priceYear} / Year
+                  </button>
+                </div>
               </div>
 
               {/* Subtitle */}
@@ -276,9 +312,14 @@ const Plan = () => {
                 type="button"
                 className="w-[172px] flex items-center justify-center mx-auto py-2 rounded-lg text-secondary text-sm bg-white shadow-sm mb-[52px]"
                 onClick={() => {
-                  const url = trendTypeParam 
-                    ? `/setting/upgrade-plan/subscription?trendType=${trendTypeParam}&plan=premium`
-                    : "/setting/upgrade-plan/subscription?plan=premium";
+                  const interval = selectedProPricing; // "6mo" | "year"
+                  const url = trendTypeParam
+                    ? `/setting/upgrade-plan/subscription?trendType=${encodeURIComponent(
+                        trendTypeParam
+                      )}&plan=premium&interval=${encodeURIComponent(interval)}`
+                    : `/setting/upgrade-plan/subscription?plan=premium&interval=${encodeURIComponent(
+                        interval
+                      )}`;
                   navigate(url);
                 }}
               >
