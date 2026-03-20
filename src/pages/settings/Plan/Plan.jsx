@@ -188,7 +188,7 @@ const Plan = () => {
                   <button
                     type="button"
                     onClick={() => setSelectedPricing("month")}
-                    className={`text-sm rounded-[8px] px-4 py-2 shadow-md transition-colors ${
+                    className={`text-sm rounded-[8px] px-4 py-2 shadow-sm transition-colors ${
                       selectedPricing === "month"
                         ? "bg-white border border-gray-300 text-primary shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
                         : "text-secondary bg-white"
