@@ -176,9 +176,10 @@ const Plan = () => {
               <div className="text-center mb-2">
                 <div className="text-[32px] text-primary mb-[10px]">
                   {selectedPricing === "month" ? plans[currentPlan].price : plans[currentPlan].priceQuarter}
+                  {selectedPricing === "month" ? "/ Month" : "/ Quarter"}
                 </div>
                 <div className="text-xs text-primary">
-                  {selectedPricing === "month" ? "/ Month" : "/ Quarter"}
+                  
                 </div>
 
                 {/* Pricing Options */}
