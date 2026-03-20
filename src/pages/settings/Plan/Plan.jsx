@@ -190,7 +190,7 @@ const Plan = () => {
                     onClick={() => setSelectedPricing("month")}
                     className={`text-sm rounded-[8px] px-4 py-2 shadow-sm transition-colors ${
                       selectedPricing === "month"
-                        ? "bg-white border border-gray-300 text-primary shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+                        ? "bg-white border text-primary shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
                         : "text-secondary bg-white"
                     }`}
                   >
@@ -201,7 +201,7 @@ const Plan = () => {
                     onClick={() => setSelectedPricing("quarter")}
                     className={`text-sm rounded-[8px] px-4 py-2 shadow-md transition-colors ${
                       selectedPricing === "quarter"
-                        ? "bg-white border border-gray-300 text-primary shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+                        ? "bg-white border text-primary shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
                         : "text-secondary bg-white"
                     }`}
                   >
