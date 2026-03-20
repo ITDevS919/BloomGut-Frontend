@@ -7,14 +7,14 @@ const Plan = () => {
   const [searchParams] = useSearchParams();
   const planParam = searchParams.get("plan");
   const trendTypeParam = searchParams.get("trendType");
-  
+
   // Initialize currentPlan based on URL parameter
   const getInitialPlan = (param) => {
     if (param === "standard") return 1; // STANDARD
     if (param === "pro" || param === "premium") return 2; // PRO
     return 0; // FREE (default)
   };
-  
+
   const [currentPlan, setCurrentPlan] = useState(getInitialPlan(planParam));
   const [selectedPricing, setSelectedPricing] = useState("month"); // "month" or "quarter" for STANDARD
   const [selectedProPricing, setSelectedProPricing] = useState("6mo"); // "6mo" or "year" for PRO
@@ -184,22 +184,20 @@ const Plan = () => {
                   <button
                     type="button"
                     onClick={() => setSelectedPricing("month")}
-                    className={`text-sm rounded-[8px] px-2 py-2 shadow-sm transition-colors ${
-                      selectedPricing === "month"
+                    className={`text-sm rounded-[8px] px-2 py-2 shadow-sm transition-colors ${selectedPricing === "month"
                         ? "bg-white border text-primary shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
                         : "text-secondary bg-white"
-                    }`}
+                      }`}
                   >
                     {plans[currentPlan].price} / Month
                   </button>
                   <button
                     type="button"
                     onClick={() => setSelectedPricing("quarter")}
-                    className={`text-sm rounded-[8px] px-2 py-2 shadow-md transition-colors ${
-                      selectedPricing === "quarter"
+                    className={`text-sm rounded-[8px] px-2 py-2 shadow-md transition-colors ${selectedPricing === "quarter"
                         ? "bg-white border text-primary shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
                         : "text-secondary bg-white"
-                    }`}
+                      }`}
                   >
                     {plans[currentPlan].priceQuarter} / Quarter
                   </button>
@@ -229,11 +227,11 @@ const Plan = () => {
                   const interval = selectedPricing; // "month" | "quarter"
                   const url = trendTypeParam
                     ? `/setting/upgrade-plan/subscription?trendType=${encodeURIComponent(
-                        trendTypeParam
-                      )}&plan=intermediate&interval=${encodeURIComponent(interval)}`
+                      trendTypeParam
+                    )}&plan=intermediate&interval=${encodeURIComponent(interval)}`
                     : `/setting/upgrade-plan/subscription?plan=intermediate&interval=${encodeURIComponent(
-                        interval
-                      )}`;
+                      interval
+                    )}`;
                   navigate(url);
                 }}
               >
@@ -252,12 +250,11 @@ const Plan = () => {
 
               {/* Current Price (updates with selection) */}
               <div className="text-center mb-[22px] mt-[36px]">
-                <div className="text-[32px] text-primary mb-[10px]">
+                <div className="text-[20px] text-primary mb-[10px]">
                   {selectedProPricing === "6mo"
                     ? plans[currentPlan].price
                     : plans[currentPlan].priceYear}
-                </div>
-                <div className="text-xs text-primary">
+
                   {selectedProPricing === "6mo" ? "/ 6 mo" : "/ Year"}
                 </div>
 
@@ -266,22 +263,20 @@ const Plan = () => {
                   <button
                     type="button"
                     onClick={() => setSelectedProPricing("6mo")}
-                    className={`text-sm rounded-[8px] px-2 py-2 shadow-sm ${
-                      selectedProPricing === "6mo"
+                    className={`text-sm rounded-[8px] px-2 py-2 shadow-sm ${selectedProPricing === "6mo"
                         ? "bg-white border text-primary shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
                         : "text-secondary"
-                    }`}
+                      }`}
                   >
                     {plans[currentPlan].price} / 6 mo
                   </button>
                   <button
                     type="button"
                     onClick={() => setSelectedProPricing("year")}
-                    className={`text-sm rounded-[8px] px-2 py-2 shadow-sm transition-colors ${
-                      selectedProPricing === "year"
+                    className={`text-sm rounded-[8px] px-2 py-2 shadow-sm transition-colors ${selectedProPricing === "year"
                         ? "bg-white border text-primary shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
                         : "text-secondary"
-                    }`}
+                      }`}
                   >
                     {plans[currentPlan].priceYear} / Year
                   </button>
@@ -311,11 +306,11 @@ const Plan = () => {
                   const interval = selectedProPricing; // "6mo" | "year"
                   const url = trendTypeParam
                     ? `/setting/upgrade-plan/subscription?trendType=${encodeURIComponent(
-                        trendTypeParam
-                      )}&plan=premium&interval=${encodeURIComponent(interval)}`
+                      trendTypeParam
+                    )}&plan=premium&interval=${encodeURIComponent(interval)}`
                     : `/setting/upgrade-plan/subscription?plan=premium&interval=${encodeURIComponent(
-                        interval
-                      )}`;
+                      interval
+                    )}`;
                   navigate(url);
                 }}
               >
