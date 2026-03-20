@@ -163,7 +163,7 @@ const Plan = () => {
               )}
 
               {/* STANDARD Title with Star - Below Hot Badge */}
-              <div className="flex items-center justify-end gap-2 mb-[33px]">
+              <div className="flex items-center justify-center gap-2 mb-[33px]">
                 <span className="text-base font-medium text-primary uppercase">
                   {plans[currentPlan].name}
                 </span>
@@ -272,18 +272,18 @@ const Plan = () => {
                     onClick={() => setSelectedProPricing("6mo")}
                     className={`text-sm rounded-[8px] px-4 py-2 shadow-sm ${
                       selectedProPricing === "6mo"
-                        ? "bg-white border-gray-300 text-primary shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+                        ? "bg-white border text-primary shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
                         : "text-secondary"
                     }`}
                   >
-                    {plans[currentPlan].price} / 6 mo
+                    {plans[currentPlan].price}/6 mo
                   </button>
                   <button
                     type="button"
                     onClick={() => setSelectedProPricing("year")}
                     className={`text-sm rounded-[8px] px-4 py-2 shadow-sm transition-colors ${
                       selectedProPricing === "year"
-                        ? "bg-white border-gray-300 text-primary shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+                        ? "bg-white border text-primary shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
                         : "text-secondary"
                     }`}
                   >
