@@ -182,3 +182,16 @@ export async function restorePurchases(getToken) {
   const err = await store.restorePurchases();
   if (err) throw err;
 }
+
+/** Opens App Store / Play subscription management (native only). */
+export async function openSubscriptionManagement(getToken) {
+  await initCdvPurchase(getToken);
+  const store = getStore();
+  if (!store?.manageSubscriptions) return;
+  const Cdv = getCdv();
+  const platform =
+    Capacitor.getPlatform() === "ios"
+      ? Cdv.Platform.APPLE_APPSTORE
+      : Cdv.Platform.GOOGLE_PLAY;
+  await store.manageSubscriptions(platform);
+}
