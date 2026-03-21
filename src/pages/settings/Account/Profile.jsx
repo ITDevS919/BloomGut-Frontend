@@ -304,11 +304,7 @@ const Profile = () => {
         <div style={styles.avatarWrap} className="mb-[43px]">
           <div style={styles.avatar} className="relative">
             <div style={{ fontSize: 36, color: "#6b4d43" }}>
-              {avatarLoading && (
-                <div className="absolute inset-0 rounded-full bg-[#e9ece8] flex items-center justify-center animate-pulse">
-                  <span className="text-[#c4b8aa] text-3xl">• • •</span>
-                </div>
-              )}
+              
               <img
                 src={avatarUrl || auth?.user?.imageUrl}
                 className="rounded-full"
