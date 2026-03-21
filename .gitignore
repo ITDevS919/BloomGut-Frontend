@@ -28,6 +28,7 @@
 version
 analysis_benchmark.json
 /node_modules
+/dist
 
 # packages file containing multi-root paths
 .packages.generated
