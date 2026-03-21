@@ -1,18 +1,28 @@
 import { ChevronLeft } from "lucide-react";
 import { FaCrown } from "react-icons/fa";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth, useUser } from "@clerk/clerk-react";
+import { Capacitor } from "@capacitor/core";
 import { isPremiumEntitled, setPremiumEntitled } from "@/lib/premiumEntitlement";
+import {
+  initCdvPurchase,
+  purchasePremium,
+  restorePurchases,
+} from "@/lib/iap/cdvPurchase";
+import { IAP_PRODUCT_ID } from "@/lib/iap/iapConfig";
 
 const SubScription = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { getToken } = useAuth();
+  const { user, isLoaded: userLoaded } = useUser();
 
   const trendType = searchParams.get("trendType") || "bowel";
   const plan = searchParams.get("plan");
-  const iapEntitled = searchParams.get("entitled") === "true" || searchParams.get("iapStatus") === "success";
-
-  const productId = useMemo(() => "premium_monthly", []);
+  const iapEntitled =
+    searchParams.get("entitled") === "true" ||
+    searchParams.get("iapStatus") === "success";
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -25,49 +35,59 @@ const SubScription = () => {
 
     setPremiumEntitled(true);
     setPremiumActive(true);
-    // Keep the page visible for user feedback (don’t auto-navigate).
   }, [iapEntitled, plan]);
 
-  const requestNativePurchase = async () => {
-    // Bridge points (examples):
-    // - Capacitor/Custom WebView implementations often expose a promise-based API.
-    // - RevenueCat / native wrappers may redirect back with ?entitled=true.
-    if (typeof window === "undefined") throw new Error("Not running in a browser.");
-
-    // Promise-based bridges (preferred).
-    const candidates = [
-      window?.IAP?.purchaseSubscription,
-      window?.iap?.purchaseSubscription,
-      window?.iap?.subscribe,
-      window?.IAP?.subscribe,
-    ].filter(Boolean);
-
-    for (const fn of candidates) {
-      try {
-        const res = await fn.call(null, { productId });
-        return res;
-      } catch {
-        // try next bridge
-      }
-    }
-
-    throw new Error(
-      "Native IAP purchase bridge is not available. Open the subscription page from inside the native app, or integrate an IAP bridge that redirects back with ?entitled=true."
-    );
-  };
+  useEffect(() => {
+    setPremiumActive(isPremiumEntitled());
+  }, []);
 
   const handleBuyPremium = async () => {
     setError("");
+    if (!userLoaded || !user) {
+      setError("Please sign in to subscribe.");
+      return;
+    }
+    if (!Capacitor.isNativePlatform()) {
+      setError(
+        "In-app purchases run in the BloomGut iOS/Android app. Open this screen there after installing from the store."
+      );
+      return;
+    }
+
     setBusy(true);
     try {
-      const res = await requestNativePurchase();
-      // If the native layer returns entitlement, trust it (the native wrapper should validate with stores).
-      if (res?.entitled === true || res?.isEntitled === true) {
-        setPremiumEntitled(true);
-        setPremiumActive(true);
-      }
+      await initCdvPurchase(getToken);
+      await purchasePremium(IAP_PRODUCT_ID, getToken);
+      setPremiumActive(true);
     } catch (e) {
       setError(e?.message || "Purchase failed.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleRestore = async () => {
+    setError("");
+    if (!userLoaded || !user) {
+      setError("Please sign in to restore purchases.");
+      return;
+    }
+    if (!Capacitor.isNativePlatform()) {
+      setError("Restore is available in the iOS/Android app.");
+      return;
+    }
+    setBusy(true);
+    try {
+      await initCdvPurchase(getToken);
+      await restorePurchases(getToken);
+      await new Promise((r) => setTimeout(r, 2500));
+      if (isPremiumEntitled()) {
+        setPremiumActive(true);
+      } else {
+        setError("No active subscription found for this account.");
+      }
+    } catch (e) {
+      setError(e?.message || "Restore failed.");
     } finally {
       setBusy(false);
     }
@@ -77,6 +97,8 @@ const SubScription = () => {
     const nextPlan = premiumActive ? "premium" : "free";
     navigate(`/trend-analysis?plan=${nextPlan}`, { state: { trendType } });
   };
+
+  const showNativeIap = Capacitor.isNativePlatform();
 
   return (
     <div className="bg-ivory min-h-full p-6 text-primary font-['Noto_Sans_TC', sans-serif]">
@@ -109,14 +131,26 @@ const SubScription = () => {
         {error ? <p className="text-sm text-red-600 mb-4">{error}</p> : null}
 
         {!premiumActive ? (
-          <button
-            type="button"
-            disabled={busy}
-            onClick={handleBuyPremium}
-            className="w-[209px] px-3 py-2 mx-auto bg-[#FBB667] rounded-md shadow-sm text-sm text-secondary flex items-center justify-center mb-[31px]"
-          >
-            {busy ? "Opening Store..." : `Buy Premium ($4.99/month)`}
-          </button>
+          <div className="flex flex-col items-center gap-3 mb-[31px]">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={handleBuyPremium}
+              className="w-[209px] px-3 py-2 mx-auto bg-[#FBB667] rounded-md shadow-sm text-sm text-secondary flex items-center justify-center"
+            >
+              {busy ? "Working..." : `Buy Premium ($4.99/month)`}
+            </button>
+            {showNativeIap ? (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={handleRestore}
+                className="text-sm text-primary underline underline-offset-2"
+              >
+                Restore purchases
+              </button>
+            ) : null}
+          </div>
         ) : null}
 
         <div className="flex flex-col gap-3 mb-[51px]">
@@ -135,7 +169,9 @@ const SubScription = () => {
         </div>
 
         <p className="text-xs text-gray-400">
-          If you don’t see access right away, reopen this page with <span className="font-medium">?entitled=true</span> after the store flow completes.
+          {showNativeIap
+            ? "Purchases are validated on our server and tied to your account."
+            : "Use the mobile app to complete checkout; premium then syncs when you sign in."}
         </p>
       </div>
     </div>

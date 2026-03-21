@@ -42,6 +42,9 @@ export default defineConfig({
   build: {
     outDir: "dist"
   },
+  optimizeDeps: {
+    include: ["cordova-plugin-purchase"],
+  },
   base: "/", // MUST be '/'
 
 });

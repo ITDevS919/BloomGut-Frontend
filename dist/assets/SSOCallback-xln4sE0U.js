@@ -1,0 +1,1 @@
+import{j as e,C as a,a as s,A as i}from"./index-CxRgk0X5.js";const l=()=>e.jsxs("div",{className:"bg-ivory flex flex-col justify-between",children:[e.jsx(a,{children:"Signing you in..."}),e.jsx(s,{}),e.jsx(i,{continueSignUpUrl:"/auth/setup-username"}),e.jsx("div",{id:"clerk-captcha"})]});export{l as default};

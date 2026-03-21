@@ -7,6 +7,7 @@ import { useAuth, useUser } from "@clerk/clerk-react";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { loginSuccess, logout } from "./store/slices/authSlice";
+import IapEntitlementSync from "./components/IapEntitlementSync";
 
 function App() {
   const { getToken } = useAuth();
@@ -45,6 +46,7 @@ function App() {
   
   return (
     <>
+      <IapEntitlementSync />
       <BrowserRouter>
         <CustomThemeProvider>
           <Toaster 
