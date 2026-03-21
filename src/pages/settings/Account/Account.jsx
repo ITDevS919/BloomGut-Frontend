@@ -4,16 +4,20 @@ import {
   User,
   Plus,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
 import { FaShieldAlt } from "react-icons/fa";
 import { MdFolderShared } from "react-icons/md";
 import { FaLink, FaLock } from "react-icons/fa6";
+import useApiClient from "@/hooks/useApiClient";
 
 const Account = () => {
   const navigate = useNavigate();
+  const api = useApiClient();
+  const [profileFromDb, setProfileFromDb] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(true);
   const [avatarLoading, setAvatarLoading] = useState(true);
   const accountItems = [
     {
@@ -40,8 +44,69 @@ const Account = () => {
 
   const auth = useSelector((state) => state.auth);
   const { user } = useUser();
-  const avatarSrc =
-    user?.profileImageUrl || user?.imageUrl || auth?.user?.imageUrl || "";
+
+  const displayName = useMemo(() => {
+    const fromDb = profileFromDb?.username;
+    if (typeof fromDb === "string" && fromDb.trim()) return fromDb.trim();
+    return (
+      auth?.user?.username ||
+      auth?.user?.firstName ||
+      "Username"
+    );
+  }, [profileFromDb?.username, auth?.user?.username, auth?.user?.firstName]);
+
+  const displayEmail = useMemo(() => {
+    const fromDb = profileFromDb?.email;
+    if (typeof fromDb === "string" && fromDb.trim()) return fromDb.trim();
+    return (
+      auth?.user?.primaryEmailAddress ||
+      auth?.user?.emailAddresses?.[0] ||
+      "user@example.com"
+    );
+  }, [profileFromDb?.email, auth?.user?.primaryEmailAddress, auth?.user?.emailAddresses]);
+
+  const avatarSrc = useMemo(() => {
+    return (
+      user?.profileImageUrl ||
+      user?.imageUrl ||
+      (typeof profileFromDb?.avatar === "string" && profileFromDb.avatar.trim()
+        ? profileFromDb.avatar.trim()
+        : "") ||
+      auth?.user?.imageUrl ||
+      ""
+    );
+  }, [
+    user?.profileImageUrl,
+    user?.imageUrl,
+    profileFromDb?.avatar,
+    auth?.user?.imageUrl,
+  ]);
+
+  useEffect(() => {
+    if (!auth?.user?.id) {
+      setProfileLoading(false);
+      return;
+    }
+
+    const load = async () => {
+      setProfileLoading(true);
+      try {
+        const res = await api.get("/user/profile", {
+          params: { userId: auth.user.id },
+        });
+        const payload = res.data?.data ?? res.data;
+        setProfileFromDb(payload && typeof payload === "object" ? payload : null);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load account profile:", error);
+        setProfileFromDb(null);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    load();
+  }, [api, auth?.user?.id]);
 
   useEffect(() => {
     if (avatarSrc) setAvatarLoading(true);
@@ -73,7 +138,7 @@ const Account = () => {
               )}
               <img
                 src={avatarSrc}
-                alt={auth.user.username || "avatar"}
+                alt={displayName || "avatar"}
                 className="w-[50px] h-[50px] border-[#e5e7eb] rounded-full object-cover"
                 onLoad={() => setAvatarLoading(false)}
                 onError={() => setAvatarLoading(false)}
@@ -87,12 +152,10 @@ const Account = () => {
 
           <div>
             <div className="text-sm text-primary">
-              {auth?.user?.username || auth?.user?.firstName || "Username"}
+              {profileLoading && auth?.user?.id ? "…" : displayName}
             </div>
             <a className="text-sm text-primary underline block">
-              {auth?.user?.primaryEmailAddress ||
-                auth?.user?.emailAddresses?.[0] ||
-                "user@example.com"}
+              {profileLoading && auth?.user?.id ? "…" : displayEmail}
             </a>
             <div className="text-xs text-secondary">Account Level: Standard</div>
           </div>
@@ -101,7 +164,8 @@ const Account = () => {
         <button
           type="button"
           className="rounded-full bg-secondary flex items-center justify-center w-12 h-12"
-          aria-label="add"
+          aria-label="Open profile settings"
+          onClick={() => navigate("/setting/account/profile")}
         >
           <Plus className="text-white text-[12px]" width="24px" height="24px"/>
         </button>

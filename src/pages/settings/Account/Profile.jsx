@@ -173,18 +173,35 @@ const Profile = () => {
         });
         const payload = res.data?.data ?? res.data;
         if (!payload) {
-          // fall back to auth user
           setUsername(auth?.user?.username || auth?.user?.firstName || "");
           setEmail(
             auth?.user?.primaryEmailAddress ||
               auth?.user?.emailAddresses?.[0] ||
               ""
           );
+          const clerkImg =
+            user?.profileImageUrl || user?.imageUrl || auth?.user?.imageUrl;
+          if (clerkImg) {
+            setAvatarLoading(true);
+            setAvatarUrl(clerkImg);
+          } else {
+            setAvatarLoading(false);
+          }
           return;
         }
 
-        setUsername(payload.username || "");
-        setEmail(payload.email || "");
+        setUsername(
+          (payload.username && String(payload.username).trim()) ||
+            auth?.user?.username ||
+            auth?.user?.firstName ||
+            ""
+        );
+        setEmail(
+          (payload.email && String(payload.email).trim()) ||
+            auth?.user?.primaryEmailAddress ||
+            auth?.user?.emailAddresses?.[0] ||
+            ""
+        );
         if (payload.gender)
           setGender(
             typeof payload.gender === "string"
@@ -212,6 +229,20 @@ const Profile = () => {
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Failed to load user profile:", error);
+        setUsername(auth?.user?.username || auth?.user?.firstName || "");
+        setEmail(
+          auth?.user?.primaryEmailAddress ||
+            auth?.user?.emailAddresses?.[0] ||
+            ""
+        );
+        const clerkImg =
+          user?.profileImageUrl || user?.imageUrl || auth?.user?.imageUrl;
+        if (clerkImg) {
+          setAvatarLoading(true);
+          setAvatarUrl(clerkImg);
+        } else {
+          setAvatarLoading(false);
+        }
       }
     };
 
