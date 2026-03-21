@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, Lock, LockKeyhole, ChevronRight, Tag } from "lucide-react";
 import { Search, Mic } from "lucide-react";
 import { CustomCheckbox } from "@/components/custom/CustomCheckbox";
@@ -41,6 +41,7 @@ const DietRecord = (props) => {
   const [dietItems, setDietItems] = useState([]);
   const [saving, setSaving] = useState(false);
   const [dietLoading, setDietLoading] = useState(false);
+  const savedDietLoadAbortRef = useRef(null);
 
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -200,9 +201,91 @@ const DietRecord = (props) => {
     fetchCalendar();
   }, [api, auth?.user?.id, currentDate]);
 
+  // Load saved diet entries for today (same calendar day / timezone as trend charts)
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+    if ((props.recordResult || "").trim()) return;
+
+    const ac = new AbortController();
+    savedDietLoadAbortRef.current = ac;
+
+    const loadTodaySaved = async () => {
+      setDietLoading(true);
+      try {
+        const response = await api.get("/record/diet/today", {
+          params: {
+            userId: auth.user.id,
+            referenceDate: new Date().toISOString(),
+            timezoneOffsetMinutes: new Date().getTimezoneOffset(),
+          },
+          signal: ac.signal,
+        });
+        const records = response.data?.data ?? response.data;
+        if (!Array.isArray(records) || records.length === 0) return;
+
+        const mergedItems = records.flatMap((r) => (Array.isArray(r.items) ? r.items : []));
+        const mergedTotals = records.reduce(
+          (acc, r) => {
+            const t = r.totals || {};
+            acc.calories += Number(t.calories || 0);
+            acc.protein_g += Number(t.protein_g || 0);
+            acc.fat_g += Number(t.fat_g || 0);
+            acc.carb_g += Number(t.carb_g || 0);
+            acc.fiber_g += Number(t.fiber_g || 0);
+            acc.sugar_g += Number(t.sugar_g || 0);
+            acc.sodium_mg += Number(t.sodium_mg || 0);
+            return acc;
+          },
+          {
+            calories: 0,
+            protein_g: 0,
+            fat_g: 0,
+            carb_g: 0,
+            fiber_g: 0,
+            sugar_g: 0,
+            sodium_mg: 0,
+          }
+        );
+
+        const prompts = records.map((r) => (typeof r.prompt === "string" ? r.prompt.trim() : "")).filter(Boolean);
+        if (prompts.length) {
+          setSearchValue(prompts.join(" · "));
+        }
+
+        setDietItems(mergedItems);
+        setNutritionSummary({
+          totals: mergedTotals,
+          itemCount: mergedItems.length,
+        });
+
+        const gutImpact = getGutImpactFromItems(mergedItems);
+        setGutImpactStatus(gutImpact.status);
+        setGutAnalysis(gutImpact.message);
+
+        if (mergedItems.length) {
+          setClickedNutritionLabel(true);
+        }
+      } catch (error) {
+        if (error?.code === "ERR_CANCELED" || error?.name === "CanceledError") return;
+        // eslint-disable-next-line no-console
+        console.error("Failed to load saved diet records:", error);
+      } finally {
+        if (!ac.signal.aborted) {
+          setDietLoading(false);
+        }
+      }
+    };
+
+    loadTodaySaved();
+    return () => {
+      ac.abort();
+    };
+  }, [api, auth?.user?.id, props.recordResult]);
+
   const handleSearch = async (value) => {
     const trimmed = (value || "").trim();
     if (!trimmed) return;
+    savedDietLoadAbortRef.current?.abort();
     setState("submitting");
     setDietLoading(true);
     try {
@@ -447,7 +530,6 @@ const DietRecord = (props) => {
         {!dietLoading && dietItems.length > 0 && (
           <div className="text-sm space-y-3">
             {dietItems.map((item, idx) => {
-              console.log(dietItems);
               const friendlyTags = getFriendlyTagsForItem(item);
               return (
                 <div key={`${item.food_name || idx}-${idx}`} className="flex">
