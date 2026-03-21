@@ -119,9 +119,14 @@ const Profile = () => {
     }
 
     try {
-      const updatedUser = await user.setProfileImage({ file });
+      // Clerk returns ImageResource { publicUrl }, not User — do not read imageUrl on it.
+      const imageResource = await user.setProfileImage({ file });
+      await user.reload();
       const finalUrl =
-        updatedUser?.profileImageUrl || updatedUser?.imageUrl || avatarUrl;
+        user.profileImageUrl ||
+        user.imageUrl ||
+        imageResource?.publicUrl ||
+        previewUrl;
 
       if (finalUrl) {
         if (previewUrl && previewUrl.startsWith("blob:")) {
@@ -134,6 +139,10 @@ const Profile = () => {
       // eslint-disable-next-line no-console
       console.error("Failed to update avatar in Clerk:", error);
       toast.error("Failed to update avatar. Please try again.");
+      if (previewUrl && previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      setAvatarUrl(auth?.user?.imageUrl || "");
     }
   };
 
@@ -180,7 +189,12 @@ const Profile = () => {
         }
         if (payload.height != null) setHeight(String(payload.height));
         if (payload.weight != null) setWeight(String(payload.weight));
-        if (payload.avatar) {
+        // Prefer Clerk (live) over Mongo avatar — DB can lag behind webhooks.
+        const clerkImg = user?.profileImageUrl || user?.imageUrl;
+        if (clerkImg) {
+          setAvatarLoading(true);
+          setAvatarUrl(clerkImg);
+        } else if (payload.avatar) {
           setAvatarLoading(true);
           setAvatarUrl(payload.avatar);
         }
@@ -191,7 +205,16 @@ const Profile = () => {
     };
 
     fetchProfile();
-  }, [api, auth?.user?.emailAddresses, auth?.user?.firstName, auth?.user?.id, auth?.user?.primaryEmailAddress, auth?.user?.username]);
+  }, [
+    api,
+    auth?.user?.emailAddresses,
+    auth?.user?.firstName,
+    auth?.user?.id,
+    auth?.user?.primaryEmailAddress,
+    auth?.user?.username,
+    user?.imageUrl,
+    user?.profileImageUrl,
+  ]);
 
   const submit = async (e) => {
     e.preventDefault();
