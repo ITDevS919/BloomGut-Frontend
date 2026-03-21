@@ -1,1 +1,0 @@
-import{j as s}from"./index-CxRgk0X5.js";const a=()=>s.jsx("div",{className:"flex items-center justify-center w-full py-8",children:s.jsxs("div",{className:"load-3","aria-label":"Loading",role:"status",children:[s.jsx("div",{className:"line"}),s.jsx("div",{className:"line"}),s.jsx("div",{className:"line"})]})});export{a as L};
