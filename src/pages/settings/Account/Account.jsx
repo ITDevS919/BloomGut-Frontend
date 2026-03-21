@@ -4,9 +4,10 @@ import {
   User,
   Plus,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "@clerk/clerk-react";
 import { FaShieldAlt } from "react-icons/fa";
 import { MdFolderShared } from "react-icons/md";
 import { FaLink, FaLock } from "react-icons/fa6";
@@ -38,6 +39,14 @@ const Account = () => {
   ];
 
   const auth = useSelector((state) => state.auth);
+  const { user } = useUser();
+  const avatarSrc =
+    user?.profileImageUrl || user?.imageUrl || auth?.user?.imageUrl || "";
+
+  useEffect(() => {
+    if (avatarSrc) setAvatarLoading(true);
+  }, [avatarSrc]);
+
   return (
     <div className="bg-ivory min-h-full p-6 text-primary">
       <div className="flex items-center gap-4 mb-[84px]">
@@ -55,7 +64,7 @@ const Account = () => {
       {/* User card */}
       <div className="bg-white flex items-center justify-between shadow-[0_4px_12px_rgba(0,0,0,0.08)] p-[14px] mb-[16px] rounded-[8px]">
         <div className="flex items-center gap-4">
-          {auth?.user?.imageUrl ? (
+          {avatarSrc ? (
             <div className="relative w-[50px] h-[50px]">
               {avatarLoading && (
                 <div className="absolute inset-0 rounded-full bg-[#f6f1ec] flex items-center justify-center animate-pulse">
@@ -63,7 +72,7 @@ const Account = () => {
                 </div>
               )}
               <img
-                src={auth.user.imageUrl}
+                src={avatarSrc}
                 alt={auth.user.username || "avatar"}
                 className="w-[50px] h-[50px] border-[#e5e7eb] rounded-full object-cover"
                 onLoad={() => setAvatarLoading(false)}

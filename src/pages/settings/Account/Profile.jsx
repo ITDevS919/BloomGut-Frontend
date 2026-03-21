@@ -133,6 +133,17 @@ const Profile = () => {
           URL.revokeObjectURL(previewUrl);
         }
         setAvatarUrl(finalUrl);
+        if (auth?.user?.id) {
+          try {
+            await api.post("/user/profile", {
+              userId: auth.user.id,
+              avatar: finalUrl,
+            });
+          } catch (syncErr) {
+            // eslint-disable-next-line no-console
+            console.warn("Avatar saved in Clerk but failed to sync to app profile:", syncErr);
+          }
+        }
       }
       // toast.success("Avatar updated.");
     } catch (error) {
