@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import useApiClient from "@/hooks/useApiClient";
+import { getSettingApp, postSettingApp } from "@/api/http";
 import { toast } from "sonner";
 
 const AccountSecurity = () => {
@@ -23,7 +24,7 @@ const AccountSecurity = () => {
 
     const fetchSecurity = async () => {
       try {
-        const res = await api.get("/setting/app", {
+        const res = await getSettingApp(api, {
           params: { userId: auth.user.id },
         });
         const payload = res.data?.data ?? res.data;
@@ -46,7 +47,7 @@ const AccountSecurity = () => {
     setTwoStep(next);
     setSecurityPercent(next ? 90 : 60);
     try {
-      await api.post("/setting/app", {
+      await postSettingApp(api, {
         userId: auth.user.id,
         twoFAEnabled: next,
       });

@@ -1,14 +1,12 @@
 import { BrowserRouter } from "react-router-dom";
 import "./App.css";
 import MainRoutes from "./routes/routes";
-import { Toaster } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
 import CustomThemeProvider from "./context/CustomThemeProvider";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { loginSuccess, logout } from "./store/slices/authSlice";
-import IapEntitlementSync from "./components/IapEntitlementSync";
-
 function App() {
   const { getToken } = useAuth();
   const { user, isLoaded } = useUser();
@@ -46,17 +44,12 @@ function App() {
   
   return (
     <>
-      <IapEntitlementSync />
       <BrowserRouter>
         <CustomThemeProvider>
-          <Toaster 
+          <Toaster
             position="bottom-center"
-            offset="80px"
-            toastOptions={{
-              style: {
-                marginTop: '80px',
-              },
-            }}
+            offset={{ bottom: "80px" }}
+            mobileOffset={{ bottom: "80px" }}
           />
           <MainRoutes />
         </CustomThemeProvider>

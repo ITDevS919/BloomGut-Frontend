@@ -5,6 +5,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
 import useApiClient from "@/hooks/useApiClient";
+import { putRecordWater } from "@/api/http";
 
 const DEFAULT_VOLUME = 250;
 
@@ -45,7 +46,7 @@ const CustomVolume = () => {
             return;
         }
         try {
-            const response = await api.put("/record/water", {
+            const response = await putRecordWater(api, {
                 userId: auth.user.id,
                 containerType: "custom",
                 specialContainerType: null,

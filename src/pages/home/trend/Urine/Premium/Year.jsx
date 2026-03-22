@@ -23,6 +23,7 @@ import { IoRestaurant } from "react-icons/io5";
 import { FaUtensils } from "react-icons/fa6";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import { postTrendUrineYearlyAdvice } from "@/api/http";
 
 const Year = ({ referenceDate }) => {
   const [showAnalysis, setShowAnalysis] = useState(false);
@@ -161,7 +162,7 @@ const Year = ({ referenceDate }) => {
             ? referenceDate.getFullYear()
             : new Date().getFullYear(),
         };
-        const res = await api.post("/trend/urine/yearlyAdvice", payload);
+        const res = await postTrendUrineYearlyAdvice(api, payload);
         const adv = res.data?.data ?? res.data;
         setYearlyAdvice(adv || null);
       } catch (error) {

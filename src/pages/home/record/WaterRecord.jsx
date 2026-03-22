@@ -9,6 +9,7 @@ import { FaBell } from "react-icons/fa6";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
 import useApiClient from "@/hooks/useApiClient";
+import { getRecordWaterToday, putRecordWater } from "@/api/http";
 import { loadWaterReminders } from "@/utils/waterReminders";
 import { useNavigate } from "react-router-dom";
 
@@ -63,7 +64,7 @@ const WaterRecord = () => {
     try {
       const referenceDate = new Date().toISOString();
       const timezoneOffsetMinutes = new Date().getTimezoneOffset();
-      const res = await api.get("/record/water/today", {
+      const res = await getRecordWaterToday(api, {
         params: { userId: auth.user.id, referenceDate, timezoneOffsetMinutes },
       });
       const data = res.data?.data ?? res.data;
@@ -126,7 +127,7 @@ const WaterRecord = () => {
     const specialContainerType = selectedSpecialValues[0] || null;
 
     try {
-      const response = await api.put("/record/water", {
+      const response = await putRecordWater(api, {
         userId: auth.user.id,
         containerType,
         specialContainerType,

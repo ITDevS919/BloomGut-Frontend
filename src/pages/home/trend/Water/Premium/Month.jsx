@@ -13,6 +13,7 @@ import { Sun, AlertTriangle, Moon, Clock } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import { getTrendWaterMonthlyWeeks } from "@/api/http";
 
 ChartJS.register(
   BarElement,
@@ -99,7 +100,7 @@ const Month = ({ referenceDate }) => {
           referenceDate && referenceDate.toISOString
             ? referenceDate.toISOString()
             : undefined;
-        const res = await api.get("/trend/water/monthlyWeeks", {
+        const res = await getTrendWaterMonthlyWeeks(api, {
           params: { userId: auth.user.id, referenceDate: ref },
         });
         const payload = res.data?.data ?? res.data;

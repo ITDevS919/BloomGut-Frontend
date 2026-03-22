@@ -10,6 +10,37 @@ html, body {
   padding: 0;
 }
 
+/* Sonner / shadcn-style surfaces (used by components/ui/sonner.tsx) */
+:root {
+  --popover: #ffffff;
+  --popover-foreground: #5d4037;
+  --border: #d9d9d9;
+  --radius: 0.75rem;
+}
+
+/*
+ * Sonner: `[data-sonner-toast][data-styled='true']` sets width: var(--width) (356px) with
+ * higher specificity than the library’s mobile rule, so toasts stay 356px+ and can overflow
+ * narrow viewports. Sonner’s CSS may also inject after this file. Force fluid width on small screens.
+ */
+@media (max-width: 400px) {
+  [data-sonner-toaster] {
+    max-width: 90vw;
+    box-sizing: border-box;
+  }
+
+  [data-sonner-toaster] [data-sonner-toast][data-styled="true"] {
+    width: calc(100% - var(--mobile-offset-left) * 2) !important;
+    max-width: calc(100vw - var(--mobile-offset-left) - var(--mobile-offset-right)) !important;
+    box-sizing: border-box;
+  }
+
+  [data-sonner-toast][data-styled="true"] [data-content],
+  [data-sonner-toast][data-styled="true"] [data-title] {
+    min-width: 0;
+  }
+}
+
 @theme {
   /* Brand / App */
   --color-primary: #5d4037;

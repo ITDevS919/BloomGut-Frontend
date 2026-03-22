@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSignUp } from "@clerk/clerk-react";
-import axios from "axios";
+import useApiClient from "@/hooks/useApiClient";
+import { postUserProfile } from "@/api/http";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,7 @@ import Loader from "@/components/common/Loader";
 
 const VerifyEmail = () => {
   const navigate = useNavigate();
+  const api = useApiClient();
   const { isLoaded, signUp, setActive } = useSignUp();
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
@@ -24,9 +26,7 @@ const VerifyEmail = () => {
       profile = null;
     }
 
-    const apiBaseUrl = import.meta.env.VITE_API_ENDPOINT;
-
-    await axios.post(`${apiBaseUrl}/user/profile`, {
+    await postUserProfile(api, {
       userId,
       username: profile?.username,
       email: profile?.email,

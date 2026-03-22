@@ -12,6 +12,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import {
+  getTrendWaterDailyMl,
+  getTrendWaterWeeklyTime,
+  postTrendWaterWeeklyAdvice,
+} from "@/api/http";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -54,10 +59,10 @@ const Week = ({ referenceDate }) => {
             ? referenceDate.toISOString()
             : undefined;
         const [dailyRes, weeklyTimeRes] = await Promise.all([
-          api.get("/trend/water/dailyMl", {
+          getTrendWaterDailyMl(api, {
             params: { userId: auth.user.id, referenceDate: ref },
           }),
-          api.get("/trend/water/weeklyTime", {
+          getTrendWaterWeeklyTime(api, {
             params: { userId: auth.user.id, referenceDate: ref },
           }),
         ]);
@@ -85,7 +90,7 @@ const Week = ({ referenceDate }) => {
           }
 
           try {
-            const adviceRes = await api.post("/trend/water/weeklyAdvice", {
+            const adviceRes = await postTrendWaterWeeklyAdvice(api, {
               morningMl: morning,
               noonMl: noon,
               afternoonMl: afternoon,

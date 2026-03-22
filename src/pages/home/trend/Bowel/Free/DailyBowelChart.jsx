@@ -23,7 +23,11 @@ ChartJS.register(
 );
 
 const DailyBowelChart = ({ data, options }) => {
-  return <Line data={data} options={options} />;
+  return (
+    <div className="relative h-full w-full min-h-0">
+      <Line data={data} options={options} />
+    </div>
+  );
 };
 
 export default DailyBowelChart;

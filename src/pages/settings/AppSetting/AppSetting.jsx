@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import { getSettingApp, postSettingApp } from "@/api/http";
 import { toast } from "sonner";
 
 const SectionDivider = () => <div className="h-px bg-[#e6e0dc]" />;
@@ -19,7 +20,7 @@ const AppSetting = () => {
     const fetchSettings = async () => {
       if (!auth?.user?.id) return;
       try {
-        const res = await api.get("/setting/app", {
+        const res = await getSettingApp(api, {
           params: { userId: auth.user.id },
         });
         const payload = res.data?.data ?? res.data;
@@ -48,7 +49,7 @@ const AppSetting = () => {
     setClearing(true);
     try {
       const now = new Date();
-      await api.post("/setting/app", {
+      await postSettingApp(api, {
         userId: auth.user.id,
         lastCacheClear: now.toISOString(),
       });

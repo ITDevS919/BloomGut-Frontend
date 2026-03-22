@@ -13,6 +13,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import {
+  getTrendUrineCompareWeeklyScore,
+  getTrendUrineWeeklyScore,
+  getTrendWaterDailyMl,
+  postTrendUrineHealthTips,
+} from "@/api/http";
 
 ChartJS.register(LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -44,7 +50,7 @@ const Week = ({ referenceDate }) => {
     const fetchWeeklyDots = async () => {
       setDotsLoading(true);
       try {
-        const response = await api.get("/trend/urine/weeklyScore", {
+        const response = await getTrendUrineWeeklyScore(api, {
           params: {
             userId: auth.user.id,
             referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
@@ -110,7 +116,7 @@ const Week = ({ referenceDate }) => {
     const fetchWaterIntake = async () => {
       setIntakeLoading(true);
       try {
-        const response = await api.get("/trend/water/dailyMl", {
+        const response = await getTrendWaterDailyMl(api, {
           params: {
             userId: auth.user.id,
             referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
@@ -143,7 +149,7 @@ const Week = ({ referenceDate }) => {
 
     const fetchWeeklyScores = async () => {
       try {
-        const response = await api.get("/trend/urine/compareWeeklyScore", {
+        const response = await getTrendUrineCompareWeeklyScore(api, {
           params: {
             userId: auth.user.id,
             referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
@@ -168,7 +174,7 @@ const Week = ({ referenceDate }) => {
     const fetchHealthTips = async () => {
       setHealthTipsLoading(true);
       try {
-        const response = await api.post("/trend/urine/healthTips", {
+        const response = await postTrendUrineHealthTips(api, {
           clarityRate,
           clearCount,
           yellowCount,

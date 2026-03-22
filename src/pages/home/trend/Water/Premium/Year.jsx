@@ -12,6 +12,7 @@ import { Droplet } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import { getTrendWaterYearlySummary } from "@/api/http";
 
 ChartJS.register(LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -59,7 +60,7 @@ const Year = ({ referenceDate }) => {
             ? referenceDate.toISOString()
             : undefined;
         setChartLoading(true);
-        const res = await api.get("/trend/water/yearlySummary", {
+        const res = await getTrendWaterYearlySummary(api, {
           params: { userId: auth.user.id, referenceDate: ref },
         });
         const payload = res.data?.data ?? res.data;

@@ -122,15 +122,16 @@ const PlanTwoTier = () => {
             type="button"
             className="w-[183px] flex items-center justify-center mx-auto py-2 rounded-lg text-secondary text-sm bg-[#FBB667] shadow-sm mb-[52px]"
             onClick={() => {
-              const url = trendTypeParam
-                ? `/setting/upgrade-plan/subscription?trendType=${encodeURIComponent(
-                    trendTypeParam
-                  )}&plan=premium`
-                : "/setting/upgrade-plan/subscription?plan=premium";
-              navigate(url);
+              if (trendTypeParam) {
+                navigate("/trend-analysis?plan=premium", {
+                  state: { trendType: trendTypeParam },
+                });
+              } else {
+                navigate("/trend-analysis?plan=premium");
+              }
             }}
           >
-            Subscribe
+            Use premium
           </button>
         </div>
       </div>

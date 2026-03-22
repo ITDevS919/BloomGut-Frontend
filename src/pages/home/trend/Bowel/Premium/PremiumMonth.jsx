@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import { postTrendBowelPremiumMonthAdvice } from "@/api/http";
 import Loader from "@/components/common/Loader";
 
 const PremiumMonth = () => {
@@ -115,7 +116,7 @@ const PremiumMonth = () => {
     const fetchPremiumMonthAdvice = async () => {
       setAiLoading(true);
       try {
-        const res = await api.post("/trend/bowel/premiumMonthAdvice", {
+        const res = await postTrendBowelPremiumMonthAdvice(api, {
           userId: auth.user.id,
         });
         const data = res.data?.data ?? res.data;

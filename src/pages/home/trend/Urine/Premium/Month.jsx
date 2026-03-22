@@ -22,6 +22,11 @@ import { Line, Scatter } from "react-chartjs-2";
 import { Info } from "lucide-react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import {
+  getTrendUrineMonthlyDailyVolume,
+  getTrendWaterMonthlyDailyMl,
+  postTrendUrineMonthlyAdvice,
+} from "@/api/http";
 
 const Month = ({ referenceDate }) => {
   const [mode, setMode] = useState("line");
@@ -43,7 +48,7 @@ const Month = ({ referenceDate }) => {
     const fetchMonthlyVolumes = async () => {
       setUrineLoading(true);
       try {
-        const response = await api.get("/trend/urine/monthlyDailyVolume", {
+        const response = await getTrendUrineMonthlyDailyVolume(api, {
           params: {
             userId: auth.user.id,
             referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
@@ -91,7 +96,7 @@ const Month = ({ referenceDate }) => {
     const fetchMonthlyIntake = async () => {
       setIntakeLoading(true);
       try {
-        const res = await api.get("/trend/water/monthlyDailyMl", {
+        const res = await getTrendWaterMonthlyDailyMl(api, {
           params: {
             userId: auth.user.id,
             referenceDate: referenceDate.toISOString(),
@@ -136,7 +141,7 @@ const Month = ({ referenceDate }) => {
           else highCount += 1;
         });
 
-        const res = await api.post("/trend/urine/monthlyAdvice", {
+        const res = await postTrendUrineMonthlyAdvice(api, {
           dailyVolumes: withVolume,
           avgVolume,
           highestDay: highest?.day ?? null,

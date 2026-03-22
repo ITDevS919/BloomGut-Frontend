@@ -20,7 +20,7 @@ const Upgrade = () => {
           <button 
             className="text-sm text-red-600 hover:underline"
             onClick={() =>
-              navigate("/setting/upgrade-plan/subscription?plan=premium&trendType=bowel")
+              navigate("/setting/upgrade-plan?trendType=bowel")
             }
           >
             Find bowel causes – Click

@@ -15,6 +15,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import {
+  getTrendUrineWeeklyScore,
+  getTrendWaterMonthlyTime,
+  postTrendWaterMonthlyAdvice,
+} from "@/api/http";
 import Free from "../Free";
 import Loader from "@/components/common/Loader";
 ChartJS.register(
@@ -138,7 +143,7 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
             ? referenceDate.toISOString()
             : undefined;
         const timezoneOffsetMinutes = new Date().getTimezoneOffset();
-        const response = await api.get("/trend/water/monthlyTime", {
+        const response = await getTrendWaterMonthlyTime(api, {
           params: { userId: auth.user.id, referenceDate: ref, timezoneOffsetMinutes },
         });
         const payload = response.data?.data || response.data;
@@ -192,7 +197,7 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
 
         setTipsLoading(true);
         try {
-          const adviceRes = await api.post("/trend/water/monthlyAdvice", {
+          const adviceRes = await postTrendWaterMonthlyAdvice(api, {
             morningMl: payload.morningMl ?? 0,
             noonMl: payload.noonMl ?? 0,
             afternoonMl: payload.afternoonMl ?? 0,
@@ -253,7 +258,7 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
             ? referenceDate.toISOString()
             : undefined;
         const timezoneOffsetMinutes = new Date().getTimezoneOffset();
-        const response = await api.get("/trend/urine/weeklyScore", {
+        const response = await getTrendUrineWeeklyScore(api, {
           params: { userId: auth.user.id, referenceDate: ref, timezoneOffsetMinutes },
         });
         const payload = response.data?.data || response.data;

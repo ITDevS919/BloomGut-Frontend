@@ -23,6 +23,7 @@ import { useEffect, useState } from "react";
 import Loader from "@/components/common/Loader";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import { getTrendDietYearlySummary, postTrendDietYearlyAdvice } from "@/api/http";
 
 const Year = ({ referenceDate }) => {
   const auth = useSelector((state) => state.auth);
@@ -65,7 +66,7 @@ const Year = ({ referenceDate }) => {
     const fetchYearly = async () => {
       setLoadingYear(true);
       try {
-        const res = await api.get("/trend/diet/yearlySummary", {
+        const res = await getTrendDietYearlySummary(api, {
           params: {
             userId: auth.user.id,
             referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
@@ -84,7 +85,7 @@ const Year = ({ referenceDate }) => {
 
         setLoadingAdvice(true);
         try {
-          const adviceRes = await api.post("/trend/diet/yearlyAdvice", {
+          const adviceRes = await postTrendDietYearlyAdvice(api, {
             userId: auth.user.id,
             referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
           });

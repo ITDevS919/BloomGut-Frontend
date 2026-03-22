@@ -13,6 +13,11 @@ import { FaUserDoctor } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useApiClient from "@/hooks/useApiClient";
+import {
+  getTrendBowelYearlyTopFoods,
+  getTrendBowelYearlyTrend,
+  postTrendBowelPremiumYearAdvice,
+} from "@/api/http";
 import { useSelector } from "react-redux";
 import Loader from "@/components/common/Loader";
 
@@ -300,10 +305,10 @@ const PremiumYear = () => {
         const timezoneOffsetMinutes = new Date().getTimezoneOffset();
 
         const [foodsRes, trendRes] = await Promise.all([
-          api.get("/trend/bowel/yearlyTopFoods", {
+          getTrendBowelYearlyTopFoods(api, {
             params: { userId: auth.user.id, referenceDate },
           }),
-          api.get("/trend/bowel/yearlyTrend", {
+          getTrendBowelYearlyTrend(api, {
             params: {
               userId: auth.user.id,
               referenceDate,
@@ -354,7 +359,7 @@ const PremiumYear = () => {
           seasonalTrend: Array.isArray(trendPayload?.seasonalTrend) ? trendPayload.seasonalTrend : [],
         };
 
-        const adviceRes = await api.post("/trend/bowel/premiumYearAdvice", advicePayload);
+        const adviceRes = await postTrendBowelPremiumYearAdvice(api, advicePayload);
         if (isCancelled) return;
 
         const adviceData = adviceRes.data?.data ?? adviceRes.data;

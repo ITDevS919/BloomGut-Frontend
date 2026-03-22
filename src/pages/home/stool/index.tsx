@@ -15,20 +15,21 @@ import { useNavigate } from "react-router-dom";
 import { MdEditNotifications } from "react-icons/md";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
-import StoolType1 from "@/assets/Images/stool-types/Stool type 1.png";
-import StoolType2 from "@/assets/Images/stool-types/Stool type 2.png";
-import StoolType3 from "@/assets/Images/stool-types/Stool type 3.png";
-import StoolType4 from "@/assets/Images/stool-types/Stool type 4.png";
-import StoolType5 from "@/assets/Images/stool-types/Stool type 5.png";
-import StoolType6 from "@/assets/Images/stool-types/Stool type 6.png";
-import StoolType7 from "@/assets/Images/stool-types/Stool type 7.png";
-import Type1 from "@/assets/Images/stool-types/Type 1.png";
-import Type2 from "@/assets/Images/stool-types/Type 2.png";
-import Type3 from "@/assets/Images/stool-types/Type 3.png";
-import Type4 from "@/assets/Images/stool-types/Type 4.png";
-import Type5 from "@/assets/Images/stool-types/Type 5.png";
-import Type6 from "@/assets/Images/stool-types/Type 6.png";
-import Type7 from "@/assets/Images/stool-types/Type 7.png";
+import { putRecordBowel } from "@/api/http";
+import StoolType1 from "@/assets/Images/stool-types/Stool type 1.webp";
+import StoolType2 from "@/assets/Images/stool-types/Stool type 2.webp";
+import StoolType3 from "@/assets/Images/stool-types/Stool type 3.webp";
+import StoolType4 from "@/assets/Images/stool-types/Stool type 4.webp";
+import StoolType5 from "@/assets/Images/stool-types/Stool type 5.webp";
+import StoolType6 from "@/assets/Images/stool-types/Stool type 6.webp";
+import StoolType7 from "@/assets/Images/stool-types/Stool type 7.webp";
+import Type1 from "@/assets/Images/stool-types/Type 1.webp";
+import Type2 from "@/assets/Images/stool-types/Type 2.webp";
+import Type3 from "@/assets/Images/stool-types/Type 3.webp";
+import Type4 from "@/assets/Images/stool-types/Type 4.webp";
+import Type5 from "@/assets/Images/stool-types/Type 5.webp";
+import Type6 from "@/assets/Images/stool-types/Type 6.webp";
+import Type7 from "@/assets/Images/stool-types/Type 7.webp";
 import { toast } from "sonner";
 
 const StoolPage = () => {
@@ -40,7 +41,7 @@ const StoolPage = () => {
   // params
   const [shapeValue, setShapeValue] = useState("");
   const [colorValue, setColorValue] = useState("");
-  const [amountValue, setAmountValue] = useState("medium");
+  const [amountValue, setAmountValue] = useState("Small");
   const [timeValue, setTimeValue] = useState("");
   const [frequencyValue, setFrequencyValue] = useState("");
   const [timeOfDayValue, setTimeOfDayValue] = useState([]);
@@ -144,7 +145,7 @@ const StoolPage = () => {
 
     setIsSaving(true);
     try {
-      const response = await api.put("/record/bowel", param);
+      const response = await putRecordBowel(api, param);
       toast.success(response.data.data);
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -396,6 +397,9 @@ const StoolPage = () => {
         <CustomHeading label="Amount" isRequired className="mb-[11px]" />
         <SegmentedControl
           labels={["Small", "Medium", "Large"]}
+          value={
+            amountValue === "Medium" ? 1 : amountValue === "Large" ? 2 : 0
+          }
           onChange={(value) => {
             if (value === 0) {
               setAmountValue("Small");

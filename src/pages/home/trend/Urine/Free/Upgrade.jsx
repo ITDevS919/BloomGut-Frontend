@@ -21,7 +21,7 @@ const Upgrade = () => {
         <button className="bg-[#FBC52D] text-white px-6 py-2 rounded-full shadow-md cursor-pointer"
           onClick={() =>
             navigate(
-              "/setting/upgrade-plan/subscription?plan=premium&trendType=urine"
+              "/setting/upgrade-plan?trendType=urine"
             )
           }
         >

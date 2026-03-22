@@ -2,6 +2,11 @@
 import { Suspense, useEffect, useState, lazy } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import {
+  getTrendBowelDailyCount,
+  getTrendBowelWeeklySummary,
+  postTrendBowelWeeklyAdvice,
+} from "@/api/http";
 import usePremiumEntitlement from "@/hooks/usePremiumEntitlement";
 import Type1Image from "@/assets/Images/bowel-types/Type 1.webp";
 import Type2Image from "@/assets/Images/bowel-types/Type 2.webp";
@@ -24,6 +29,7 @@ const Free = ({ showUpgrade = true }) => {
   const [loadingDailyCounts, setLoadingDailyCounts] = useState(false);
   const [loadingWeeklySummary, setLoadingWeeklySummary] = useState(false);
   const [hasRequestedAdvice, setHasRequestedAdvice] = useState(false);
+  const [loadingAiAdvice, setLoadingAiAdvice] = useState(false);
 
   // Daily bowel count data
   const [dailyData, setDailyData] = useState([1, 2, 3, 1, 2, 0, 1]);
@@ -56,7 +62,7 @@ const Free = ({ showUpgrade = true }) => {
         setLoadingDailyCounts(true);
         const referenceDate = new Date().toISOString();
         const timezoneOffsetMinutes = new Date().getTimezoneOffset();
-        const response = await api.get("/trend/bowel/dailyCount", {
+        const response = await getTrendBowelDailyCount(api, {
           params: {
             userId: auth.user.id,
             referenceDate,
@@ -85,7 +91,7 @@ const Free = ({ showUpgrade = true }) => {
         setLoadingWeeklySummary(true);
         const referenceDate = new Date().toISOString();
         const timezoneOffsetMinutes = new Date().getTimezoneOffset();
-        const response = await api.get("/trend/bowel/weeklySummary", {
+        const response = await getTrendBowelWeeklySummary(api, {
           params: {
             userId: auth.user.id,
             referenceDate,
@@ -233,6 +239,7 @@ const Free = ({ showUpgrade = true }) => {
 
     const run = async () => {
       try {
+        setLoadingAiAdvice(true);
         const summaryPayload = {
           score,
           status,
@@ -240,10 +247,7 @@ const Free = ({ showUpgrade = true }) => {
           typeDistribution: dailyTypeValues,
           dailyCounts: dailyData,
         };
-        const response = await api.post(
-          "/trend/bowel/weeklyAdvice",
-          summaryPayload
-        );
+        const response = await postTrendBowelWeeklyAdvice(api, summaryPayload);
         const payload = response.data?.data || response.data;
         if (isCancelled || !payload) return;
 
@@ -258,6 +262,10 @@ const Free = ({ showUpgrade = true }) => {
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Failed to load bowel weekly AI advice:", error);
+      } finally {
+        if (!isCancelled) {
+          setLoadingAiAdvice(false);
+        }
       }
     };
 
@@ -265,6 +273,7 @@ const Free = ({ showUpgrade = true }) => {
 
     return () => {
       isCancelled = true;
+      setLoadingAiAdvice(false);
     };
   }, [
     api,
@@ -277,6 +286,7 @@ const Free = ({ showUpgrade = true }) => {
     loadingDailyCounts,
     loadingWeeklySummary,
     hasRequestedAdvice,
+    premiumEntitled,
   ]);
 
   const hasTodayBowelRecord = (() => {
@@ -359,6 +369,13 @@ const Free = ({ showUpgrade = true }) => {
                 ? aiDayTooltips[index]
                 : null;
 
+            if (premiumEntitled && loadingAiAdvice) {
+              return [
+                "Preparing insight…",
+                "Your personalized day details will appear in a moment.",
+              ];
+            }
+
             // If no bowel movement recorded that day
             if (!value) {
               if (aiTooltip) {
@@ -397,7 +414,11 @@ const Free = ({ showUpgrade = true }) => {
             ];
           },
           afterBody: () =>
-            aiWeeklySummary ? ["Analyzed with System"] : [],
+            premiumEntitled && loadingAiAdvice
+              ? []
+              : aiWeeklySummary
+                ? ["Analyzed with System"]
+                : [],
           footer: () => "",
           labelTextColor: () => "#6b7280",
           afterBodyColor: () => "#9ca3af",
@@ -422,17 +443,9 @@ const Free = ({ showUpgrade = true }) => {
     },
     scales: {
       x: {
+        display: false,
         grid: { display: false },
         border: { display: false },
-        ticks: {
-          display: true,
-          color: "#6b7280",
-          font: {
-            size: 12,
-            weight: "medium",
-          },
-          padding: 10,
-        },
       },
       y: {
         display: false, // Hide Y-axis
@@ -443,7 +456,7 @@ const Free = ({ showUpgrade = true }) => {
     layout: {
       padding: {
         top: 10,
-        // bottom: 10,
+        bottom: 10,
         left: 10,
         right: 10,
       },
@@ -539,12 +552,12 @@ const Free = ({ showUpgrade = true }) => {
               className="h-2 rounded-full relative overflow-hidden"
               style={{
                 background: `linear-gradient(to right,
-                  ${BOWEL_PRIMARY_COLOR} 0%,
-                  ${BOWEL_PRIMARY_COLOR} 60%,
-                  #FBC02D 60%,
-                  #FBC02D 80%,
-                  #F66B6B 80%,
-                  #F66B6B 100%)`,
+                  #ff0000 0%,
+                  #ff0000 60%,
+                  #ffff00 60%,
+                  #ffff00 80%,
+                  #00ff00 80%,
+                  #00ff00 100%)`,
               }}
             >
               {/* Indicator (outer ring + inner fill) */}
@@ -609,11 +622,13 @@ const Free = ({ showUpgrade = true }) => {
                   >
                     <span className="text-white text-xs">{value}%</span>
                   </div>
-                ) : (
-                  <div className="w-full h-full flex items-end justify-center absolute bottom-0 pb-1">
-                    <span className="text-custom-1 text-xs">0%</span>
-                  </div>
-                )}
+                ) : null}
+              </div>
+              {/* Percent row below bar (0% only); reserved height keeps Type labels aligned */}
+              <div className="text-xs mt-1 min-h-5 flex items-center justify-center w-full">
+                {value === 0 ? (
+                  <span className="text-custom-1">0%</span>
+                ) : null}
               </div>
               {/* Label Below Bar */}
               <div className="text-xs text-primary mt-2 text-center">
@@ -636,27 +651,43 @@ const Free = ({ showUpgrade = true }) => {
       <div className="text-base pl-[15px] font-medium mb-5 text-primary">
         Daily Bowel Count
       </div>
-      <div className="bg-white rounded-[27px] p-6 shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[35px] relative">
-        <div className="h-50">
-          <Suspense
-            fallback={
-              <div className="flex items-center justify-center py-8 text-sm text-custom-12">
-                Loading chart…
-              </div>
-            }
-          >
-            <DailyBowelChart
-              data={dailyBowelChartData}
-              options={dailyBowelChartOptions}
-            />
-          </Suspense>
-        </div>
-
-        {loadingDailyCounts && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/60">
-            <Loader />
+      <div className="mb-[35px]">
+        <div className="bg-white rounded-[27px] px-6 pt-6 pb-6 shadow-[0_2px_4px_rgba(0,0,0,0.08)] relative">
+          <div className="relative h-50 w-full min-h-0">
+            <Suspense
+              fallback={
+                <div className="flex items-center justify-center py-8 text-sm text-custom-12">
+                  Loading chart…
+                </div>
+              }
+            >
+              <DailyBowelChart
+                data={dailyBowelChartData}
+                options={dailyBowelChartOptions}
+              />
+            </Suspense>
           </div>
-        )}
+
+          {loadingDailyCounts && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white/60 rounded-[27px]">
+              <Loader />
+            </div>
+          )}
+        </div>
+        {/* Day labels sit below the card; insets match card px-6 + chart layout.padding (10px) */}
+        <div
+          className="mt-3 flex w-full justify-between gap-0.5 text-xs font-medium text-[#6b7280]"
+          style={{
+            paddingLeft: "calc(1.5rem + 10px)",
+            paddingRight: "calc(1.5rem + 10px)",
+          }}
+        >
+          {days.map((d) => (
+            <span key={d} className="min-w-0 flex-1 text-center">
+              {d}
+            </span>
+          ))}
+        </div>
       </div>
 
       {showUpgrade && <Upgrade />}

@@ -14,7 +14,6 @@ const HelpSupport = () => {
     "Restore deleted data ?",
     "Data loss after phone change/reinstall ?",
     "Features not unlocked after upgrade?",
-    "One-time or auto subscription ?",
   ];
 
   const answers = [
@@ -49,12 +48,8 @@ const HelpSupport = () => {
       "If phone changed, re-login with the same account.",
     ],
     [
-      "Verify purchase on the account page.",
-      "Contact support with receipt if features remain locked.",
-    ],
-    [
-      "One-time purchases do not auto-renew.",
-      "Subscriptions renew automatically until canceled.",
+      "Open Settings → Plan and review free vs premium features.",
+      "Open Trend Analysis and use the plan selector (URL or in-app) for the premium views.",
     ],
   ];
 

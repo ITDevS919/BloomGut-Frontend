@@ -12,6 +12,7 @@ import { FaShieldAlt } from "react-icons/fa";
 import { MdFolderShared } from "react-icons/md";
 import { FaLink, FaLock } from "react-icons/fa6";
 import useApiClient from "@/hooks/useApiClient";
+import { getUserProfile } from "@/api/http";
 
 const Account = () => {
   const navigate = useNavigate();
@@ -91,7 +92,7 @@ const Account = () => {
     const load = async () => {
       setProfileLoading(true);
       try {
-        const res = await api.get("/user/profile", {
+        const res = await getUserProfile(api, {
           params: { userId: auth.user.id },
         });
         const payload = res.data?.data ?? res.data;

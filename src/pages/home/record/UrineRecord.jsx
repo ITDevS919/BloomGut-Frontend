@@ -12,6 +12,7 @@ import { useSelector } from "react-redux";
 import { set } from "react-hook-form";
 import { toast } from "sonner";
 import useApiClient from "@/hooks/useApiClient";
+import { putRecordUrine } from "@/api/http";
 
 const EstimatedUrinationTimeOptions = [
   {
@@ -178,7 +179,7 @@ const UrineRecord = () => {
       };
 
       try {
-        const response = await api.put("/record/urine", {
+        const response = await putRecordUrine(api, {
           userId: auth.user.id,
           ...param,
         });

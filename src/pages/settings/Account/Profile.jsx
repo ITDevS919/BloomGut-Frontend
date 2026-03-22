@@ -4,6 +4,7 @@ import { FaPencilAlt } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { useUser } from "@clerk/clerk-react";
 import useApiClient from "@/hooks/useApiClient";
+import { getUserProfile, postUserProfile } from "@/api/http";
 import { toast } from "sonner";
 
 const Profile = () => {
@@ -135,7 +136,7 @@ const Profile = () => {
         setAvatarUrl(finalUrl);
         if (auth?.user?.id) {
           try {
-            await api.post("/user/profile", {
+            await postUserProfile(api, {
               userId: auth.user.id,
               avatar: finalUrl,
             });
@@ -168,7 +169,7 @@ const Profile = () => {
 
     const fetchProfile = async () => {
       try {
-        const res = await api.get("/user/profile", {
+        const res = await getUserProfile(api, {
           params: { userId: auth.user.id },
         });
         const payload = res.data?.data ?? res.data;
@@ -271,7 +272,7 @@ const Profile = () => {
         typeof gender === "string" && gender.trim()
           ? gender.trim().toUpperCase()
           : undefined;
-      await api.post("/user/profile", {
+      await postUserProfile(api, {
         userId: auth.user.id,
         username,
         email,

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import { postTrendDietMonthlyAdvice } from "@/api/http";
 import Loader from "@/components/common/Loader";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -37,7 +38,7 @@ const Month = ({ referenceDate }) => {
     const fetchMonthlyDietAdvice = async () => {
       setLoading(true);
       try {
-        const res = await api.post("/trend/diet/monthlyAdvice", {
+        const res = await postTrendDietMonthlyAdvice(api, {
           userId: auth.user.id,
           referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
           timezoneOffsetMinutes: new Date().getTimezoneOffset(),

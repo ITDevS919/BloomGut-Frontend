@@ -32,6 +32,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import { getTrendUrineMonthlyDailyVolume, postTrendUrineMonthlyAdvice } from "@/api/http";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { MdErrorOutline, MdOutlineErrorOutline } from "react-icons/md";
 import Upgrade from "./Upgrade";
@@ -56,7 +57,7 @@ const Month = ({ referenceDate }) => {
     const fetchMonthlyVolumes = async () => {
       setChartLoading(true);
       try {
-        const response = await api.get("/trend/urine/monthlyDailyVolume", {
+        const response = await getTrendUrineMonthlyDailyVolume(api, {
           params: {
             userId: auth.user.id,
             referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
@@ -111,7 +112,7 @@ const Month = ({ referenceDate }) => {
           else highCount += 1;
         });
 
-        const res = await api.post("/trend/urine/monthlyAdvice", {
+        const res = await postTrendUrineMonthlyAdvice(api, {
           dailyVolumes: withVolume,
           avgVolume,
           highestDay: highest?.day ?? null,

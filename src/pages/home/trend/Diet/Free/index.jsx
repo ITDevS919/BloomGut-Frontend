@@ -3,6 +3,14 @@ import { Wheat, Beef, Salad, Milk, MoreHorizontal, UtensilsCrossed } from "lucid
 import Upgrade from "./Upgrade";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import {
+  getTrendBowelDailyTrendForDiet,
+  getTrendDietCategory,
+  getTrendDietDailySummary,
+  getTrendDietMacroWeekly,
+  getTrendDietTodayScore,
+  getTrendUrineWeeklyScore,
+} from "@/api/http";
 import Loader from "@/components/common/Loader";
 import GrainsImage from "@/assets/Images/diet-types/Grains.webp";
 import ProteinImage from "@/assets/Images/diet-types/Protein.webp";
@@ -75,7 +83,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
     const fetchDietScores = async () => {
       try {
-        const response = await api.get("/trend/diet/todayScore", {
+        const response = await getTrendDietTodayScore(api, {
           params: {
             userId: auth.user.id,
             referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
@@ -94,7 +102,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
     const checkTodayDietRecord = async () => {
       try {
-        const response = await api.get("/trend/diet/dailySummary", {
+        const response = await getTrendDietDailySummary(api, {
           params: {
             userId: auth.user.id,
             referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
@@ -124,7 +132,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
     const fetchWeeklyDots = async () => {
       try {
-        const response = await api.get("/trend/urine/weeklyScore", {
+        const response = await getTrendUrineWeeklyScore(api, {
           params: {
             userId: auth.user.id,
             referenceDate: referenceDate
@@ -180,7 +188,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
     const fetchDietCategory = async () => {
       try {
-        const res = await api.get("/trend/diet/category", {
+        const res = await getTrendDietCategory(api, {
           params: {
             userId: auth.user.id,
             referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
@@ -201,7 +209,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
     const fetchDietMacroWeekly = async () => {
       try {
-        const res = await api.get("/trend/diet/macroWeekly", {
+        const res = await getTrendDietMacroWeekly(api, {
           params: {
             userId: auth.user.id,
             referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
@@ -226,7 +234,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
     const fetchBowelTrend = async () => {
       try {
-        const res = await api.get("/trend/bowel/dailyTrendForDiet", {
+        const res = await getTrendBowelDailyTrendForDiet(api, {
           params: {
             userId: auth.user.id,
             referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
@@ -690,12 +698,12 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
             className="h-2 rounded-full relative overflow-hidden"
             style={{
               background: `linear-gradient(to right,
-                ${DIET_PRIMARY_COLOR} 0%,
-                ${DIET_PRIMARY_COLOR} 60%,
-                #FBC02D 60%,
-                #FBC02D 80%,
-                #F66B6B 80%,
-                #F66B6B 100%)`,
+                #ff0000 0%,
+                #ff0000 60%,
+                #ffff00 60%,
+                #ffff00 80%,
+                #00ff00 80%,
+                #00ff00 100%)`,
             }}
           >
             {/* Indicator (outer ring + inner fill) */}

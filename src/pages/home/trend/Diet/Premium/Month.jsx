@@ -5,6 +5,7 @@ import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import { postTrendDietMonthlyAdvice } from "@/api/http";
 import Loader from "@/components/common/Loader";
 
 ChartJS.register(ArcElement, Tooltip, ChartDataLabels);
@@ -64,7 +65,7 @@ const Month = ({ referenceDate }) => {
     const fetchMonthlyDietAdvice = async () => {
       setLoadingAdvice(true);
       try {
-        const res = await api.post("/trend/diet/monthlyAdvice", {
+        const res = await postTrendDietMonthlyAdvice(api, {
           userId: auth.user.id,
           referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
         });

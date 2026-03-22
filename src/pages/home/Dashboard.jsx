@@ -10,6 +10,94 @@ import { useNavigate } from "react-router-dom";
 
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import {
+  getRecordBowelRecent,
+  getRecordUrineRecent,
+  getTrendBowelDailyCount,
+  getTrendBowelWeeklySummary,
+  getTrendDietDailySummary,
+  getTrendUrineWeeklyScore,
+  getTrendWaterDailyMl,
+} from "@/api/http";
+
+const DOT_GREY = "#dfe1db";
+
+/** Stool color picker labels (see stool page) → hex */
+const BOWEL_STOOL_COLOR_HEX = {
+  brown: "#8b4513",
+  black: "#000000",
+  yellow: "#daa520",
+  red: "#990000",
+  green: "#556b2f",
+};
+
+/** Bristol-style fallback when color is missing */
+const BRISTOL_TYPE_COLORS = ["#9AD0A1", "#D4AE7C", "#E0B85C", "#B5652E", "#9CA3AF"];
+
+const shapeToBristolIndex = (shape) => {
+  const value = String(shape || "").toLowerCase();
+  if (value.includes("hard")) return 0;
+  if (value.includes("lumpy")) return 1;
+  if (value.includes("firm")) return 2;
+  if (value.includes("smooth")) return 3;
+  if (value.includes("soft") || value.includes("mushy") || value.includes("watery")) return 4;
+  return 2;
+};
+
+const hexForBowelRecord = (record) => {
+  const raw = String(record?.color || "").trim().toLowerCase();
+  if (raw) {
+    if (BOWEL_STOOL_COLOR_HEX[raw]) return BOWEL_STOOL_COLOR_HEX[raw];
+    const key = Object.keys(BOWEL_STOOL_COLOR_HEX).find((k) => raw.includes(k));
+    if (key) return BOWEL_STOOL_COLOR_HEX[key];
+  }
+  const idx = shapeToBristolIndex(record?.shape);
+  return BRISTOL_TYPE_COLORS[idx] ?? "#9ca3af";
+};
+
+/** Urine color slider labels (see UrineRecord) → hex */
+const URINE_COLOR_HEX = {
+  transparent: "#d0e8f2",
+  "pale yellow": "#fff9c4",
+  "light yellow": "#ffeb3b",
+  "dark yellow": "#fbc02d",
+  "deep yellow": "#f9a825",
+  "amber/brown": "#6d4c41",
+  amber: "#6d4c41",
+};
+
+const hexForUrineRecord = (record) => {
+  const raw = String(record?.color || "").trim().toLowerCase();
+  if (raw) {
+    if (URINE_COLOR_HEX[raw]) return URINE_COLOR_HEX[raw];
+    if (raw.includes("amber")) return URINE_COLOR_HEX["amber/brown"];
+    if (raw.includes("pale")) return URINE_COLOR_HEX["pale yellow"];
+    if (raw.includes("deep") || raw.includes("dark")) return URINE_COLOR_HEX["dark yellow"];
+    if (raw.includes("light")) return URINE_COLOR_HEX["light yellow"];
+    if (raw.includes("transparent")) return URINE_COLOR_HEX.transparent;
+  }
+  const cl = String(record?.clarity || "").toLowerCase();
+  if (cl.includes("clear")) return "#59ce8b";
+  if (cl.includes("slightly")) return "#ffdc6c";
+  if (cl.includes("noticeably")) return "#f66b6b";
+  return "#9ca3af";
+};
+
+/** `records` = newest first (API). Five slots, left→right time order; empty left slots = grey. */
+const buildFiveDotSlots = (records, hexForRecord) => {
+  const slots = Array.from({ length: 5 }, () => ({
+    filled: false,
+    hex: null,
+  }));
+  const n = Math.min(5, records.length);
+  for (let i = 0; i < n; i += 1) {
+    slots[4 - i] = {
+      filled: true,
+      hex: hexForRecord(records[i]),
+    };
+  }
+  return slots;
+};
 
 const InlineLoader = () => (
   <div className="dash-load-3">
@@ -30,7 +118,10 @@ const Dashboard = () => {
   const [bowelScore, setBowelScore] = useState(0);
   const [bowelStatus, setBowelStatus] = useState("Not Recorded");
   const [bowelChangePercent, setBowelChangePercent] = useState(0);
-  const [bowelSegments, setBowelSegments] = useState(0);
+  const [bowelDots, setBowelDots] = useState(() =>
+    Array.from({ length: 5 }, () => ({ filled: false, hex: null }))
+  );
+  const [bowelDotsLoading, setBowelDotsLoading] = useState(true);
 
   const [dietLoading, setDietLoading] = useState(false);
   const [dietIntakePercent, setDietIntakePercent] = useState(0);
@@ -39,11 +130,77 @@ const Dashboard = () => {
   const [waterIntakePercent, setWaterIntakePercent] = useState(0);
   const [waterStatus, setWaterStatus] = useState("Not Recorded");
   const [urineLoading, setUrineLoading] = useState(false);
-  const [urineSegments, setUrineSegments] = useState(0);
+  const [urineDots, setUrineDots] = useState(() =>
+    Array.from({ length: 5 }, () => ({ filled: false, hex: null }))
+  );
+  const [urineDotsLoading, setUrineDotsLoading] = useState(true);
   const [urineStatus, setUrineStatus] = useState("Not Recorded");
 
   const isPageLoading =
-    bowelLoading || dietLoading || waterLoading || urineLoading;
+    bowelLoading ||
+    dietLoading ||
+    waterLoading ||
+    urineLoading ||
+    bowelDotsLoading ||
+    urineDotsLoading;
+
+  useEffect(() => {
+    if (!auth?.user?.id) {
+      setBowelDots(Array.from({ length: 5 }, () => ({ filled: false, hex: null })));
+      setBowelDotsLoading(false);
+      setUrineDots(Array.from({ length: 5 }, () => ({ filled: false, hex: null })));
+      setUrineDotsLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadRecentDots = async () => {
+      setBowelDotsLoading(true);
+      setUrineDotsLoading(true);
+      try {
+        const [bowelRes, urineRes] = await Promise.all([
+          getRecordBowelRecent(api, {
+            params: { userId: auth.user.id, limit: 5 },
+          }),
+          getRecordUrineRecent(api, {
+            params: { userId: auth.user.id, limit: 5 },
+          }),
+        ]);
+
+        if (cancelled) return;
+
+        const bowelPayload = bowelRes.data?.data ?? bowelRes.data;
+        const bowelRecords = Array.isArray(bowelPayload?.records)
+          ? bowelPayload.records
+          : [];
+        setBowelDots(buildFiveDotSlots(bowelRecords, hexForBowelRecord));
+
+        const urinePayload = urineRes.data?.data ?? urineRes.data;
+        const urineRecords = Array.isArray(urinePayload?.records)
+          ? urinePayload.records
+          : [];
+        setUrineDots(buildFiveDotSlots(urineRecords, hexForUrineRecord));
+      } catch (error) {
+        if (!cancelled) {
+          // eslint-disable-next-line no-console
+          console.error("Failed to load recent record dots for dashboard:", error);
+          setBowelDots(Array.from({ length: 5 }, () => ({ filled: false, hex: null })));
+          setUrineDots(Array.from({ length: 5 }, () => ({ filled: false, hex: null })));
+        }
+      } finally {
+        if (!cancelled) {
+          setBowelDotsLoading(false);
+          setUrineDotsLoading(false);
+        }
+      }
+    };
+
+    loadRecentDots();
+    return () => {
+      cancelled = true;
+    };
+  }, [api, auth?.user?.id]);
 
   useEffect(() => {
     if (!auth?.user?.id) return;
@@ -54,7 +211,7 @@ const Dashboard = () => {
         // First, check whether there is any bowel record *today* using the dailyCount API.
         let hasTodayRecord = false;
         try {
-          const dailyRes = await api.get("/trend/bowel/dailyCount", {
+          const dailyRes = await getTrendBowelDailyCount(api, {
             params: { userId: auth.user.id },
           });
           const dailyPayload = dailyRes.data?.data ?? dailyRes.data;
@@ -77,7 +234,7 @@ const Dashboard = () => {
           // If this check fails, we fall back to weekly summary logic below.
         }
 
-        const res = await api.get("/trend/bowel/weeklySummary", {
+        const res = await getTrendBowelWeeklySummary(api, {
           params: { userId: auth.user.id },
         });
         const payload = res.data?.data ?? res.data;
@@ -93,7 +250,6 @@ const Dashboard = () => {
         // show "Not Recorded" regardless of weekly aggregates.
         if (!hasTodayRecord) {
           setBowelStatus("Not Recorded");
-          setBowelSegments(0);
           return;
         }
 
@@ -106,7 +262,6 @@ const Dashboard = () => {
 
         if (!hasAnyType) {
           setBowelStatus("Not Recorded");
-          setBowelSegments(0);
           return;
         }
 
@@ -122,12 +277,6 @@ const Dashboard = () => {
             : typeof payload.dailyScores?.[jsDay] === "number"
             ? payload.dailyScores[jsDay]
             : score;
-
-        // Map today's score 0–100 to 0–5 segments (0 means effectively "no data")
-        const rawSegments = Math.round(todayScore / 20);
-        const clampedSegments =
-          todayScore > 0 ? Math.max(1, Math.min(5, rawSegments)) : 0;
-        setBowelSegments(clampedSegments);
 
         let statusText = "";
         if (todayScore <= 0 && !payload.status) {
@@ -147,7 +296,6 @@ const Dashboard = () => {
         // eslint-disable-next-line no-console
         console.error("Failed to load bowel weekly summary for dashboard:", error);
         setBowelStatus("Not Recorded");
-        setBowelSegments(0);
       } finally {
         setBowelLoading(false);
       }
@@ -162,7 +310,7 @@ const Dashboard = () => {
     const fetchDietToday = async () => {
       setDietLoading(true);
       try {
-        const res = await api.get("/trend/diet/dailySummary", {
+        const res = await getTrendDietDailySummary(api, {
           params: {
             userId: auth.user.id,
             referenceDate: new Date().toISOString(),
@@ -218,7 +366,7 @@ const Dashboard = () => {
     const fetchWaterToday = async () => {
       setWaterLoading(true);
       try {
-        const res = await api.get("/trend/water/dailyMl", {
+        const res = await getTrendWaterDailyMl(api, {
           params: {
             userId: auth.user.id,
             referenceDate: new Date().toISOString(),
@@ -284,7 +432,7 @@ const Dashboard = () => {
       setUrineLoading(true);
       try {
         const ref = new Date().toISOString();
-        const res = await api.get("/trend/urine/weeklyScore", {
+        const res = await getTrendUrineWeeklyScore(api, {
           params: {
             userId: auth.user.id,
             referenceDate: ref,
@@ -294,7 +442,6 @@ const Dashboard = () => {
         const payload = res.data?.data ?? res.data;
         const scores = Array.isArray(payload) ? payload : [];
         if (!scores.length) {
-          setUrineSegments(0);
           setUrineStatus("Not Recorded");
           return;
         }
@@ -309,15 +456,9 @@ const Dashboard = () => {
         const todayScore = todayEntry ? Number(todayEntry.score || 0) : 0;
 
         if (!todayEntry || todayScore <= 0) {
-          setUrineSegments(0);
           setUrineStatus("Not Recorded");
           return;
         }
-
-        // Map today's score 0–100 to segments 1–5
-        const rawSegments = Math.round(todayScore / 20);
-        const clampedSegments = Math.max(1, Math.min(5, rawSegments));
-        setUrineSegments(clampedSegments);
 
         let statusText = "";
         if (todayScore < 40) statusText = "Needs attention";
@@ -327,7 +468,6 @@ const Dashboard = () => {
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Failed to load urine weekly score for dashboard:", error);
-        setUrineSegments(0);
         setUrineStatus("Not Recorded");
       } finally {
         setUrineLoading(false);
@@ -366,32 +506,27 @@ const Dashboard = () => {
                   <span className="text-primary-muted text-base">
                     Bowel Status
                   </span>
-                  {bowelLoading ? (
+                  {bowelDotsLoading ? (
                     <div className="flex items-center justify-start h-7 mt-1">
                       <InlineLoader />
                     </div>
                   ) : (
                     <>
                       <div className="flex gap-2">
-                        {Array.from({ length: 5 }).map((_, index) => {
-                          const isActive = index < bowelSegments;
-                          const baseClass =
-                            "h-6 w-6 rounded-full transition-all duration-300";
-                          return (
-                            <p
-                              // eslint-disable-next-line react/no-array-index-key
-                              key={index}
-                              className={
-                                isActive
-                                  ? `${baseClass} bg-custom-13`
-                                  : `${baseClass} bg-[#dfe1db]`
-                              }
-                            />
-                          );
-                        })}
+                        {bowelDots.map((dot, index) => (
+                          <div
+                            // eslint-disable-next-line react/no-array-index-key
+                            key={index}
+                            className="h-6 w-6 rounded-full transition-all duration-300 shrink-0 border border-black/5"
+                            style={{
+                              backgroundColor:
+                                dot.filled && dot.hex ? dot.hex : DOT_GREY,
+                            }}
+                          />
+                        ))}
                       </div>
                       <p className="text-primary-muted text-base">
-                        {bowelStatus}
+                        {bowelLoading ? "…" : bowelStatus}
                       </p>
                     </>
                   )}
@@ -535,32 +670,27 @@ const Dashboard = () => {
                   <span className="text-primary-muted text-base">
                     Urine Status
                   </span>
-                  {urineLoading ? (
+                  {urineDotsLoading ? (
                     <div className="flex items-center justify-start h-7 mt-1">
                       <InlineLoader />
                     </div>
                   ) : (
                     <>
-                      <div className="flex gap-1">
-                        {Array.from({ length: 5 }).map((_, index) => {
-                          const baseClass =
-                            "h-6 w-6 rounded-full transition-all duration-300";
-                          const isActive = index < urineSegments;
-                          return (
+                      <div className="flex gap-2">
+                        {urineDots.map((dot, index) => (
+                          <div
                             // eslint-disable-next-line react/no-array-index-key
-                            <p
-                              key={index}
-                              className={
-                                isActive
-                                  ? `${baseClass} bg-[#facc15]`
-                                  : `${baseClass} bg-[#dfe1db]`
-                              }
-                            />
-                          );
-                        })}
+                            key={index}
+                            className="h-6 w-6 rounded-full transition-all duration-300 shrink-0 border border-black/5"
+                            style={{
+                              backgroundColor:
+                                dot.filled && dot.hex ? dot.hex : DOT_GREY,
+                            }}
+                          />
+                        ))}
                       </div>
                       <p className="text-primary-muted text-base">
-                        {urineStatus}
+                        {urineLoading ? "…" : urineStatus}
                       </p>
                     </>
                   )}

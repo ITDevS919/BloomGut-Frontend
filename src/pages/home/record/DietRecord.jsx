@@ -11,6 +11,12 @@ import { FaGlassWhiskey } from "react-icons/fa";
 import { CustomCheckboxWater } from "@/components/custom/CustomCheckbox(Water)";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import {
+  getRecordDietToday,
+  getTrendDietGutImpactCalendar,
+  postRecordDiet,
+  postThirdPartyDiet,
+} from "@/api/http";
 import { toast } from "sonner";
 
 const InlineLoader = () => (
@@ -176,7 +182,7 @@ const DietRecord = (props) => {
     const fetchCalendar = async () => {
       setCalendarLoading(true);
       try {
-        const response = await api.get("/trend/diet/gutImpactCalendar", {
+        const response = await getTrendDietGutImpactCalendar(api, {
           params: {
             userId: auth.user.id,
             referenceDate: currentDate.toISOString(),
@@ -212,7 +218,7 @@ const DietRecord = (props) => {
     const loadTodaySaved = async () => {
       setDietLoading(true);
       try {
-        const response = await api.get("/record/diet/today", {
+        const response = await getRecordDietToday(api, {
           params: {
             userId: auth.user.id,
             referenceDate: new Date().toISOString(),
@@ -289,7 +295,7 @@ const DietRecord = (props) => {
     setState("submitting");
     setDietLoading(true);
     try {
-      const response = await api.post("/third-party/diet", {
+      const response = await postThirdPartyDiet(api, {
         prompt: trimmed,
       });
       const payload = response.data?.data || response.data;
@@ -804,7 +810,7 @@ const DietRecord = (props) => {
         </>
       )}
 
-      {/* <div className="text-primary mt-5 mb-[63px]">
+      <div className="text-primary mt-5 mb-[63px]">
         <div className="font-medium">Gut Trends</div>
         <div className="flex justify-center bg-white rounded-[27px] shadow-[0_4px_12px_rgba(0,0,0,0.08)] p-6 mt-3">
           <div className="bg-gray-200 rounded-[24px] h-12 w-56 text-center flex items-center justify-center text-sm">
@@ -812,7 +818,8 @@ const DietRecord = (props) => {
             <MdHttps className="text-custom-9 w-[24px] h-[24px]" />
           </div>
         </div>
-      </div> */}
+      </div>
+
 
       <button
         type="button"
@@ -829,7 +836,7 @@ const DietRecord = (props) => {
           }
           try {
             setSaving(true);
-            const res = await api.post("/record/diet", {
+            const res = await postRecordDiet(api, {
               userId: auth.user.id,
               prompt: searchValue,
               items: dietItems,

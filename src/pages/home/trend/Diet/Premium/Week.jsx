@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import { getTrendDietMacroWeekly, postTrendDietWeeklyAdvice } from "@/api/http";
 import Loader from "@/components/common/Loader";
 
 ChartJS.register(LinearScale, PointElement, Tooltip);
@@ -130,7 +131,7 @@ const Week = ({ referenceDate }) => {
       setLoadingAdvice(true);
       try {
         // Reuse weekly macro scores as the basis for premium analysis
-        const res = await api.get("/trend/diet/macroWeekly", {
+        const res = await getTrendDietMacroWeekly(api, {
           params: {
             userId: auth.user.id,
             referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
@@ -157,7 +158,7 @@ const Week = ({ referenceDate }) => {
             5
         );
 
-        const adviceRes = await api.post("/trend/diet/weeklyAdvice", {
+        const adviceRes = await postTrendDietWeeklyAdvice(api, {
           fiberAvg: fiber,
           proteinAvg: protein,
           fatAvg: fat,

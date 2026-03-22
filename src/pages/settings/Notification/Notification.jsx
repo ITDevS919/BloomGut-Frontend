@@ -2,6 +2,7 @@ import { ChevronLeft } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import { getSettingApp, postSettingApp } from "@/api/http";
 import { toast } from "sonner";
 
 const Switch = ({ checked, onChange }) => {
@@ -67,7 +68,7 @@ const Notification = () => {
     const fetchSettings = async () => {
       setLoading(true);
       try {
-        const res = await api.get("/setting/app", {
+        const res = await getSettingApp(api, {
           params: { userId: auth.user.id },
         });
         const payload = res.data?.data ?? res.data;
@@ -103,7 +104,7 @@ const Notification = () => {
     if (!auth?.user?.id) return;
     setSaving(true);
     try {
-      await api.post("/setting/app", {
+      await postSettingApp(api, {
         userId: auth.user.id,
         oneClickOpen: nextState.oneClickOpen,
         notifications: {

@@ -21,7 +21,7 @@ const Upgrade = () => {
         <button className="bg-[#28B070] text-white px-6 py-2 rounded-[22px] font-['Mulish'] border border-white shadow-md cursor-pointer"
           onClick={() =>
             navigate(
-              "/setting/upgrade-plan/subscription?plan=premium&trendType=diet"
+              "/setting/upgrade-plan?trendType=diet"
             )
           }
         >

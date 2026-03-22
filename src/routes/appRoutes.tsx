@@ -54,9 +54,6 @@ const HelpSupport = lazy(
   () => import("@/pages/settings/HelpSupport/HelpSupport"),
 );
 const Plan = lazy(() => import("@/pages/settings/Plan/PlanTwoTier"));
-const SubScription = lazy(
-  () => import("@/pages/settings/Plan/SubScription"),
-);
 const FoodRecord = lazy(() => import("@/pages/home/record/FoodRecord"));
 const DietRecord = lazy(() => import("@/pages/home/record/DietRecord"));
 const Record = lazy(() => import("@/pages/home/record"));
@@ -321,15 +318,6 @@ export const SETTING_ROUTES = [
     element: (
       <PrivateLayout>
         <Plan />
-      </PrivateLayout>
-    ),
-    isRouteAccessible: true,
-  },
-  {
-    path: "/setting/upgrade-plan/subscription",
-    element: (
-      <PrivateLayout>
-        <SubScription />
       </PrivateLayout>
     ),
     isRouteAccessible: true,

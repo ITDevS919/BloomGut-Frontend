@@ -12,6 +12,7 @@ import { AlertTriangle, CheckCircle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import { getTrendDietMacroWeekly, postTrendDietWeeklyAdvice } from "@/api/http";
 import Free from "../Free";
 import Loader from "@/components/common/Loader";
 
@@ -48,7 +49,7 @@ const Week = ({ referenceDate }) => {
     const fetchWeeklyMacrosAndAdvice = async () => {
       setLoading(true);
       try {
-        const res = await api.get("/trend/diet/macroWeekly", {
+        const res = await getTrendDietMacroWeekly(api, {
           params: {
             userId: auth.user.id,
             referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
@@ -84,7 +85,7 @@ const Week = ({ referenceDate }) => {
 
         setAiLoading(true);
         try {
-          const adviceRes = await api.post("/trend/diet/weeklyAdvice", {
+          const adviceRes = await postTrendDietWeeklyAdvice(api, {
             fiberAvg: fiber,
             proteinAvg: protein,
             fatAvg: fat,

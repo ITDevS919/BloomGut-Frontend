@@ -3,6 +3,11 @@ import { FaSmile } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import {
+  getTrendUrineCompareWeeklyScore,
+  getTrendUrineWeeklyScore,
+  postTrendUrineHealthTips,
+} from "@/api/http";
 import Loader from "@/components/common/Loader";
 
 const URINE_PRIMARY_COLOR = "#F09129";
@@ -43,7 +48,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
     const fetchWeeklyDots = async () => {
       try {
-        const response = await api.get("/trend/urine/weeklyScore", {
+        const response = await getTrendUrineWeeklyScore(api, {
           params: {
             userId: auth.user.id,
             referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
@@ -107,7 +112,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
     const fetchWeeklyScores = async () => {
       try {
-        const response = await api.get("/trend/urine/compareWeeklyScore", {
+        const response = await getTrendUrineCompareWeeklyScore(api, {
           params: {
             userId: auth.user.id,
             referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
@@ -135,7 +140,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
     const fetchHealthTips = async () => {
       setTipsLoaded(false);
       try {
-        const response = await api.post("/trend/urine/healthTips", {
+        const response = await postTrendUrineHealthTips(api, {
           clarityRate,
           clearCount,
           yellowCount,
@@ -229,12 +234,12 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
             className="h-2 rounded-full relative overflow-hidden"
             style={{
               background: `linear-gradient(to right,
-                ${URINE_PRIMARY_COLOR} 0%,
-                ${URINE_PRIMARY_COLOR} 60%,
-                #FBC02D 60%,
-                #FBC02D 80%,
-                #F66B6B 80%,
-                #F66B6B 100%)`,
+                #ff0000 0%,
+                #ff0000 60%,
+                #ffff00 60%,
+                #ffff00 80%,
+                #00ff00 80%,
+                #00ff00 100%)`,
             }}
           >
             {/* Indicator (outer ring + inner fill) */}

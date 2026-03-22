@@ -12,6 +12,7 @@ import { AlertTriangle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import { getTrendWaterWeeklyTime, postTrendWaterWeeklyAdvice } from "@/api/http";
 import Upgrade from "./Upgrade";
 import Free from "../Free";
 import Loader from "@/components/common/Loader";
@@ -58,7 +59,7 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
             ? referenceDate.toISOString()
             : undefined;
         const timezoneOffsetMinutes = new Date().getTimezoneOffset();
-        const response = await api.get("/trend/water/weeklyTime", {
+        const response = await getTrendWaterWeeklyTime(api, {
           params: { userId: auth.user.id, referenceDate: ref, timezoneOffsetMinutes },
         });
         const payload = response.data?.data || response.data;
@@ -106,7 +107,7 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
     const fetchWeeklyAdvice = async () => {
       setAdviceLoading(true);
       try {
-        const response = await api.post("/trend/water/weeklyAdvice", {
+        const response = await postTrendWaterWeeklyAdvice(api, {
           morningMl: timeMl.morningMl,
           noonMl: timeMl.noonMl,
           afternoonMl: timeMl.afternoonMl,

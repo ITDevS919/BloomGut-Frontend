@@ -4,6 +4,12 @@ import { Doughnut } from "react-chartjs-2";
 import { Sun, Moon, AlertTriangle } from "lucide-react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import {
+  getTrendUrineWeeklyDayNight,
+  getTrendUrineWeeklyScore,
+  getTrendWaterWeeklyTime,
+  postTrendUrineWeeklyAdvice,
+} from "@/api/http";
 import Loader from "@/components/common/Loader";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -78,7 +84,7 @@ const Week = ({ referenceDate }) => {
     const fetchDayNight = async () => {
       setChartLoading(true);
       try {
-        const response = await api.get("/trend/urine/weeklyDayNight", {
+        const response = await getTrendUrineWeeklyDayNight(api, {
           params: {
             userId: auth.user.id,
             referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
@@ -115,7 +121,7 @@ const Week = ({ referenceDate }) => {
     const fetchWeeklyAdvice = async () => {
       setAdviceLoading(true);
       try {
-        const response = await api.post("/trend/urine/weeklyAdvice", {
+        const response = await postTrendUrineWeeklyAdvice(api, {
           daytimeEpisodes,
           nightEpisodes,
           daytimePercent,
@@ -184,7 +190,7 @@ const Week = ({ referenceDate }) => {
     const fetchWeeklyClarity = async () => {
       setClarityLoading(true);
       try {
-        const response = await api.get("/trend/urine/weeklyScore", {
+        const response = await getTrendUrineWeeklyScore(api, {
           params: {
             userId: auth.user.id,
             referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
@@ -300,7 +306,7 @@ const Week = ({ referenceDate }) => {
     const fetchWeeklyTime = async () => {
       setTimeLoading(true);
       try {
-        const response = await api.get("/trend/water/weeklyTime", {
+        const response = await getTrendWaterWeeklyTime(api, {
           params: {
             userId: auth.user.id,
             referenceDate: referenceDate ? referenceDate.toISOString() : undefined,

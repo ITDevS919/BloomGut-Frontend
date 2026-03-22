@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect, useState } from "react";
 import Upgrade from "./Upgrade";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
+import { getTrendWaterDailyMl, getTrendWaterWeeklySummary } from "@/api/http";
 import Loader from "@/components/common/Loader";
 
 const WATER_PRIMARY_COLOR = "#4682B4";
@@ -147,7 +148,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
             ? referenceDate.toISOString()
             : undefined;
         const timezoneOffsetMinutes = new Date().getTimezoneOffset();
-        const response = await api.get("/trend/water/dailyMl", {
+        const response = await getTrendWaterDailyMl(api, {
           params: { userId: auth.user.id, referenceDate: ref, timezoneOffsetMinutes },
         });
         const payload = response.data?.data || response.data;
@@ -175,7 +176,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
             : undefined;
         const timezoneOffsetMinutes = new Date().getTimezoneOffset();
 
-        const response = await api.get("/trend/water/weeklySummary", {
+        const response = await getTrendWaterWeeklySummary(api, {
           params: {
             userId: auth.user.id,
             referenceDate: ref,
@@ -284,12 +285,12 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
             className="h-2 rounded-full relative overflow-hidden"
             style={{
               background: `linear-gradient(to right,
-                ${WATER_PRIMARY_COLOR} 0%,
-                ${WATER_PRIMARY_COLOR} 60%,
-                #FBC02D 60%,
-                #FBC02D 80%,
-                #F66B6B 80%,
-                #F66B6B 100%)`,
+                #ff0000 0%,
+                #ff0000 60%,
+                #ffff00 60%,
+                #ffff00 80%,
+                #00ff00 80%,
+                #00ff00 100%)`,
             }}
           >
             {/* Indicator (outer ring + inner fill) */}
