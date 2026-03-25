@@ -549,7 +549,7 @@ const Free = ({ showUpgrade = true }) => {
           {/* Progress Bar (Health Score) */}
           <div className="mt-4">
             <div
-              className="h-2 rounded-full relative overflow-hidden"
+              className="h-2 rounded-full relative overflow-visible"
               style={{
                 background: `linear-gradient(to right,
                   #ff0000 0%,

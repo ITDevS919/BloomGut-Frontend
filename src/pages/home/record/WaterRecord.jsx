@@ -81,7 +81,9 @@ const WaterRecord = () => {
   }, [fetchTodayRecords]);
 
   const handleViewTrend = () => {
-    window.open("/trend-analysis?trendType=water", "_blank", "noopener,noreferrer");
+    // `Trend` page uses `location.state.trendType` (router state), not the query string.
+    // Navigate inside the app so the correct trend is rendered.
+    navigate("/trend-analysis", { state: { trendType: "water" } });
   };
 
   const parseMl = (value) => {
@@ -448,7 +450,7 @@ function TodaysRecord({ waterReminders, onViewTrend, todayRecords = [] }) {
             <button
               type="button"
               className="text-sm font-medium text-[#79B6E2] hover:underline shrink-0"
-              onClick={() => window.open("/reminders", "_blank", "noopener,noreferrer")}
+              onClick={() => navigate("/reminders")}
             >
               Manage
             </button>
@@ -465,7 +467,7 @@ function TodaysRecord({ waterReminders, onViewTrend, todayRecords = [] }) {
           <button
             type="button"
             className="w-[99px] bg-white border border-custom-16 rounded-[8px] px-2 py-1 text-sm text-secondary shadow-[0_2px_6px_#afafaf]"
-            onClick={() => window.open("/reminders", "_blank", "noopener,noreferrer")}
+            onClick={() => navigate("/reminders")}
           >
             Reminders
           </button>
