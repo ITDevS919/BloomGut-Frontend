@@ -7,12 +7,10 @@ import { Provider } from "react-redux";
 import { store } from "./store";
 import { ApiClientProvider } from "./context/ApiClientProvider.jsx";
 
-const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.trim();
 if (!publishableKey) {
   throw new Error("Add your Clerk Publishable Key to the .env file");
 }
-
-console.log(publishableKey);
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
