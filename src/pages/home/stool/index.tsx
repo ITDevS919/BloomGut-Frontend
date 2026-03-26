@@ -15,7 +15,7 @@ import { useNavigate } from "react-router-dom";
 import { MdEditNotifications } from "react-icons/md";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
-import { putRecordBowel } from "@/api/http";
+import { putRecordBowel, getRecordBowelRecent } from "@/api/http";
 import StoolType1 from "@/assets/Images/stool-types/Stool type 1.webp";
 import StoolType2 from "@/assets/Images/stool-types/Stool type 2.webp";
 import StoolType3 from "@/assets/Images/stool-types/Stool type 3.webp";
@@ -71,6 +71,32 @@ const StoolPage = () => {
 
   // Save loading state
   const [isSaving, setIsSaving] = useState(false);
+
+  // Historical records
+  const [recentRecords, setRecentRecords] = useState([]);
+  const [recordsLoading, setRecordsLoading] = useState(false);
+
+  // Load recent records on mount
+  useEffect(() => {
+    const loadRecentRecords = async () => {
+      if (!auth?.user?.id) return;
+      setRecordsLoading(true);
+      try {
+        const response = await getRecordBowelRecent(api, {
+          params: { userId: auth.user.id, limit: 10 },
+        });
+        const payload = response.data?.data ?? response.data;
+        const records = Array.isArray(payload?.records) ? payload.records : [];
+        setRecentRecords(records);
+      } catch (error) {
+        console.error("Failed to load recent stool records:", error);
+        toast.error("Failed to load recent records");
+      } finally {
+        setRecordsLoading(false);
+      }
+    };
+    loadRecentRecords();
+  }, [auth?.user?.id, api]);
 
   // open
   const [mucusOpen, setMucusOpen] = useState(false);
@@ -147,6 +173,13 @@ const StoolPage = () => {
     try {
       const response = await putRecordBowel(api, param);
       toast.success(response.data.data);
+      // Refresh recent records
+      const refreshResponse = await getRecordBowelRecent(api, {
+        params: { userId: auth.user.id, limit: 10 },
+      });
+      const payload = refreshResponse.data?.data ?? refreshResponse.data;
+      const records = Array.isArray(payload?.records) ? payload.records : [];
+      setRecentRecords(records);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error("Error saving stool record:", error);
@@ -339,11 +372,11 @@ const StoolPage = () => {
             const isSelected = selectedStoolImage === i?.label;
             return (
               <div
-                className="flex flex-col gap-3 items-center cursor-pointer"
+                className="flex flex-col gap-4 items-center cursor-pointer"
                 key={index}
                 onClick={() => i?.onclick()}
               >
-                <div className="relative w-10 h-10">
+                <div className="w-10 h-10">
                   {!loadedThumbs[i.label] && (
                     <div className="absolute inset-0 rounded-full bg-gray-100 flex items-center justify-center">
                       <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -351,13 +384,13 @@ const StoolPage = () => {
                   )}
                   <img
                     src={i?.image}
-                    className={`w-10 h-10 object-cover rounded-full aspect-square flex-shrink-0
+                    className={`w-10 h-10 object-cover rounded-full aspect-square shrink-0
                       ${
                         isSelected
                           ? "border-2 border-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
                           : "shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
                       }
-                      ${index === 0 ? "mt-3" : ""}
+                      ${index === 0 ? "mt-2" : ""}
                       `}
                     alt={i?.label}
                     onLoad={() =>
@@ -801,6 +834,43 @@ const StoolPage = () => {
           </div>
         )
       }
+
+      {/* Historical Records Section */}
+      <div className="px-6 py-6">
+        <CustomHeading label="Recent Records" className="mb-4" />
+        {recordsLoading ? (
+          <div className="flex justify-center items-center py-8">
+            <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : recentRecords.length === 0 ? (
+          <div className="text-center py-8 text-secondary">
+            No recent records found
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {recentRecords.map((record, index) => (
+              <div key={record.id || index} className="bg-white rounded-lg p-4 shadow-sm border border-custom-8">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="text-sm text-secondary">
+                    {new Date(record.clientCreatedAt || record.createdAt).toLocaleDateString()}
+                  </div>
+                  <div className="text-sm text-secondary">
+                    {new Date(record.clientCreatedAt || record.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div><span className="font-medium">Shape:</span> {record.shape}</div>
+                  <div><span className="font-medium">Color:</span> {record.color}</div>
+                  <div><span className="font-medium">Amount:</span> {record.amount}</div>
+                  <div><span className="font-medium">Time:</span> {record.time}</div>
+                  <div><span className="font-medium">Frequency:</span> {record.frequency}</div>
+                  <div><span className="font-medium">Symptoms:</span> {record.symptomLog?.join(', ') || 'None'}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div >
   );
 };

@@ -83,7 +83,7 @@ const hexForUrineRecord = (record) => {
   return "#9ca3af";
 };
 
-/** `records` = newest first (API). Five slots, left→right time order; empty left slots = grey. */
+/** `records` = newest first (API). Five slots, left→right time order; empty right slots = grey. */
 const buildFiveDotSlots = (records, hexForRecord) => {
   const slots = Array.from({ length: 5 }, () => ({
     filled: false,
@@ -91,7 +91,7 @@ const buildFiveDotSlots = (records, hexForRecord) => {
   }));
   const n = Math.min(5, records.length);
   for (let i = 0; i < n; i += 1) {
-    slots[4 - i] = {
+    slots[i] = {
       filled: true,
       hex: hexForRecord(records[i]),
     };

@@ -222,6 +222,15 @@ const Free = ({ showUpgrade = true }) => {
     return "#F66B6B"; // Red segment (0–60)
   };
 
+  const getIndicatorStyle = (value) => {
+    const clamped = Math.max(0, Math.min(100, Number(value) || 0));
+    const translateX = clamped <= 0 ? "0" : clamped >= 100 ? "-100%" : "-50%";
+    return {
+      left: `${clamped}%`,
+      transform: `translateX(${translateX})`,
+    };
+  };
+
   // Fetch AI weekly bowel advice (OpenAI via backend) once data is available
   useEffect(() => {
     if (!auth?.user?.id || !premiumEntitled) return;
@@ -534,14 +543,14 @@ const Free = ({ showUpgrade = true }) => {
         <>
           <div className="flex items-center justify-between mb-4">
             <div className="pl-[50px]">
-              <div className="text-3xl font-bold text-[#1abc9c] text-center">
+              <div className="text-3xl font-bold text-[#F66B6B] text-center">
                 {effectiveScore}
               </div>
               <div className="text-sm text-custom-12 text-center">
                 {effectiveStatus}
               </div>
             </div>
-            <div className="text-base pr-[50px] text-center text-[#1abc9c]">
+            <div className="text-base pr-[50px] text-center text-[#F66B6B]">
               {effectiveChange}
             </div>
           </div>
@@ -552,30 +561,29 @@ const Free = ({ showUpgrade = true }) => {
               className="h-2 rounded-full relative overflow-visible"
               style={{
                 background: `linear-gradient(to right,
-                  #ff0000 0%,
-                  #ff0000 60%,
-                  #ffff00 60%,
-                  #ffff00 80%,
-                  #00ff00 80%,
-                  #00ff00 100%)`,
+                  #F66B6B 0%,
+                  #F66B6B 60%,
+                  #FBC02D 60%,
+                  #FBC02D 80%,
+                  #1ABC9C 80%,
+                  #1ABC9C 100%)`,
               }}
             >
               {/* Indicator (outer ring + inner fill) */}
-              <div
+              {/* <div
                 className="absolute -top-2.5 w-5 h-5 rounded-full border border-[#9E9E9E] bg-white flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.12)]"
-                style={{
-                  left: `${effectiveScorePosition}%`,
-                  transform: "translateX(-50%)",
-                }}
-              >
+
+              > */}
                 <div
-                  className="w-2.5 h-2.5 rounded-full"
+                  className="w-3 h-2 rounded-full absolute items-center justify-center -top-0.3 border-[#1ABC9C] border"
                   style={{
-                    backgroundColor: getIndicatorColor(effectiveScorePosition),
+                    backgroundColor: "white",
+                    left: `${effectiveScorePosition}%`,
+                    transform: "translateX(-50%)",
                   }}
                 />
               </div>
-            </div>
+            {/* </div> */}
           </div>
         </>
 
@@ -611,24 +619,24 @@ const Free = ({ showUpgrade = true }) => {
                   />
                 </div>
                 {/* Colored Bar Fill */}
-                {value > 0 ? (
-                  <div
-                    className="w-full rounded-lg flex items-center justify-center absolute bottom-0"
-                    style={{
-                      height: `${value}%`,
-                      backgroundColor: dailyTypeColors[index],
-                      minHeight: "20px",
-                    }}
-                  >
-                    <span className="text-white text-xs">{value}%</span>
-                  </div>
-                ) : null}
-              </div>
-              {/* Percent row below bar (0% only); reserved height keeps Type labels aligned */}
-              <div className="text-xs mt-1 min-h-5 flex items-center justify-center w-full">
-                {value === 0 ? (
-                  <span className="text-custom-1">0%</span>
-                ) : null}
+                <div
+                  className="w-full rounded-lg absolute bottom-0"
+                  style={{
+                    height: `${value}%`,
+                    backgroundColor: dailyTypeColors[index],
+                  }}
+                />
+
+                {/* Value label along fill boundary (keeps with bar fill) */}
+                <span
+                  className={`absolute left-1/2 -translate-x-1/2 ${value > 0 ? "text-white" : "text-custom-2"} text-sm font-semibold`}
+                  style={{
+                    bottom: value > 0 ? `calc(33.33% - 12px)` : "8px",
+                    pointerEvents: "none",
+                  }}
+                >
+                  {value}%
+                </span>
               </div>
               {/* Label Below Bar */}
               <div className="text-xs text-primary mt-2 text-center">

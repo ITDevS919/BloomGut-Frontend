@@ -186,11 +186,16 @@ const SegmentedControl: React.FC<Props> = ({
         </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 12, fontSize: 14 }}>
-          {labels.map((l, i) => (
-            <div key={i} style={{ textAlign: "center", width: `${100 / labels.length}%` }}>
-              <span style={{ color: i === index ? "#3b2f2a" : "#6b6b6b", fontWeight: i === index ? 600 : 400 }}>{l}</span>
-            </div>
-          ))}
+          {labels.map((l, i) => {
+            let textAlign: "left" | "center" | "right" = "left";
+            if (l === "Medium") textAlign = "center";
+            if (l === "Large") textAlign = "right";
+            return (
+              <div key={i} style={{ textAlign, width: `${100 / labels.length}%` }}>
+                <span style={{ color: i === index ? "#3b2f2a" : "#6b6b6b", fontWeight: i === index ? 600 : 400 }}>{l}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
