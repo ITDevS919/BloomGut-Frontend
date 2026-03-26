@@ -321,6 +321,17 @@ const Intermediate = () => {
             <div className="flex items-center justify-center text-xs text-custom-12 pb-[46px]">
               Data for reference only
             </div>
+            {plan !== "premium" && plan !== "pro" && !isSubscribed && <Upgrade />}
+            {(plan === "premium" || plan === "pro" || isSubscribed) && (
+              <div className="flex items-center justify-center mb-[47px]">
+                <button
+                  className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
+                  onClick={() => navigate("/trend-analysis?plan=premium", { state: { trendType: "bowel" } })}
+                >
+                  In-depth Analysis
+                </button>
+              </div>
+            )}
           </>
         )}
         {viewMode === "month" && (

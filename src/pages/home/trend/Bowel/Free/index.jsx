@@ -646,10 +646,10 @@ const Free = ({ showUpgrade = true }) => {
         </div>
         {/* Day labels sit below the card; insets match card px-6 + chart layout.padding (10px) */}
         <div
-          className="mt-3 flex w-full justify-between gap-0.5 text-xs font-medium text-[#6b7280]"
+          className="mt-3 flex w-full justify-between gap-4 text-xs font-medium text-[#6b7280]"
           style={{
-            paddingLeft: "calc(1.5rem + 10px)",
-            paddingRight: "calc(1.5rem + 10px)",
+            paddingLeft: "calc(1.3rem + 8px)",
+            paddingRight: "calc(1.2rem + 10px)",
           }}
         >
           {days.map((d) => (
