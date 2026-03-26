@@ -35,33 +35,7 @@ const PremiumYear = () => {
   });
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const [foods, setFoods] = useState([
-    {
-      rank: 1,
-      name: "Milk",
-      sensit: "86%",
-      main: "Diarrhea",
-      second: "Abd Pain",
-      type: 7,
-      bg: "#fcc", // Pink
-    },
-    {
-      rank: 2,
-      name: "Peanuts",
-      sensit: "74%",
-      main: "Constip",
-      second: "Abd Pain",
-      type: 2,
-      bg: "#fff0ac", // Yellow
-    },
-    {
-      rank: 3,
-      name: "Seafood",
-      sensit: "65%",
-      main: "Bloat",
-      second: "Abd Pain",
-      type: 6,
-      bg: "#fff0ac", // Light yellow
-    },
+
   ]);
   const [foodsLoading, setFoodsLoading] = useState(false);
 
@@ -408,8 +382,8 @@ const PremiumYear = () => {
           Top 3 Gut-Sensitivity Foods
         </h2>
 
-        <div className="grid gap-3 grid-cols-3">
-          {foods.map((food) => (
+        {foods.length > 0 ? (foods.map((food) => (
+          <div className="grid gap-3 grid-cols-3">
             <div
               key={food.rank}
               className="rounded-[8px] p-4"
@@ -428,8 +402,11 @@ const PremiumYear = () => {
                 <p>Type: {food.type}</p>
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))) : (
+          <div className="text-center text-base text-custom-12 items-center justify-center flex">
+            Not Recorded
+          </div>)}
 
         {foodsLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-[#FEFAEF]/60">
@@ -582,8 +559,8 @@ const PremiumYear = () => {
         <button
           className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
           onClick={() =>
-            navigate("/trend-analysis?plan=premium", {
-              state: { trendType: "bowel", viewMode: "month", subscribed: true },
+            navigate("/trend-analysis?plan=free", {
+              state: { trendType: "bowel", viewMode: "week", subscribed: true },
             })
           }
         >

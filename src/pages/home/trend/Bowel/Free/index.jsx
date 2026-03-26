@@ -15,6 +15,7 @@ import Type4Image from "@/assets/Images/bowel-types/Type 4.webp";
 import Type5Image from "@/assets/Images/bowel-types/Type 5.webp";
 import Upgrade from "./Upgrade";
 import Loader from "@/components/common/Loader";
+import Intermediate from "../Intermediate";
 
 // Lazy‑load the heavy Chart.js + react-chartjs-2 bundle
 const DailyBowelChart = lazy(() => import("./DailyBowelChart"));
@@ -341,33 +342,42 @@ const Free = ({ showUpgrade = true }) => {
   const dailyBowelChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    interaction: {
+      mode: "nearest",
+      intersect: false,
+    },
     plugins: {
       legend: { display: false },
       tooltip: {
         enabled: true,
-        backgroundColor: "white",
+        backgroundColor: "#FFFFFF",
         titleColor: "#4b332d",
-        titleFont: { size: 18, weight: "bold", family: "sans-serif" },
-        bodyColor: "#6b7280",
-        bodyFont: { size: 14, family: "sans-serif" },
+        titleFont: { size: 16, weight: "700", family: "sans-serif" },
+        titleMarginBottom: 14,
+        bodyColor: "#8a8a8a",
+        bodyFont: { size: 13, family: "sans-serif", weight: "600" },
+        bodySpacing: 10,
+        footerColor: "#9ca3af",
+        footerFont: { size: 12, family: "sans-serif", weight: "500" },
+        footerMarginTop: 14,
         padding: {
-          top: 16,
+          top: 18,
           right: 20,
-          bottom: 20,
+          bottom: 16,
           left: 20,
         },
+        caretSize: 8,
+        caretPadding: 12,
         displayColors: false,
-        borderColor: "transparent",
-        borderWidth: 0,
-        cornerRadius: 12,
+        borderColor: "rgba(75, 51, 45, 0.08)",
+        borderWidth: 1,
+        cornerRadius: 14,
         boxPadding: 0,
         usePointStyle: false,
+        bodyAlign: "left",
+        footerAlign: "center",
         callbacks: {
-          title: (context) => {
-            const index = context[0]?.dataIndex ?? 0;
-            const dayLabel = days[index] ?? "";
-            return dayLabel ? `Details · ${dayLabel}` : "Details";
-          },
+          title: () => "Details",
           label: (context) => {
             const index = context.dataIndex;
             const value =
@@ -385,27 +395,6 @@ const Free = ({ showUpgrade = true }) => {
               ];
             }
 
-            // If no bowel movement recorded that day
-            if (!value) {
-              if (aiTooltip) {
-                return [
-                  `Health: ${aiTooltip.health}`,
-                  `Status: ${aiTooltip.status}`,
-                  `Impact: ${aiTooltip.impact}`,
-                  `Type: ${aiTooltip.type}`,
-                  `Factor: ${aiTooltip.factor}`,
-                ];
-              }
-
-              return [
-                "Health: 0%",
-                "Status: Not Recorded",
-                "Impact: Low",
-                "Type: 0 (None)",
-                "Factor: Multiple",
-              ];
-            }
-
             if (aiTooltip) {
               return [
                 `Health: ${aiTooltip.health}`,
@@ -416,24 +405,29 @@ const Free = ({ showUpgrade = true }) => {
               ];
             }
 
-            // Fallback if AI tooltip is not available
+            if (!value) {
+              return [
+                "Health: 0%",
+                "Status: Not Recorded",
+                "Impact: Low",
+                "Type: 0 (None)",
+                "Factor: Multiple",
+              ];
+            }
+
             return [
-              `Bowel movements: ${value}`,
-              "Keep observing your stool shape, color and frequency for patterns.",
+              `Health: ${Math.min(100, value * 20)}%`,
+              "Status: Logged",
+              `Impact: ${value >= 3 ? "High" : value === 2 ? "Medium" : "Low"}`,
+              `Type: ${value} ${value === 1 ? "(Hard)" : value === 2 ? "(Firm)" : value === 3 ? "(Normal)" : ""}`.trim(),
+              "Factor: Track hydration and stool pattern",
             ];
           },
-          afterBody: () =>
-            premiumEntitled && loadingAiAdvice
-              ? []
-              : aiWeeklySummary
-                ? ["Analyzed with System"]
-                : [],
-          footer: () => "",
-          labelTextColor: () => "#6b7280",
-          afterBodyColor: () => "#9ca3af",
-          footerColor: () => "#9ca3af",
-          labelFont: () => ({ size: 14, family: "sans-serif" }),
-          footerFont: () => ({ size: 12, family: "sans-serif" }),
+          footer: () =>
+            premiumEntitled && !loadingAiAdvice && aiWeeklySummary
+              ? "Analyzed by System"
+              : "",
+          labelTextColor: () => "#8a8a8a",
         },
       },
       datalabels: {
@@ -478,59 +472,27 @@ const Free = ({ showUpgrade = true }) => {
         div[id*="chartjs-tooltip"],
         .chartjs-tooltip {
           text-align: left !important;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12) !important;
         }
         .chartjs-tooltip .chartjs-tooltip-title {
           text-align: left !important;
-          font-weight: bold !important;
+          font-weight: 700 !important;
           color: #4b332d !important;
-          font-size: 18px !important;
+          font-size: 16px !important;
         }
-        .chartjs-tooltip .chartjs-tooltip-body {
-          text-align: left !important;
-        }
-        .chartjs-tooltip .chartjs-tooltip-body-list {
-          text-align: left !important;
-        }
+        .chartjs-tooltip .chartjs-tooltip-body,
+        .chartjs-tooltip .chartjs-tooltip-body-list,
         .chartjs-tooltip .chartjs-tooltip-body-list li {
           text-align: left !important;
-          color: #6b7280 !important;
-          font-size: 14px !important;
-        }
-        .chartjs-tooltip .chartjs-tooltip-body-list:last-of-type {
-          text-align: center !important;
-          margin-top: 12px !important;
-          padding-top: 12px !important;
-          padding-bottom: 4px !important;
-          border-top: 1px solid #e5e7eb !important;
-        }
-        div[id*="chartjs-tooltip"] .chartjs-tooltip-body-list:last-of-type li,
-        .chartjs-tooltip .chartjs-tooltip-body-list:last-of-type li {
-          font-size: 12px !important;
-          color: #9ca3af !important;
-          text-align: center !important;
-          display: block !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          line-height: 1.5 !important;
-        }
-        .chartjs-tooltip .chartjs-tooltip-body-list:last-of-type li span {
-          font-size: 12px !important;
-          color: #9ca3af !important;
-          text-align: center !important;
-          display: block !important;
-        }
-        .chartjs-tooltip .chartjs-tooltip-body-list:last-of-type li * {
-          font-size: 12px !important;
-          color: #9ca3af !important;
-          text-align: center !important;
+          color: #8a8a8a !important;
+          font-size: 13px !important;
+          line-height: 1.6 !important;
         }
         .chartjs-tooltip .chartjs-tooltip-footer {
           text-align: center !important;
           margin-top: 12px !important;
           padding-top: 12px !important;
-          padding-bottom: 4px !important;
-          border-top: 1px solid #e5e7eb !important;
+          border-top: 1px solid #ececec !important;
         }
         .chartjs-tooltip .chartjs-tooltip-footer li {
           font-size: 12px !important;
@@ -574,15 +536,15 @@ const Free = ({ showUpgrade = true }) => {
                 className="absolute -top-2.5 w-5 h-5 rounded-full border border-[#9E9E9E] bg-white flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.12)]"
 
               > */}
-                <div
-                  className="w-3 h-2 rounded-full absolute items-center justify-center -top-0.3 border-[#1ABC9C] border"
-                  style={{
-                    backgroundColor: "white",
-                    left: `${effectiveScorePosition}%`,
-                    transform: "translateX(-50%)",
-                  }}
-                />
-              </div>
+              <div
+                className="w-3 h-2 rounded-full absolute items-center justify-center -top-0.3 border-[#1ABC9C] border"
+                style={{
+                  backgroundColor: "white",
+                  left: `${effectiveScorePosition}%`,
+                  transform: "translateX(-50%)",
+                }}
+              />
+            </div>
             {/* </div> */}
           </div>
         </>

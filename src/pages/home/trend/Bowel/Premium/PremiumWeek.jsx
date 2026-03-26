@@ -23,13 +23,13 @@ const PremiumWeek = () => {
 
   // Default sample data; will be overridden by backend values when available
   const defaultFoodData = [
-    { food: "Milk", abdPain: 90, diarrh: 70, constip: 30, bloat: 10 },
-    { food: "Bread", abdPain: 20, diarrh: 80, constip: 40, bloat: 30 },
-    { food: "Peanuts", abdPain: 50, diarrh: 20, constip: 90, bloat: 70 },
-    { food: "Eggs", abdPain: 30, diarrh: 40, constip: 20, bloat: 80 },
-    { food: "Seafood", abdPain: 80, diarrh: 60, constip: 50, bloat: 40 },
-    { food: "Beans", abdPain: 40, diarrh: 30, constip: 60, bloat: 50 },
-    { food: "Nuts", abdPain: 60, diarrh: 50, constip: 30, bloat: 20 },
+    { food: "Milk", abdPain: 0, diarrh: 0, constip: 0, bloat: 0 },
+    { food: "Bread", abdPain: 0, diarrh: 0, constip: 0, bloat: 0 },
+    { food: "Peanuts", abdPain: 0, diarrh: 0, constip: 0, bloat: 0 },
+    { food: "Eggs", abdPain: 0, diarrh: 40, constip: 0, bloat: 0 },
+    { food: "Seafood", abdPain: 0, diarrh: 0, constip: 0, bloat: 0 },
+    { food: "Beans", abdPain: 0, diarrh: 0, constip: 0, bloat: 0 },
+    { food: "Nuts", abdPain: 0, diarrh: 0, constip: 0, bloat: 0 },
   ];
 
   const [foodData, setFoodData] = useState(defaultFoodData);
@@ -73,46 +73,46 @@ const PremiumWeek = () => {
 
     const tooltipMap = {
       "Milk": {
-        "Abd Pain": { note: "Often after milk intake.", tip: "Avoid empty stomach, try lactase, or use alternatives." },
-        "Diarrh": { note: "Common with lactose intolerance.", tip: "Consider lactose-free options or reduce intake." },
-        "Constip": { note: "Rare but possible.", tip: "Increase water intake with milk consumption." },
-        "Bloat": { note: "Minimal impact.", tip: "Usually well-tolerated in small amounts." },
+        "Abd Pain": { note: "Not Recorded", tip: "Not Recorded" },
+        "Diarrh": { note: "Not Recorded", tip: "Not Recorded" },
+        "Constip": { note: "Not Recorded", tip: "Not Recorded" },
+        "Bloat": { note: "Not Recorded", tip: "Not Recorded" },
       },
       "Bread": {
-        "Abd Pain": { note: "Low sensitivity.", tip: "Generally well-tolerated." },
-        "Diarrh": { note: "High sensitivity observed.", tip: "Try gluten-free alternatives or reduce portion size." },
-        "Constip": { note: "Moderate sensitivity.", tip: "Increase fiber intake and hydration." },
-        "Bloat": { note: "Moderate sensitivity.", tip: "Consider whole grain options." },
+        "Abd Pain": { note: "Not Recorded", tip: "Not Recorded" },
+        "Diarrh": { note: "Not Recorded", tip: "Not Recorded" },
+        "Constip": { note: "Not Recorded", tip: "Not Recorded" },
+        "Bloat": { note: "Not Recorded", tip: "Not Recorded" },
       },
       "Peanuts": {
-        "Abd Pain": { note: "Moderate sensitivity.", tip: "Monitor portion sizes." },
-        "Diarrh": { note: "Low sensitivity.", tip: "Generally safe in moderation." },
-        "Constip": { note: "High sensitivity observed.", tip: "Reduce intake or avoid if severe." },
-        "Bloat": { note: "High sensitivity.", tip: "Try roasted or avoid if persistent." },
+        "Abd Pain": { note: "Not Recorded", tip: "Not Recorded" },
+        "Diarrh": { note: "Not Recorded", tip: "Not Recorded" },
+        "Constip": { note: "Not Recorded", tip: "Not Recorded" },
+        "Bloat": { note: "Not Recorded", tip: "Not Recorded" },
       },
       "Eggs": {
-        "Abd Pain": { note: "Low sensitivity.", tip: "Usually well-tolerated." },
-        "Diarrh": { note: "Moderate sensitivity.", tip: "Cook thoroughly and monitor portions." },
-        "Constip": { note: "Low sensitivity.", tip: "Generally safe." },
-        "Bloat": { note: "High sensitivity.", tip: "Reduce intake or try egg whites only." },
+        "Abd Pain": { note: "Not Recorded", tip: "Not Recorded" },
+        "Diarrh": { note: "Not Recorded", tip: "Not Recorded" },
+        "Constip": { note: "Not Recorded", tip: "Not Recorded" },
+        "Bloat": { note: "Not Recorded", tip: "Not Recorded" },
       },
       "Seafood": {
-        "Abd Pain": { note: "High sensitivity.", tip: "Ensure freshness and proper cooking." },
-        "Diarrh": { note: "Moderate sensitivity.", tip: "Start with small portions." },
-        "Constip": { note: "Moderate sensitivity.", tip: "Increase water intake." },
-        "Bloat": { note: "Moderate sensitivity.", tip: "Monitor portion sizes." },
+        "Abd Pain": { note: "Not Recorded", tip: "Not Recorded" },
+        "Diarrh": { note: "Not Recorded", tip: "Not Recorded" },
+        "Constip": { note: "Not Recorded", tip: "Not Recorded" },
+        "Bloat": { note: "Not Recorded", tip: "Not Recorded" },
       },
       "Beans": {
-        "Abd Pain": { note: "Moderate sensitivity.", tip: "Soak before cooking to reduce gas." },
-        "Diarrh": { note: "Low sensitivity.", tip: "Generally well-tolerated when cooked properly." },
-        "Constip": { note: "Moderate sensitivity.", tip: "Increase water intake with beans." },
-        "Bloat": { note: "Moderate sensitivity.", tip: "Soak and cook thoroughly." },
+        "Abd Pain": { note: "Not Recorded", tip: "Not Recorded" },
+        "Diarrh": { note: "Not Recorded", tip: "Not Recorded" },
+        "Constip": { note: "Not Recorded", tip: "Not Recorded" },
+        "Bloat": { note: "Not Recorded", tip: "Not Recorded" },
       },
       "Nuts": {
-        "Abd Pain": { note: "Moderate sensitivity.", tip: "Monitor portion sizes." },
-        "Diarrh": { note: "Moderate sensitivity.", tip: "Try different types of nuts." },
-        "Constip": { note: "Low sensitivity.", tip: "Generally safe in moderation." },
-        "Bloat": { note: "Low sensitivity.", tip: "Usually well-tolerated." },
+        "Abd Pain": { note: "Not Recorded", tip: "Not Recorded" },
+        "Diarrh": { note: "Not Recorded", tip: "Not Recorded" },
+        "Constip": { note: "Not Recorded", tip: "Not Recorded" },
+        "Bloat": { note: "Not Recorded", tip: "Not Recorded" },
       },
     };
 
@@ -310,8 +310,8 @@ const PremiumWeek = () => {
         <button
           className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
           onClick={() =>
-            navigate("/trend-analysis?plan=premium", {
-              state: { trendType: "bowel", viewMode: "month", subscribed: true },
+            navigate("/trend-analysis?plan=free", {
+              state: { trendType: "bowel", viewMode: "week", subscribed: true },
             })
           }
         >
