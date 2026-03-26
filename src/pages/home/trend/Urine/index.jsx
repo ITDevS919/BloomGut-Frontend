@@ -2,6 +2,7 @@ import { useSearchParams } from "react-router-dom";
 import Free from "./Free";
 import Premium from "./Premium";
 import usePremiumEntitlement from "@/hooks/usePremiumEntitlement";
+import Intermediate from "./Intermediate";
 
 const Urine = () => {
   const [searchParams] = useSearchParams();
@@ -11,7 +12,7 @@ const Urine = () => {
   const wantsPremium =
     plan === "premium" || plan === "intermediate" || plan === "pro";
 
-  return <>{wantsPremium && premiumEntitled ? <Premium /> : <Free />}</>;
+  return <>{wantsPremium && premiumEntitled ? <Premium /> : <Intermediate />}</>;
 };
 
 export default Urine;

@@ -8,7 +8,8 @@ const PlanTwoTier = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const trendTypeParam = searchParams.get("trendType");
-  const [activeSlide, setActiveSlide] = useState(0);
+  const showPremium = searchParams.get("showPremium");
+  const [activeSlide, setActiveSlide] = useState(showPremium === "true" ? 1 : 0);
 
   const plans = [
     {

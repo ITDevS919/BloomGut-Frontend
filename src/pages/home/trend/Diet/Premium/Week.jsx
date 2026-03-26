@@ -409,7 +409,7 @@ const Week = ({ referenceDate }) => {
         <button
           className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
           onClick={() =>
-            navigate("/trend-analysis?plan=premium", { state: { trendType: "diet", viewMode: "month" } })
+            navigate("/trend-analysis?plan=free", { state: { trendType: "diet", viewMode: "week" } })
           }
         >
           OverView

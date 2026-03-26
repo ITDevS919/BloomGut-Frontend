@@ -6,6 +6,10 @@ import { useNavigate } from "react-router-dom";
 const Upgrade = () => {
   const navigate = useNavigate();
   
+  const handleUpgradeClick = () => {
+    navigate("/setting/upgrade-plan?trendType=bowel&showPremium=true");
+  };
+  
   return (
     <div className="rounded-[8px] bg-white p-4 shadow-[0_4px_12px_rgba(0,0,0,0.08)] mb-[52px]">
       <div className="flex items-center gap-10">
@@ -19,9 +23,7 @@ const Upgrade = () => {
           </p>
           <button 
             className="text-sm text-red-600 hover:underline"
-            onClick={() =>
-              navigate("/setting/upgrade-plan?trendType=bowel")
-            }
+            onClick={handleUpgradeClick}
           >
             Find bowel causes – Click
           </button>

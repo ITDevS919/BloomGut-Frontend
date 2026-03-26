@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 import { postTrendDietMonthlyAdvice } from "@/api/http";
 import Loader from "@/components/common/Loader";
+import { useNavigate } from "react-router-dom";
 
 ChartJS.register(ArcElement, Tooltip, ChartDataLabels);
 
@@ -47,6 +48,7 @@ const Month = ({ referenceDate }) => {
 
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
+  const navigate = useNavigate();
 
   const [focusText, setFocusText] = useState("Low calcium, adjust diet");
   const [summaryText, setSummaryText] = useState(
@@ -189,6 +191,17 @@ const Month = ({ referenceDate }) => {
         />
       </div>
 
+      <div className="flex items-center justify-center mt-[27px] mb-[27px]">
+        <button
+          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
+          onClick={() =>
+            navigate("/trend-analysis?plan=free", { state: { trendType: "diet", viewMode: "month" } })
+          }
+        >
+          OverView
+        </button>
+      </div>
+
       <div className="flex justify-center p-4 items-center text-gray-400 italic text-sm mt-3 text-center">
         This analysis is based on recent behavior and health indicators, for
         reference only
@@ -223,43 +236,43 @@ function Collapse({
   const achievementData =
     Array.isArray(rings) && rings.length
       ? rings.map((r) => {
-          const pct = Math.round(r.value ?? 0);
-          let badgeBg = "#E8F5E9";
-          if (pct < 50) badgeBg = "#FBE9E7";
-          else if (pct < 70) badgeBg = "#FFFDE7";
-          return {
-            label: r.label,
-            percentage: pct,
-            badgeBg,
-            barColor: r.color,
-          };
-        })
+        const pct = Math.round(r.value ?? 0);
+        let badgeBg = "#E8F5E9";
+        if (pct < 50) badgeBg = "#FBE9E7";
+        else if (pct < 70) badgeBg = "#FFFDE7";
+        return {
+          label: r.label,
+          percentage: pct,
+          badgeBg,
+          barColor: r.color,
+        };
+      })
       : [
-          {
-            label: "Fiber",
-            percentage: 68,
-            badgeBg: "#FFFDE7",
-            barColor: "#4CAF50",
-          },
-          {
-            label: "Protein",
-            percentage: 62,
-            badgeBg: "#FFFDE7",
-            barColor: "#2196F3",
-          },
-          {
-            label: "Fat",
-            percentage: 55,
-            badgeBg: "#FBE9E7",
-            barColor: "#F59E0B",
-          },
-          {
-            label: "Sugar",
-            percentage: 48,
-            badgeBg: "#FBE9E7",
-            barColor: "#EF4444",
-          },
-        ];
+        {
+          label: "Fiber",
+          percentage: 68,
+          badgeBg: "#FFFDE7",
+          barColor: "#4CAF50",
+        },
+        {
+          label: "Protein",
+          percentage: 62,
+          badgeBg: "#FFFDE7",
+          barColor: "#2196F3",
+        },
+        {
+          label: "Fat",
+          percentage: 55,
+          badgeBg: "#FBE9E7",
+          barColor: "#F59E0B",
+        },
+        {
+          label: "Sugar",
+          percentage: 48,
+          badgeBg: "#FBE9E7",
+          barColor: "#EF4444",
+        },
+      ];
 
   return (
     <div className="rounded-[7px] border-2 border-custom-8 overflow-hidden">

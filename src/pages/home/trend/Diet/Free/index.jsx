@@ -662,15 +662,15 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
       ? effectiveScore > 75
         ? "Excellent"
         : effectiveScore > 50
-        ? "Good"
-        : effectiveScore > 25
-        ? "Fair"
-        : "Poor"
+          ? "Good"
+          : effectiveScore > 25
+            ? "Fair"
+            : "Poor"
       : "Not Recorded";
   const effectiveChangeText = hasTodayDietRecord
     ? `${beforeWeekScore > effectiveScore ? "-" : "+"}${Math.abs(
-        beforeWeekScore - effectiveScore
-      )}% vs Last`
+      beforeWeekScore - effectiveScore
+    )}% vs Last`
     : "";
   const scorePosition = getScorePosition(effectiveScore);
 
@@ -698,28 +698,29 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
             className="h-2 rounded-full relative overflow-visible"
             style={{
               background: `linear-gradient(to right,
-                #ff0000 0%,
-                #ff0000 60%,
-                #ffff00 60%,
-                #ffff00 80%,
-                #00ff00 80%,
-                #00ff00 100%)`,
+                  #F66B6B 0%,
+                  #F66B6B 60%,
+                  #FBC02D 60%,
+                  #FBC02D 80%,
+                  #1ABC9C 80%,
+                  #1ABC9C 100%)`,
             }}
           >
             {/* Indicator (outer ring + inner fill) */}
+            {/* <div
+                className="absolute -top-2.5 w-5 h-5 rounded-full border border-[#9E9E9E] bg-white flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.12)]"
+
+              > */}
             <div
-              className="absolute -top-2.5 w-5 h-5 rounded-full border border-[#9E9E9E] bg-white flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.12)]"
+              className="w-3 h-2 rounded-full absolute items-center justify-center -top-0.3 border-[#1ABC9C] border"
               style={{
-                left: `${scorePosition}%`,
+                backgroundColor: "white",
+                left: `${effectiveScore}%`,
                 transform: "translateX(-50%)",
               }}
-            >
-              <div
-                className="w-2.5 h-2.5 rounded-full"
-                style={{ backgroundColor: getIndicatorColor(scorePosition) }}
-              />
-            </div>
+            />
           </div>
+          {/* </div> */}
         </div>
 
         {loadingDietScores && (
@@ -762,22 +763,24 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
                   />
                 </div>
                 {/* Colored Bar Fill */}
-                {value > 0 ? (
-                  <div
-                    className="w-full rounded-lg flex items-center justify-center absolute bottom-0"
-                    style={{
-                      height: `${value}%`,
-                      backgroundColor: dailyTypeColors[index],
-                      minHeight: "20px",
-                    }}
-                  >
-                    <span className="text-white text-xs">{value}%</span>
-                  </div>
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center absolute">
-                    <span className="text-custom-1 text-xs">0%</span>
-                  </div>
-                )}
+                <div
+                  className="w-full rounded-lg absolute bottom-0"
+                  style={{
+                    height: `${value}%`,
+                    backgroundColor: dailyTypeColors[index],
+                  }}
+                />
+
+                {/* Value label along fill boundary (keeps with bar fill) */}
+                <span
+                  className={`absolute left-1/2 -translate-x-1/2 ${value > 0 ? "text-white" : "text-custom-2"} text-sm font-semibold`}
+                  style={{
+                    bottom: value > 0 ? `calc(33.33% - 12px)` : "8px",
+                    pointerEvents: "none",
+                  }}
+                >
+                  {value}%
+                </span>
               </div>
               {/* Label Below Bar */}
               <div className="text-xs text-primary mt-2 text-center">
@@ -809,11 +812,10 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
               key={d}
               type="button"
               onClick={() => setSelectedDate(d)}
-              className={`px-2 py-1 rounded-full text-xs ${
-                selectedDate === d
-                  ? "bg-[#b5a6d2] text-white"
-                  : "bg-[#f4f4f4] text-[#705d57]"
-              }`}
+              className={`px-2 py-1 rounded-full text-xs ${selectedDate === d
+                ? "bg-[#b5a6d2] text-white"
+                : "bg-[#f4f4f4] text-[#705d57]"
+                }`}
               aria-label={
                 selectedDate === d
                   ? `Selected date ${d} in diet and bowel trends`
@@ -876,11 +878,10 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
               key={d}
               type="button"
               onClick={() => setSelectedDate(d)}
-              className={`px-2 py-1 rounded-full text-xs ${
-                selectedDate === d
-                  ? "bg-[#b5a6d2] text-white"
-                  : "bg-[#f4f4f4] text-[#705d57]"
-              }`}
+              className={`px-2 py-1 rounded-full text-xs ${selectedDate === d
+                ? "bg-[#b5a6d2] text-white"
+                : "bg-[#f4f4f4] text-[#705d57]"
+                }`}
               aria-label={
                 selectedDate === d
                   ? `Selected date ${d} in bowel trend`

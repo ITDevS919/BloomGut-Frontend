@@ -285,28 +285,29 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
             className="h-2 rounded-full relative overflow-visible"
             style={{
               background: `linear-gradient(to right,
-                #ff0000 0%,
-                #ff0000 60%,
-                #ffff00 60%,
-                #ffff00 80%,
-                #00ff00 80%,
-                #00ff00 100%)`,
+                  #F66B6B 0%,
+                  #F66B6B 60%,
+                  #FBC02D 60%,
+                  #FBC02D 80%,
+                  #1ABC9C 80%,
+                  #1ABC9C 100%)`,
             }}
           >
             {/* Indicator (outer ring + inner fill) */}
+            {/* <div
+                className="absolute -top-2.5 w-5 h-5 rounded-full border border-[#9E9E9E] bg-white flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.12)]"
+
+              > */}
             <div
-              className="absolute -top-2.5 w-5 h-5 rounded-full border border-[#9E9E9E] bg-white flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.12)]"
+              className="w-3 h-2 rounded-full absolute items-center justify-center -top-0.3 border-[#1ABC9C] border"
               style={{
-                left: `${scorePosition}%`,
+                backgroundColor: "white",
+                left: `${effectiveScore}%`,
                 transform: "translateX(-50%)",
               }}
-            >
-              <div
-                className="w-2.5 h-2.5 rounded-full"
-                style={{ backgroundColor: getIndicatorColor(scorePosition) }}
-              />
-            </div>
+            />
           </div>
+          {/* </div> */}
         </div>
 
         {loadingWeeklySummary && (
