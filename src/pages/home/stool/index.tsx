@@ -78,7 +78,7 @@ const StoolPage = () => {
 
   // Load recent records on mount
   useEffect(() => {
-    
+
   }, [auth?.user?.id, api]);
 
   // open
@@ -360,14 +360,13 @@ const StoolPage = () => {
                 onClick={() => i?.onclick()}
               >
                 <div className="w-10 h-10">
-                  
                   <img
+                    loading="lazy"
                     src={i?.image}
                     className={`w-10 h-10 object-cover rounded-full aspect-square shrink-0
-                      ${
-                        isSelected
-                          ? "border-2 border-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
-                          : "shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
+                      ${isSelected
+                        ? "border-2 border-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
+                        : "shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
                       }
                       ${index === 0 ? "mt-2" : ""}
                       `}
@@ -753,11 +752,10 @@ const StoolPage = () => {
           onClick={handleSaveRecord}
           disabled={isSaving}
           aria-label="Save Record"
-          className={`w-[242px] mx-auto transition-all duration-150 min-h-[48px] flex items-center justify-center gap-2 text-white text-base rounded-[24px] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)] ${
-            isSaving
+          className={`w-[242px] mx-auto transition-all duration-150 min-h-[48px] flex items-center justify-center gap-2 text-white text-base rounded-[24px] py-3 shadow-[0_4px_10px_rgba(0,0,0,0.18)] ${isSaving
               ? "bg-[#C69C6D]/70 cursor-not-allowed"
               : "bg-[#C69C6D] active:scale-[0.98] active:shadow-[0_4px_10px_rgba(0,0,0,0.18)]"
-          }`}
+            }`}
         >
           {isSaving && (
             <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
