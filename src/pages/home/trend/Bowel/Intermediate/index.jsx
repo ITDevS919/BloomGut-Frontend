@@ -299,7 +299,6 @@ const Intermediate = () => {
               Weekly Stats
             </div>
             <div className="flex items-center justify-center gap-6 rounded-[27px] bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[20px]">
-              {console.log("weeklyData", weeklyData)}
               {!(weeklyData.datasets[0].data[0] == 0 && weeklyData.datasets[0].data[1] == 0 && weeklyData.datasets[0].data[2] == 0 && weeklyData.datasets[0].data[3] == 0) ?
                 (<>
                   {/* Pie */}
@@ -355,7 +354,7 @@ const Intermediate = () => {
             <div className="rounded-[27px] bg-white p-6 shadow-md">
               <>
                 <h2 className="text-primary mb-4">Monthly</h2>
-                {monthlyTime.daysWithRecords >= 7 ? (
+                {monthlyTime.daysWithRecords >= 7 ? (<>
                   <div className="flex items-center gap-6">
                     {/* Donut */}
                     <div className="relative w-36 h-36">
@@ -391,49 +390,29 @@ const Intermediate = () => {
                       />
                     </div>
                   </div>
-                ) : (
-                  <div className="flex items-center gap-6">
-                    {/* Disabled Donut */}
-                    <div className="relative w-36 h-36 opacity-50">
-                      <Doughnut data={monthlyData} options={monthlyOptions} />
-
-                      {/* Center text */}
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-lg font-semibold text-gray-900">
-                          --
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          --
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Insufficient data message */}
-                    <div className="space-y-2 text-sm">
-                      <div className="text-center text-gray-500">
-                        Insufficient data
-                      </div>
-                    </div>
+                  {/* Progress Bars */}
+                  <div className="text-x2 mb-3 text-primary mt-5">
+                    Stool Time %
+                  </div>
+                  <div className="space-y-3">
+                    <Progress
+                      value={monthlyTime.morningPercent}
+                      color="bg-[#C4B0F0]"
+                    />
+                    <Progress
+                      value={monthlyTime.noonPercent}
+                      color="bg-[#63C174]"
+                    />
+                    <Progress
+                      value={monthlyTime.eveningPercent}
+                      color="bg-[#FFD43B]"
+                    />
+                  </div>
+                </>) : (
+                  <div className="text-center text-gray-500 items-center justify-center">
+                    Insufficient data
                   </div>
                 )}
-                {/* Progress Bars */}
-                <div className="text-x2 mb-3 text-primary mt-5">
-                  Stool Time %
-                </div>
-                <div className="space-y-3">
-                  <Progress
-                    value={monthlyTime.morningPercent}
-                    color="bg-[#C4B0F0]"
-                  />
-                  <Progress
-                    value={monthlyTime.noonPercent}
-                    color="bg-[#63C174]"
-                  />
-                  <Progress
-                    value={monthlyTime.eveningPercent}
-                    color="bg-[#FFD43B]"
-                  />
-                </div>
               </>
             </div>
 
