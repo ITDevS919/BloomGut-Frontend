@@ -409,9 +409,50 @@ const Intermediate = () => {
                     />
                   </div>
                 </>) : (
-                  <div className="text-center text-gray-500 items-center justify-center">
-                    Insufficient data
-                  </div>
+                  <>
+                    <div className="flex items-center gap-6">
+                      {/* Donut */}
+                      <div className="relative w-36 h-36">
+                        <Doughnut data={monthlyData} options={monthlyOptions} />
+
+                        {/* Center text */}
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                          <span className="text-lg font-semibold text-gray-900">
+                            ------
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            ---
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Stats */}
+                      <div className="space-y-2 text-sm">
+                        <Stat
+                          label="Avg Time"
+                          value="------"
+                          valueColor="text-green-600"
+                        />
+                        <Stat
+                          label="Most"
+                          value="------"
+                          valueColor="text-green-600"
+                        />
+                        <Stat
+                          label="Regularity"
+                          value="------"
+                          valueColor="text-green-600"
+                        />
+                      </div>
+                    </div>
+                    {/* Progress Bars */}
+                    <div className="text-x2 mb-3 text-primary mt-5">
+                      Stool Time %
+                    </div>
+                    <div className="text-center text-gray-500 items-center justify-center">
+                      Insufficient data
+                    </div>
+                  </>
                 )}
               </>
             </div>
