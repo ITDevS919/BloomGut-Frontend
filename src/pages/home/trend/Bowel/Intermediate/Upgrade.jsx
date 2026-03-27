@@ -1,32 +1,38 @@
-import { Lock } from "lucide-react";
-import { FaLock } from "react-icons/fa6";
-import { MdLockOutline } from "react-icons/md";
+import { LockKeyhole } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Upgrade = () => {
   const navigate = useNavigate();
-  
-  const handleUpgradeClick = () => {
-    navigate("/setting/upgrade-plan?trendType=bowel&showPremium=true");
-  };
-  
   return (
-    <div className="rounded-[8px] bg-white p-4 shadow-[0_4px_12px_rgba(0,0,0,0.08)] mb-[52px]">
-      <div className="flex items-center gap-10">
-        {/* Lock Icon */}
-        <MdLockOutline className="h-10 w-10 text-gray-200 mt-0.5" />
-
-        {/* Text Content */}
-        <div className="text-center">
-          <p className="text-sm text-gray-400 mb-1">
-            Upgrade to Premium for Analysis
-          </p>
-          <button 
-            className="text-sm text-red-600 hover:underline"
-            onClick={handleUpgradeClick}
-          >
-            Find bowel causes – Click
-          </button>
+    <div className="mb-[70px]">
+      {/* upgrade card */}
+      <div className="bg-[#fff3e3] rounded-[27px] p-4 text-center shadow-[0_2px_4px_rgba(0,0,0,0.08)] mt-5">
+        <div className="text-sm text-left text-custom-12 mb-2">
+          In-depth Analysis
+        </div>
+        <div className="flex justify-center mb-5">
+          <div className="w-16 h-16 rounded-full border border-[#e29c53] flex items-center justify-center">
+            <LockKeyhole className="w-8 h-8 text-[#f3d5b2]" />
+          </div>
+        </div>
+        <div className="text-base text-custom-12 mb-5">Upgrade to Unlock</div>
+        <div className="text-xs text-gray-500 mb-5">
+          See bowel–health link & get tips
+        </div>
+        <button className="bg-[#fbb657] text-white px-6 py-2 rounded-full shadow-md cursor-pointer"
+          onClick={() =>
+            navigate("/setting/upgrade-plan?trendType=bowel&showPremium=true")
+          }
+        >
+          Upgrade Now
+        </button>
+        <div className="flex justify-between text-xs mt-4">
+          <div className="text-custom-12">Free</div>
+          <div>
+            <span style={{ color: '#D38E5A' }}>Premium</span>
+            {' '}
+            <span style={{ color: '#8E8E8E' }}>Exclusive</span>
+          </div>
         </div>
       </div>
     </div>

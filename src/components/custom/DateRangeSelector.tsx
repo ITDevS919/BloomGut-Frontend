@@ -155,10 +155,19 @@ const DateRangeSelector = (props) => {
             value="month"
             checked={viewMode === "month"}
             onChange={() => {
+              if (!props.isSubscribed && props.plan !== "premium" && props.plan !== "pro") {
+                if (props.onUpgradeRedirect) {
+                  props.onUpgradeRedirect();
+                }
+                return; // stop switching to month
+              }
+
               setViewMode("month");
+
               if (props.setViewMode) {
                 props.setViewMode("month");
               }
+
               if (props.onDateChange) {
                 props.onDateChange(currentDate, "month");
               }

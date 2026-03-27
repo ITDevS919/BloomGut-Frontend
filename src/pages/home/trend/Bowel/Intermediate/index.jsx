@@ -49,7 +49,7 @@ const Intermediate = () => {
     labels: ["Hard", "Firm", "Normal", "Soft"],
     datasets: [
       {
-        data: [0, 0, 0, 0],
+        data: [],
         backgroundColor: [
           "#8B5E3C", // Hard
           "#C07A2D", // Firm
@@ -216,6 +216,8 @@ const Intermediate = () => {
         const normal = t3;
         const soft = t4 + t5;
 
+        console.log("weeklyData", weeklyData);
+
         setWeeklyData((prev) => ({
           ...prev,
           datasets: [
@@ -281,6 +283,9 @@ const Intermediate = () => {
         setViewMode={setViewMode}
         initialViewMode={viewMode}
         onDateChange={(date) => setReferenceDate(date)}
+        isSubscribed={isSubscribed}
+        plan={plan}
+        onUpgradeRedirect={() => navigate("/setting/upgrade-plan?trendType=bowel&showPremium=true")}
       />
       <Free showUpgrade={false} referenceDate={referenceDate} />
       <div className="pl-[15px] pr-[15px]">
@@ -292,31 +297,38 @@ const Intermediate = () => {
             <div className="text-base pl-[15px] font-medium mb-5 text-primary">
               Weekly Stats
             </div>
-            <div className="flex items-center gap-6 rounded-[27px] bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[20px]">
-              <>
-                {/* Pie */}
-                <div className="w-40 h-40">
-                  <Pie data={weeklyData} options={weeklyoptions} />
-                </div>
+            <div className="flex items-center justify-center gap-6 rounded-[27px] bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[20px]">
+              {console.log("weeklyData", weeklyData)}
+              {!(weeklyData.datasets[0].data[0] == 0 && weeklyData.datasets[0].data[1] == 0 && weeklyData.datasets[0].data[2] == 0 && weeklyData.datasets[0].data[3] == 0) ?
+                (<>
+                  {/* Pie */}
+                  <div className="w-40 h-40">
+                    <Pie data={weeklyData} options={weeklyoptions} />
+                  </div>
 
-                {/* Legend */}
-                <div className="space-y-3 text-sm">
-                  {weeklyData.labels.map((label, i) => (
-                    <div key={label} className="flex items-center gap-2">
-                      <span
-                        className="h-3 w-3 rounded-full"
-                        style={{
-                          backgroundColor:
-                            weeklyData.datasets[0].backgroundColor[i],
-                        }}
-                      />
-                      <span className="text-secondary">
-                        {label} ({weeklyData.datasets[0].data[i]}%)
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </>
+                  {/* Legend */}
+                  <div className="space-y-3 text-sm">
+                    {weeklyData.labels.map((label, i) => (
+                      <div key={label} className="flex items-center gap-2">
+                        <span
+                          className="h-3 w-3 rounded-full"
+                          style={{
+                            backgroundColor:
+                              weeklyData.datasets[0].backgroundColor[i],
+                          }}
+                        />
+                        <span className="text-secondary">
+                          {label} ({weeklyData.datasets[0].data[i]}%)
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </>) : (
+                  <div className="text-center text-gray-500 items-center justify-center">
+                    Not Record
+                  </div>
+                )
+              }
             </div>
             <div className="flex items-center justify-center text-xs text-custom-12 pb-[46px]">
               Data for reference only

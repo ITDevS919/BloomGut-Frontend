@@ -22,7 +22,7 @@ const DailyBowelChart = lazy(() => import("./DailyBowelChart"));
 
 const BOWEL_PRIMARY_COLOR = "#1abc9c";
 
-const Free = ({ showUpgrade = true }) => {
+const Free = ({ showUpgrade = true, referenceDate }) => {
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
   const { premiumEntitled } = usePremiumEntitlement();
@@ -61,7 +61,7 @@ const Free = ({ showUpgrade = true }) => {
     const fetchDailyCounts = async () => {
       try {
         setLoadingDailyCounts(true);
-        const referenceDate = new Date().toISOString();
+        // const referenceDate = new Date().toISOString();
         const timezoneOffsetMinutes = new Date().getTimezoneOffset();
         const response = await getTrendBowelDailyCount(api, {
           params: {
@@ -90,7 +90,7 @@ const Free = ({ showUpgrade = true }) => {
     const fetchWeeklySummary = async () => {
       try {
         setLoadingWeeklySummary(true);
-        const referenceDate = new Date().toISOString();
+        // const referenceDate = new Date().toISOString();
         const timezoneOffsetMinutes = new Date().getTimezoneOffset();
         const response = await getTrendBowelWeeklySummary(api, {
           params: {
@@ -178,7 +178,7 @@ const Free = ({ showUpgrade = true }) => {
     return () => {
       isCancelled = true;
     };
-  }, [api, auth?.user?.id]);
+  }, [api, auth?.user?.id, referenceDate]);
 
   // Function to get color based on value
   const getPointColor = (value) => {
