@@ -360,11 +360,7 @@ const StoolPage = () => {
                 onClick={() => i?.onclick()}
               >
                 <div className="w-10 h-10">
-                  {!loadedThumbs[i.label] && (
-                    <div className="absolute inset-0 rounded-full bg-gray-100 flex items-center justify-center">
-                      <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                    </div>
-                  )}
+                  
                   <img
                     src={i?.image}
                     className={`w-10 h-10 object-cover rounded-full aspect-square shrink-0
