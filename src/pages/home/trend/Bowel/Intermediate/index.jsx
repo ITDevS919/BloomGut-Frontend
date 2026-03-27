@@ -83,6 +83,7 @@ const Intermediate = () => {
     morningPercent: 58,
     noonPercent: 32,
     eveningPercent: 10,
+    daysWithRecords: 0,
   });
 
   const derivedMonthlyInsights = (() => {
@@ -216,7 +217,6 @@ const Intermediate = () => {
         const normal = t3;
         const soft = t4 + t5;
 
-        console.log("weeklyData", weeklyData);
 
         setWeeklyData((prev) => ({
           ...prev,
@@ -249,6 +249,7 @@ const Intermediate = () => {
           morningPercent: payload.morningPercent ?? 0,
           noonPercent: payload.noonPercent ?? 0,
           eveningPercent: payload.eveningPercent ?? 0,
+          daysWithRecords: payload.daysWithRecords ?? 0,
         });
       } catch (error) {
         // eslint-disable-next-line no-console
@@ -354,41 +355,67 @@ const Intermediate = () => {
             <div className="rounded-[27px] bg-white p-6 shadow-md">
               <>
                 <h2 className="text-primary mb-4">Monthly</h2>
-                <div className="flex items-center gap-6">
-                  {/* Donut */}
-                  <div className="relative w-36 h-36">
-                    <Doughnut data={monthlyData} options={monthlyOptions} />
+                {monthlyTime.daysWithRecords >= 7 ? (
+                  <div className="flex items-center gap-6">
+                    {/* Donut */}
+                    <div className="relative w-36 h-36">
+                      <Doughnut data={monthlyData} options={monthlyOptions} />
 
-                    {/* Center text */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-lg font-semibold text-gray-900">
-                        {dominantStoolTime.value}%
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {dominantStoolTime.label}
-                      </span>
+                      {/* Center text */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-lg font-semibold text-gray-900">
+                          {dominantStoolTime.value}%
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {dominantStoolTime.label}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Stats */}
+                    <div className="space-y-2 text-sm">
+                      <Stat
+                        label="Avg Time"
+                        value={derivedMonthlyInsights.avgTimeLabel}
+                        valueColor="text-green-600"
+                      />
+                      <Stat
+                        label="Most"
+                        value={derivedMonthlyInsights.mostLabel}
+                        valueColor="text-green-600"
+                      />
+                      <Stat
+                        label="Regularity"
+                        value={derivedMonthlyInsights.regularity}
+                        valueColor="text-green-600"
+                      />
                     </div>
                   </div>
+                ) : (
+                  <div className="flex items-center gap-6">
+                    {/* Disabled Donut */}
+                    <div className="relative w-36 h-36 opacity-50">
+                      <Doughnut data={monthlyData} options={monthlyOptions} />
 
-                  {/* Stats */}
-                  <div className="space-y-2 text-sm">
-                    <Stat
-                      label="Avg Time"
-                      value={derivedMonthlyInsights.avgTimeLabel}
-                      valueColor="text-green-600"
-                    />
-                    <Stat
-                      label="Most"
-                      value={derivedMonthlyInsights.mostLabel}
-                      valueColor="text-green-600"
-                    />
-                    <Stat
-                      label="Regularity"
-                      value={derivedMonthlyInsights.regularity}
-                      valueColor="text-green-600"
-                    />
+                      {/* Center text */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-lg font-semibold text-gray-900">
+                          --
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          --
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Insufficient data message */}
+                    <div className="space-y-2 text-sm">
+                      <div className="text-center text-gray-500">
+                        Insufficient data
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
                 {/* Progress Bars */}
                 <div className="text-x2 mb-3 text-primary mt-5">
                   Stool Time %
