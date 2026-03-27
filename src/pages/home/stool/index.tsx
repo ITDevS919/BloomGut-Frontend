@@ -78,24 +78,7 @@ const StoolPage = () => {
 
   // Load recent records on mount
   useEffect(() => {
-    const loadRecentRecords = async () => {
-      if (!auth?.user?.id) return;
-      setRecordsLoading(true);
-      try {
-        const response = await getRecordBowelRecent(api, {
-          params: { userId: auth.user.id, limit: 10 },
-        });
-        const payload = response.data?.data ?? response.data;
-        const records = Array.isArray(payload?.records) ? payload.records : [];
-        setRecentRecords(records);
-      } catch (error) {
-        console.error("Failed to load recent stool records:", error);
-        toast.error("Failed to load recent records");
-      } finally {
-        setRecordsLoading(false);
-      }
-    };
-    loadRecentRecords();
+    
   }, [auth?.user?.id, api]);
 
   // open
