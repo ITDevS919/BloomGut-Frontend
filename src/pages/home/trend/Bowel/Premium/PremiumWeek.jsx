@@ -26,7 +26,7 @@ const PremiumWeek = () => {
     { food: "Milk", abdPain: 0, diarrh: 0, constip: 0, bloat: 0 },
     { food: "Bread", abdPain: 0, diarrh: 0, constip: 0, bloat: 0 },
     { food: "Peanuts", abdPain: 0, diarrh: 0, constip: 0, bloat: 0 },
-    { food: "Eggs", abdPain: 0, diarrh: 40, constip: 0, bloat: 0 },
+    { food: "Eggs", abdPain: 0, diarrh: 0, constip: 0, bloat: 0 },
     { food: "Seafood", abdPain: 0, diarrh: 0, constip: 0, bloat: 0 },
     { food: "Beans", abdPain: 0, diarrh: 0, constip: 0, bloat: 0 },
     { food: "Nuts", abdPain: 0, diarrh: 0, constip: 0, bloat: 0 },
@@ -45,8 +45,8 @@ const PremiumWeek = () => {
         });
         const data = res.data?.data ?? res.data;
         if (data) {
-          if (Array.isArray(data.foods) && data.foods.length) {
-            setFoodData(data.foods);
+          if (Array.isArray(data.foods)) {
+            setFoodData(data.foods.length > 0 ? data.foods : defaultFoodData);
           }
           setAiTooltipMap(data.tooltipMap || {});
           setSummaryTips(Array.isArray(data.summaryTips) ? data.summaryTips : []);
@@ -71,52 +71,25 @@ const PremiumWeek = () => {
       };
     }
 
-    const tooltipMap = {
-      "Milk": {
-        "Abd Pain": { note: "Not Recorded", tip: "Not Recorded" },
-        "Diarrh": { note: "Not Recorded", tip: "Not Recorded" },
-        "Constip": { note: "Not Recorded", tip: "Not Recorded" },
-        "Bloat": { note: "Not Recorded", tip: "Not Recorded" },
+    const p = Number(percentage) || 0;
+    const levels = {
+      low: {
+        note: `${food} shows low ${symptom.toLowerCase()} correlation (${p}%). Keep tracking but no major changes needed.`,
+        tip: "Maintain current diet and observe if symptoms remain stable.",
       },
-      "Bread": {
-        "Abd Pain": { note: "Not Recorded", tip: "Not Recorded" },
-        "Diarrh": { note: "Not Recorded", tip: "Not Recorded" },
-        "Constip": { note: "Not Recorded", tip: "Not Recorded" },
-        "Bloat": { note: "Not Recorded", tip: "Not Recorded" },
+      medium: {
+        note: `${food} has moderate ${symptom.toLowerCase()} sensitivity (${p}%). Monitor portion size and frequency.`,
+        tip: "Try smaller servings or spread intake across days to check tolerance.",
       },
-      "Peanuts": {
-        "Abd Pain": { note: "Not Recorded", tip: "Not Recorded" },
-        "Diarrh": { note: "Not Recorded", tip: "Not Recorded" },
-        "Constip": { note: "Not Recorded", tip: "Not Recorded" },
-        "Bloat": { note: "Not Recorded", tip: "Not Recorded" },
-      },
-      "Eggs": {
-        "Abd Pain": { note: "Not Recorded", tip: "Not Recorded" },
-        "Diarrh": { note: "Not Recorded", tip: "Not Recorded" },
-        "Constip": { note: "Not Recorded", tip: "Not Recorded" },
-        "Bloat": { note: "Not Recorded", tip: "Not Recorded" },
-      },
-      "Seafood": {
-        "Abd Pain": { note: "Not Recorded", tip: "Not Recorded" },
-        "Diarrh": { note: "Not Recorded", tip: "Not Recorded" },
-        "Constip": { note: "Not Recorded", tip: "Not Recorded" },
-        "Bloat": { note: "Not Recorded", tip: "Not Recorded" },
-      },
-      "Beans": {
-        "Abd Pain": { note: "Not Recorded", tip: "Not Recorded" },
-        "Diarrh": { note: "Not Recorded", tip: "Not Recorded" },
-        "Constip": { note: "Not Recorded", tip: "Not Recorded" },
-        "Bloat": { note: "Not Recorded", tip: "Not Recorded" },
-      },
-      "Nuts": {
-        "Abd Pain": { note: "Not Recorded", tip: "Not Recorded" },
-        "Diarrh": { note: "Not Recorded", tip: "Not Recorded" },
-        "Constip": { note: "Not Recorded", tip: "Not Recorded" },
-        "Bloat": { note: "Not Recorded", tip: "Not Recorded" },
+      high: {
+        note: `${food} has high ${symptom.toLowerCase()} sensitivity (${p}%). Consider reducing intake.`,
+        tip: "Cut back intake and consult a healthcare pro if symptoms persist.",
       },
     };
 
-    return tooltipMap[food]?.[symptom] || { note: "No additional notes.", tip: "Monitor your symptoms." };
+    if (p <= 30) return levels.low;
+    if (p <= 60) return levels.medium;
+    return levels.high;
   };
 
   const handleCellHover = (e, food, symptom, percentage) => {
@@ -252,6 +225,21 @@ const PremiumWeek = () => {
           </div>
         </div>
 
+        {/* AI Summary Tips */}
+        {summaryTips.length > 0 && (
+          <div className="mt-[19px] rounded-[8px] bg-white p-4 shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
+            <h3 className="text-base font-medium text-primary mb-3">AI Insights</h3>
+            <ul className="space-y-2">
+              {summaryTips.map((tip, index) => (
+                <li key={index} className="text-sm text-secondary flex items-start">
+                  <span className="text-primary mr-2">•</span>
+                  <span>{tip}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {aiLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/60">
             <Loader />
@@ -260,7 +248,7 @@ const PremiumWeek = () => {
       </div>
 
       {/* Cell Tooltip */}
-      {/* {tooltip && (
+      {tooltip && (
         <div
           className="fixed z-50 bg-white rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.15)] p-5 max-w-xs"
           style={{
@@ -281,7 +269,7 @@ const PremiumWeek = () => {
             <p className="text-gray-500 text-xs">Tip: {tooltip.tip}</p>
           </div>
         </div>
-      )} */}
+      )}
 
       {/* Food Name Tooltip */}
       {foodTooltip && (
@@ -310,7 +298,7 @@ const PremiumWeek = () => {
         <button
           className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
           onClick={() =>
-            navigate("/trend-analysis?plan=free", {
+            navigate("/trend-analysis?plan=premium", {
               state: { trendType: "bowel", viewMode: "week", subscribed: true },
             })
           }
