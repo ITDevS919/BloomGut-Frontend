@@ -44,8 +44,9 @@ const PremiumYear = () => {
   const [lastYearIndex, setLastYearIndex] = useState(Array(12).fill(0));
   const [seasonalTrend, setSeasonalTrend] = useState([3, 3, 3, 3]); // SPRING,SUMMER,AUTUMN,WINTER on 1–5 scale
   const [trendLoading, setTrendLoading] = useState(false);
+  const [monthsWithData, setMonthsWithData] = useState(0);
 
-  const overallLabels = Array.from({ length: 12 }, (_, i) => i + 1);
+  const overallLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const overallData = {
     labels: overallLabels,
     datasets: [
@@ -53,24 +54,28 @@ const PremiumYear = () => {
         label: "Gut Index",
         data: gutIndex,
         borderColor: "#22C55E", // Green
-        backgroundColor: "transparent",
+        backgroundColor: "rgba(34, 197, 94, 0.16)",
         borderWidth: 3,
         tension: 0.4,
         pointRadius: 5,
+        pointHoverRadius: 8,
         pointBackgroundColor: "#22C55E",
         pointBorderColor: "#22C55E",
-        pointBorderWidth: 0,
-        fill: false,
+        pointBorderWidth: 2,
+        fill: true,
       },
       {
         label: "Last Yr",
         data: lastYearIndex,
         borderColor: "#9CA3AF", // Gray
-        backgroundColor: "transparent",
-        borderDash: [6, 6], // Dashed line
+        backgroundColor: "rgba(156, 163, 175, 0.08)",
+        borderDash: [2, 4], // Dotted line (short dash, short gap)
         borderWidth: 2,
         tension: 0.4,
-        pointRadius: 0, // No points for dashed line
+        pointRadius: 4,
+        pointBackgroundColor: "#F9FAFB",
+        pointBorderColor: "#9CA3AF",
+        pointBorderWidth: 2,
         fill: false,
       },
     ],
@@ -82,13 +87,26 @@ const PremiumYear = () => {
       legend: {
         display: true,
         position: "bottom",
-        align: "start",
+        align: "end",
         labels: {
           color: "#6B7280", // Medium gray for both labels
-          usePointStyle: false,
-          padding: 15,
+          usePointStyle: true,
+          pointStyle: "line",
+          padding: 12,
           font: {
             size: 12,
+          },
+          generateLabels: (chart) => {
+            return chart.data.datasets.map((dataset, index) => ({
+              text: dataset.label,
+              fillStyle: dataset.backgroundColor || "transparent",
+              strokeStyle: dataset.borderColor,
+              lineDash: dataset.borderDash || [],
+              lineWidth: dataset.borderWidth || 2,
+              pointStyle: "line",
+              hidden: !chart.isDatasetVisible(index),
+              index,
+            }));
           },
         },
       },
@@ -273,6 +291,7 @@ const PremiumYear = () => {
       setFoodsLoading(true);
       setTrendLoading(true);
       setAnalysisLoading(true);
+      setMonthsWithData(0);
 
       try {
         const referenceDate = new Date().toISOString();
@@ -311,6 +330,9 @@ const PremiumYear = () => {
         if (trendPayload) {
           if (Array.isArray(trendPayload.gutIndex)) {
             setGutIndex(trendPayload.gutIndex);
+            // Count months with non-zero data
+            const monthsCount = trendPayload.gutIndex.filter(val => val > 0).length;
+            setMonthsWithData(monthsCount);
           }
           if (Array.isArray(trendPayload.lastYearIndex)) {
             setLastYearIndex(trendPayload.lastYearIndex);
@@ -382,8 +404,8 @@ const PremiumYear = () => {
           Top 3 Gut-Sensitivity Foods
         </h2>
 
-        {foods.length > 0 ? (foods.map((food) => (
-          <div className="grid gap-3 grid-cols-3">
+        <div className="grid gap-3 grid-cols-3">
+          {foods.length > 0 ? (foods.map((food) => (
             <div
               key={food.rank}
               className="rounded-[8px] p-4"
@@ -402,11 +424,12 @@ const PremiumYear = () => {
                 <p>Type: {food.type}</p>
               </div>
             </div>
-          </div>
-        ))) : (
-          <div className="text-center text-base text-custom-12 items-center justify-center flex">
-            Not Recorded
-          </div>)}
+          ))) : (
+            <div className="text-center text-base text-custom-12 items-center justify-center flex">
+              Not Recorded
+            </div>
+          )}
+        </div>
 
         {foodsLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-[#FEFAEF]/60">
@@ -488,7 +511,7 @@ const PremiumYear = () => {
         </div>
       </div>
 
-      <div className="text-xs text-custom-12 text-center">May–Aug 2025 | Swipe ← →</div>
+      <div className="text-xs text-custom-12 text-center"></div>
 
       {/* Seasonal Stool Trend Chart */}
       <div className="w-full max-w-2xl rounded-[8px] bg-septenary p-6 shadow-md mt-5">
@@ -516,7 +539,7 @@ const PremiumYear = () => {
       </div>
 
       {/* Analysis Card */}
-      <div className="w-full max-w-2xl rounded-[8px] bg-[#FEFAEF] p-6 shadow-[0_2px_4px_rgba(0,0,0,0.08)] mt-5">
+      <div className="w-full max-w-2xl rounded-[8px] bg-[#FEFAEF] p-6 shadow-sm mt-5">
         {/* Header with Icon and Title */}
         <div className="flex items-center gap-3 mb-4">
           {/* Stethoscope Icon - Person with stethoscope */}
@@ -529,6 +552,14 @@ const PremiumYear = () => {
           {analysisLoading ? (
             <div className="flex items-center justify-center py-2">
               <Loader />
+            </div>
+          ) : monthsWithData === 0 ? (
+            <div className="text-center text-gray-500 items-center justify-center">
+              No data yet. Start recording your bowel health to get AI analysis.
+            </div>
+          ) : monthsWithData < 3 ? (
+            <div className="text-center text-gray-500 items-center justify-center">
+              Insufficient data, unable to analyze yet.
             </div>
           ) : (
             <>
@@ -557,7 +588,7 @@ const PremiumYear = () => {
       <div className="text-center text-xs text-custom-12 mt-[12px]">Based on past diet & bowel data, for reference only</div>
       <div className="flex items-center justify-center mt-[27px] mb-[40px]">
         <button
-          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
+          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary shadow-sm"
           onClick={() =>
             navigate("/trend-analysis?plan=free", {
               state: { trendType: "bowel", viewMode: "week", subscribed: true },

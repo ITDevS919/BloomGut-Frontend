@@ -68,6 +68,7 @@ const StoolPage = () => {
   // Validation
   const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+  const [validationMessage, setValidationMessage] = useState("");
 
   // Save loading state
   const [isSaving, setIsSaving] = useState(false);
@@ -92,6 +93,7 @@ const StoolPage = () => {
 
     // Reset validation errors
     setValidationErrors({});
+    setValidationMessage("");
 
     // Check if any checkboxes are checked
     const hasTimeOfDay = Object.values(timeOfDayChecked).some(v => v);
@@ -104,6 +106,15 @@ const StoolPage = () => {
     // Check if radio groups have valid selections
     const hasTime = timeValue && timeValue !== "card" && timeValue !== "";
     const hasFrequency = frequencyValue && frequencyValue !== "card" && frequencyValue !== "";
+
+    // Check if ANY field is filled at all
+    const hasAnyFieldFilled = hasTimeOfDay || hasSymptom || hasAdditionalStatus || hasTime || hasFrequency || shapeValue || colorValue || otherSymptomsValue;
+
+    if (!hasAnyFieldFilled) {
+      setValidationMessage("You can't proceed with empty input — you must choose or fill in at least one field.");
+      setShowUnsavedModal(true);
+      return;
+    }
 
     const errors: Record<string, boolean> = {};
 
@@ -125,6 +136,7 @@ const StoolPage = () => {
 
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
+      setValidationMessage("Please fill in all required fields");
       setShowUnsavedModal(true);
       return;
     }
@@ -173,6 +185,11 @@ const StoolPage = () => {
   };
 
   const handleConfirmSave = () => {
+    // If no fields were filled, don't close modal, user needs to fill something
+    if (validationMessage === "You can't proceed with empty input — you must choose or fill in at least one field.") {
+      return;
+    }
+    // For other validation errors, close and let them fix
     setShowUnsavedModal(false);
     // The validation errors are already set, user can see them
   };
@@ -789,7 +806,7 @@ const StoolPage = () => {
 
               {/* Message */}
               <p className="text-base text-[#ef4444] text-center mb-6">
-                Are you sure to
+                {validationMessage || "Are you sure to"}
               </p>
 
               {/* Action Buttons */}

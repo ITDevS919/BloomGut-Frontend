@@ -243,7 +243,7 @@ const PremiumMonth = () => {
       )}
       <div className="flex items-center justify-center mt-[27px]">
         <button
-          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
+          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary shadow-sm"
           onClick={() =>
             navigate("/trend-analysis?plan=free", {
               state: { trendType: "bowel", viewMode: "week", subscribed: true },
