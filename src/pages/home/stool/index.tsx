@@ -838,11 +838,7 @@ const StoolPage = () => {
       {/* Historical Records Section */}
       <div className="px-6 py-6">
         <CustomHeading label="Recent Records" className="mb-4" />
-        {recordsLoading ? (
-          <div className="flex justify-center items-center py-8">
-            <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : recentRecords.length === 0 ? (
+        {recentRecords.length === 0 ? (
           <div className="text-center py-8 text-secondary">
             No recent records found
           </div>
