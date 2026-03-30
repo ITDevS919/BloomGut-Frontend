@@ -23,6 +23,7 @@ import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 import { getTrendUrineYearlySummary, postTrendUrineYearlyAdvice } from "@/api/http";
 import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
+import Loader from "@/components/common/Loader";
 
 const Year = ({ referenceDate }) => {
   const [showAnalysis, setShowAnalysis] = useState(false);
@@ -106,15 +107,15 @@ const Year = ({ referenceDate }) => {
         radarDatasets.length > 0
           ? radarDatasets
           : [
-              {
-                label: "Urine state %",
-                data: [0],
-                borderColor: "#3B82F6",
-                backgroundColor: "rgba(59, 130, 246, 0.25)",
-                pointBackgroundColor: "#3B82F6",
-                pointRadius: 4,
-              },
-            ],
+            {
+              label: "Urine state %",
+              data: [0],
+              borderColor: "#3B82F6",
+              backgroundColor: "rgba(59, 130, 246, 0.25)",
+              pointBackgroundColor: "#3B82F6",
+              pointRadius: 4,
+            },
+          ],
     }),
     [radarLabels, radarDatasets]
   );
@@ -186,52 +187,8 @@ const Year = ({ referenceDate }) => {
             className={`h-64 flex items-center justify-center ${!summaryLoading && !isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
           >
             {summaryLoading ? (
-              <div className="flex h-full items-center justify-center py-2">
-                <svg
-                  version="1.1"
-                  xmlns="http://www.w3.org/2000/svg"
-                  x="0px"
-                  y="0px"
-                  width="24px"
-                  height="30px"
-                  viewBox="0 0 24 30"
-                  style={{ enableBackground: "new 0 0 50 50" }}
-                  xmlSpace="preserve"
-                >
-                  <rect x="0" y="0" width="4" height="10" fill="#ef4444">
-                    <animateTransform
-                      attributeType="xml"
-                      attributeName="transform"
-                      type="translate"
-                      values="0 0; 0 20; 0 0"
-                      begin="0"
-                      dur="0.6s"
-                      repeatCount="indefinite"
-                    />
-                  </rect>
-                  <rect x="10" y="0" width="4" height="10" fill="#ef4444">
-                    <animateTransform
-                      attributeType="xml"
-                      attributeName="transform"
-                      type="translate"
-                      values="0 0; 0 20; 0 0"
-                      begin="0.2s"
-                      dur="0.6s"
-                      repeatCount="indefinite"
-                    />
-                  </rect>
-                  <rect x="20" y="0" width="4" height="10" fill="#ef4444">
-                    <animateTransform
-                      attributeType="xml"
-                      attributeName="transform"
-                      type="translate"
-                      values="0 0; 0 20; 0 0"
-                      begin="0.4s"
-                      dur="0.6s"
-                      repeatCount="indefinite"
-                    />
-                  </rect>
-                </svg>
+              <div className="absolute inset-0 flex items-center justify-center bg-white/60">
+                <Loader />
               </div>
             ) : (
               <Radar data={chartData} options={options} />

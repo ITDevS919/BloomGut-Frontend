@@ -5,7 +5,7 @@ const Upgrade = () => {
   const navigate = useNavigate();
   return (
     <>
-      <div className="bg-[#E8F5EF] rounded-[27px] p-5 text-center shadow-[0_4px_12px_rgba(0,0,0,0.08)] mt-5 mb-[49px]">
+      <div className="bg-[#E8F5EF] rounded-[27px] p-5 text-center mt-5 mb-[49px] shadow-md">
         <div className="text-xs text-left text-secondary mb-2">
           In-depth Analysis
         </div>

@@ -337,7 +337,7 @@ const Intermediate = () => {
             {(plan === "premium" || plan === "pro" || isSubscribed) && (
               <div className="flex items-center justify-center mb-[47px]">
                 <button
-                  className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary shadow-sm"
+                  className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary shadow-md"
                   onClick={() => navigate("/trend-analysis?plan=premium", { state: { trendType: "bowel" } })}
                 >
                   In-depth Analysis
@@ -465,7 +465,7 @@ const Intermediate = () => {
             {(plan === "premium" || plan === "pro" || isSubscribed) && (
               <div className="flex items-center justify-center mb-[47px]">
                 <button
-                  className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary shadow-sm"
+                  className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary shadow-md"
                   onClick={() => navigate("/trend-analysis?plan=premium", { state: { trendType: "bowel" } })}
                 >
                   In-depth Analysis

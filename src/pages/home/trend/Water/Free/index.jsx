@@ -267,7 +267,17 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
       ? Math.round(((todayMl - yesterdayMl) / yesterdayMl) * 100)
       : null;
   const effectiveChange =
-    changeVsYesterday !== null ? `${changeVsYesterday >= 0 ? "+" : ""}${changeVsYesterday}% vs Last` : "";
+    changeVsYesterday !== null
+      ? `${changeVsYesterday > 0 ? "+" : ""}${changeVsYesterday}% vs Last`
+      : "";
+  const changePercentTextColor =
+    changeVsYesterday !== null
+      ? changeVsYesterday > 0
+        ? "#1ABC9C"
+        : changeVsYesterday < 0
+          ? "#F66B6B"
+          : "#999999"
+      : "#4682B4";
   const scorePosition = getScorePosition(effectiveScore);
 
   const loadingStats = loadingDailyMl || loadingWeeklySummary;
@@ -284,7 +294,10 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
               {effectiveStatus}
             </div>
           </div>
-          <div className="text-sm text-[#4682B4] pr-[50px] text-right">
+          <div
+            className="text-sm pr-[50px] text-right"
+            style={{ color: changePercentTextColor }}
+          >
             {effectiveChange && <div>{effectiveChange}</div>}
           </div>
         </div>

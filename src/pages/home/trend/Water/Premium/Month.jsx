@@ -15,6 +15,7 @@ import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 import { getTrendWaterMonthlyWeeks } from "@/api/http";
 import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
+import Loader from "@/components/common/Loader";
 
 ChartJS.register(
   BarElement,
@@ -356,210 +357,166 @@ const Month = ({ referenceDate }) => {
   return (
     <div className="pl-[15px] pr-[15px] mt-[38px]">
       <div className="w-full rounded-[20px] bg-white p-5 shadow-[2px_0_10px_rgba(0,0,0,0.15)] mb-[54px]">
-      {/* Header */}
-      <h2 className="text-center text-base text-primary mb-[13px]">
-        Weekly Intake Analysis
-      </h2>
-      <p className="mb-4 text-center text-xs text-gray-400">Monthly Trend</p>
+        {/* Header */}
+        <h2 className="text-center text-base text-primary mb-[13px]">
+          Weekly Intake Analysis
+        </h2>
+        <p className="mb-4 text-center text-xs text-gray-400">Monthly Trend</p>
 
-      {!chartLoading && !isEnoughData && <TrendInsufficientNotice className="mb-3" />}
+        {!chartLoading && !isEnoughData && <TrendInsufficientNotice className="mb-3" />}
 
-      {/* Chart */}
-      <div
-        className={`relative h-60 ${!chartLoading && !isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
-      >
-        {chartLoading ? (
-          <div className="flex h-full items-center justify-center">
-            <svg
-              version="1.1"
-              xmlns="http://www.w3.org/2000/svg"
-              x="0px"
-              y="0px"
-              width="24px"
-              height="30px"
-              viewBox="0 0 24 30"
-              style={{ enableBackground: "new 0 0 50 50" }}
-              xmlSpace="preserve"
-            >
-              <rect x="0" y="0" width="4" height="10" fill="#ef4444">
-                <animateTransform
-                  attributeType="xml"
-                  attributeName="transform"
-                  type="translate"
-                  values="0 0; 0 20; 0 0"
-                  begin="0"
-                  dur="0.6s"
-                  repeatCount="indefinite"
-                />
-              </rect>
-              <rect x="10" y="0" width="4" height="10" fill="#ef4444">
-                <animateTransform
-                  attributeType="xml"
-                  attributeName="transform"
-                  type="translate"
-                  values="0 0; 0 20; 0 0"
-                  begin="0.2s"
-                  dur="0.6s"
-                  repeatCount="indefinite"
-                />
-              </rect>
-              <rect x="20" y="0" width="4" height="10" fill="#ef4444">
-                <animateTransform
-                  attributeType="xml"
-                  attributeName="transform"
-                  type="translate"
-                  values="0 0; 0 20; 0 0"
-                  begin="0.4s"
-                  dur="0.6s"
-                  repeatCount="indefinite"
-                />
-              </rect>
-            </svg>
-          </div>
-        ) : (
-          <>
-            <Bar ref={chartRef} data={data} options={options} />
-
-            {/* Custom Tooltip */}
-            {tooltip.visible && tooltip.data && (
-              <div
-                className="fixed z-50 bg-white rounded-[15px] shadow-[0_2px_8px_rgba(0,0,0,0.16)] p-4 pointer-events-none"
-                style={{
-                  left: `${tooltip.x}px`,
-                  top: `${tooltip.y - 150}px`,
-                  transform: "translateX(-50%)",
-                  minWidth: "200px",
-                }}
-              >
-                <h3 className="text-base font-medium text-primary mb-4">
-                  {tooltip.data.week}
-                </h3>
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-4 h-4 rounded-full"
-                      style={{ backgroundColor: "#BAE6FD" }}
-                    />
-                    <span className="text-sm text-secondary">
-                      Morning: {tooltip.data.morning} ml
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-4 h-4 rounded-full"
-                      style={{ backgroundColor: "#6AA8CF" }}
-                    />
-                    <span className="text-sm text-secondary">
-                      Noon: {tooltip.data.noon} ml
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-4 h-4 rounded-full"
-                      style={{ backgroundColor: "#2C7DA0" }}
-                    />
-                    <span className="text-sm text-secondary">
-                      Afternoon: {tooltip.data.afternoon} ml
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-
-      {/* Icons */}
-      <div className="mt-4 flex justify-center gap-4">
-        <IconBtn icon={Sun} color="text-yellow-400" />
-        <IconBtn icon={AlertTriangle} color="text-orange-500" />
-        <IconBtn icon={Moon} color="text-blue-300" />
-        <IconBtn icon={Clock} color="text-gray-500" />
-      </div>
-
-      {/* AI Weekly Advice card (for selected week) */}
-      {selectedWeekIndex != null && (
-        <div className="mt-4 flex justify-center">
-          <div className="flex items-start gap-3 rounded-[20px] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.16)] px-5 py-4 w-[300px]">
-            <div className="mt-1">
-              <AlertTriangle className="h-5 w-5 text-yellow-400" />
+        {/* Chart */}
+        <div
+          className={`relative h-60 ${!chartLoading && !isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
+        >
+          {chartLoading ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-white/60">
+              <Loader />
             </div>
-            <div className="text-sm text-secondary">
-              <div className="font-medium text-primary mb-1">
-                {labels[selectedWeekIndex] ?? `Week ${selectedWeekIndex + 1}`}
-              </div>
-              {aiLoadingWeek === selectedWeekIndex ? (
-                <div className="flex items-center justify-center py-2">
-                  <svg
-                    version="1.1"
-                    xmlns="http://www.w3.org/2000/svg"
-                    x="0px"
-                    y="0px"
-                    width="24px"
-                    height="30px"
-                    viewBox="0 0 24 30"
-                    style={{ enableBackground: "new 0 0 50 50" }}
-                    xmlSpace="preserve"
-                  >
-                    <rect x="0" y="0" width="4" height="10" fill="#ef4444">
-                      <animateTransform
-                        attributeType="xml"
-                        attributeName="transform"
-                        type="translate"
-                        values="0 0; 0 20; 0 0"
-                        begin="0"
-                        dur="0.6s"
-                        repeatCount="indefinite"
+          ) : (
+            <>
+              <Bar ref={chartRef} data={data} options={options} />
+
+              {/* Custom Tooltip */}
+              {tooltip.visible && tooltip.data && (
+                <div
+                  className="fixed z-50 bg-white rounded-[15px] shadow-[0_2px_8px_rgba(0,0,0,0.16)] p-4 pointer-events-none"
+                  style={{
+                    left: `${tooltip.x}px`,
+                    top: `${tooltip.y - 150}px`,
+                    transform: "translateX(-50%)",
+                    minWidth: "200px",
+                  }}
+                >
+                  <h3 className="text-base font-medium text-primary mb-4">
+                    {tooltip.data.week}
+                  </h3>
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-4 h-4 rounded-full"
+                        style={{ backgroundColor: "#BAE6FD" }}
                       />
-                    </rect>
-                    <rect x="10" y="0" width="4" height="10" fill="#ef4444">
-                      <animateTransform
-                        attributeType="xml"
-                        attributeName="transform"
-                        type="translate"
-                        values="0 0; 0 20; 0 0"
-                        begin="0.2s"
-                        dur="0.6s"
-                        repeatCount="indefinite"
+                      <span className="text-sm text-secondary">
+                        Morning: {tooltip.data.morning} ml
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-4 h-4 rounded-full"
+                        style={{ backgroundColor: "#6AA8CF" }}
                       />
-                    </rect>
-                    <rect x="20" y="0" width="4" height="10" fill="#ef4444">
-                      <animateTransform
-                        attributeType="xml"
-                        attributeName="transform"
-                        type="translate"
-                        values="0 0; 0 20; 0 0"
-                        begin="0.4s"
-                        dur="0.6s"
-                        repeatCount="indefinite"
+                      <span className="text-sm text-secondary">
+                        Noon: {tooltip.data.noon} ml
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-4 h-4 rounded-full"
+                        style={{ backgroundColor: "#2C7DA0" }}
                       />
-                    </rect>
-                  </svg>
+                      <span className="text-sm text-secondary">
+                        Afternoon: {tooltip.data.afternoon} ml
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              ) : (
-                <>
-                  {aiAdviceByWeek[selectedWeekIndex]?.message && (
-                    <p className="text-xs text-secondary mb-1">
-                      {aiAdviceByWeek[selectedWeekIndex].message}
-                    </p>
-                  )}
-                  {aiAdviceByWeek[selectedWeekIndex]?.tip && (
-                    <p className="text-xs text-custom-12">
-                      <span className="font-medium">Tip: </span>
-                      {aiAdviceByWeek[selectedWeekIndex].tip}
-                    </p>
-                  )}
-                </>
               )}
+            </>
+          )}
+        </div>
+
+        {/* Icons */}
+        <div className="mt-4 flex justify-center gap-4">
+          <IconBtn icon={Sun} color="text-yellow-400" />
+          <IconBtn icon={AlertTriangle} color="text-orange-500" />
+          <IconBtn icon={Moon} color="text-blue-300" />
+          <IconBtn icon={Clock} color="text-gray-500" />
+        </div>
+
+        {/* AI Weekly Advice card (for selected week) */}
+        {selectedWeekIndex != null && (
+          <div className="mt-4 flex justify-center">
+            <div className="flex items-start gap-3 rounded-[20px] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.16)] px-5 py-4 w-[300px]">
+              <div className="mt-1">
+                <AlertTriangle className="h-5 w-5 text-yellow-400" />
+              </div>
+              <div className="text-sm text-secondary">
+                <div className="font-medium text-primary mb-1">
+                  {labels[selectedWeekIndex] ?? `Week ${selectedWeekIndex + 1}`}
+                </div>
+                {aiLoadingWeek === selectedWeekIndex ? (
+                  <div className="flex items-center justify-center py-2">
+                    <svg
+                      version="1.1"
+                      xmlns="http://www.w3.org/2000/svg"
+                      x="0px"
+                      y="0px"
+                      width="24px"
+                      height="30px"
+                      viewBox="0 0 24 30"
+                      style={{ enableBackground: "new 0 0 50 50" }}
+                      xmlSpace="preserve"
+                    >
+                      <rect x="0" y="0" width="4" height="10" fill="#ef4444">
+                        <animateTransform
+                          attributeType="xml"
+                          attributeName="transform"
+                          type="translate"
+                          values="0 0; 0 20; 0 0"
+                          begin="0"
+                          dur="0.6s"
+                          repeatCount="indefinite"
+                        />
+                      </rect>
+                      <rect x="10" y="0" width="4" height="10" fill="#ef4444">
+                        <animateTransform
+                          attributeType="xml"
+                          attributeName="transform"
+                          type="translate"
+                          values="0 0; 0 20; 0 0"
+                          begin="0.2s"
+                          dur="0.6s"
+                          repeatCount="indefinite"
+                        />
+                      </rect>
+                      <rect x="20" y="0" width="4" height="10" fill="#ef4444">
+                        <animateTransform
+                          attributeType="xml"
+                          attributeName="transform"
+                          type="translate"
+                          values="0 0; 0 20; 0 0"
+                          begin="0.4s"
+                          dur="0.6s"
+                          repeatCount="indefinite"
+                        />
+                      </rect>
+                    </svg>
+                  </div>
+                ) : (
+                  <>
+                    {aiAdviceByWeek[selectedWeekIndex]?.message && (
+                      <p className="text-xs text-secondary mb-1">
+                        {aiAdviceByWeek[selectedWeekIndex].message}
+                      </p>
+                    )}
+                    {aiAdviceByWeek[selectedWeekIndex]?.tip && (
+                      <p className="text-xs text-custom-12">
+                        <span className="font-medium">Tip: </span>
+                        {aiAdviceByWeek[selectedWeekIndex].tip}
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Footer */}
-      <p className="mt-5 text-center text-xs text-custom-12 italic">
-        Hover trend line for weekly tips
-      </p>
+        {/* Footer */}
+        <p className="mt-5 text-center text-xs text-custom-12 italic">
+          Hover trend line for weekly tips
+        </p>
       </div>
     </div>
   );

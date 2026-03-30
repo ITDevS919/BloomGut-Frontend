@@ -6,7 +6,7 @@ const Upgrade = () => {
   return (
     <>
       {/* upgrade card */}
-      <div className="bg-[#E8F4FF] rounded-[27px] p-5 text-center shadow-[0_4px_12px_rgba(0,0,0,0.08)] mt-[66px] mb-[60px]">
+      <div className="bg-[#E8F4FF] rounded-[27px] p-5 text-center mt-[66px] mb-[60px] shadow-md">
         <div className="text-xs text-left text-custom-12 mb-2">
           In-depth Analysis
         </div>

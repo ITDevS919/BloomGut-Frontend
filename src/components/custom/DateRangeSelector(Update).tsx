@@ -76,7 +76,7 @@ const DateRangeSelectorBlueUpdate = (props) => {
   };
 
   return (
-    <div className="bg-ivory mb-[32px] mt-[20px]">
+    <div className="bg-ivory mb-[32px]">
       {/* View Mode Toggle Buttons - Top Row */}
       <div className="flex gap-4 sm:gap-6 md:gap-10 justify-center mb-4 px-[15px] overflow-x-auto">
         <button

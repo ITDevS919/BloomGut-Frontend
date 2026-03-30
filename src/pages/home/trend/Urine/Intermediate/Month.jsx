@@ -390,7 +390,7 @@ const Month = ({ referenceDate }) => {
       </div> */}
       <div className="flex items-center justify-center mb-[47px]">
         <button
-          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
+          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary shadow-md"
           onClick={() => navigate("/trend-analysis?plan=premium", { state: { trendType: "urine" } })}
         >
           In-depth Analysis

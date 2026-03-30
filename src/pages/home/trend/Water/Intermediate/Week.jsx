@@ -283,18 +283,26 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
       </div>
       <div className="p-4">
         <div className="w-full max-w-md rounded-[27px] bg-white p-5 shadow-md mb-[68px] relative">
-          {!isEnoughData && <TrendInsufficientNotice className="mb-4" />}
+          {!loadingTime && !isEnoughData && (
+            <TrendInsufficientNotice className="mb-4" />
+          )}
           {/* Info Block */}
           <div className="mb-4 rounded-[12px] bg-[#eff6ff] px-4 py-3 text-sm text-custom-12">
             Chart shows intake by time period to check balance. Concentrated
             drinking may cause constipation or night urination.
           </div>
 
-          {/* Chart */}
+          {/* Chart — no series rendered when record_days below threshold */}
           <div
-            className={`mb-4 h-48 ${!isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
+            className={`mb-4 h-48 ${!isEnoughData ? "rounded-xl border border-dashed border-gray-200 bg-gray-50/80 flex items-center justify-center pointer-events-none" : ""}`}
           >
-            <Bar data={data} options={options} />
+            {isEnoughData ? (
+              <Bar data={data} options={options} />
+            ) : (
+              <span className="text-2xl text-gray-300 select-none" aria-hidden>
+                —
+              </span>
+            )}
           </div>
 
           {/* Analysis & Advice (AI) */}
@@ -328,9 +336,9 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
             </div>
           )}
 
-          {/* Summary Cards */}
+          {/* Summary Cards — no intake/balance analysis when insufficient */}
           <div
-            className={`mt-5 grid grid-cols-2 gap-3 ${!isEnoughData ? "opacity-40 grayscale" : ""}`}
+            className={`mt-5 grid grid-cols-2 gap-3 ${!isEnoughData ? "opacity-50 grayscale" : ""}`}
           >
             <StatCard
               title="Weekly Intake"
@@ -346,10 +354,11 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
             <StatCard2 title="Balance" value={balanceLabel} sub={balanceSub} />
           </div>
 
-          {/* Footer Text */}
-          <p className="mt-[22px] italic text-center text-xs text-custom-12">
-            Tap period for tips & impacts.
-          </p>
+          {isEnoughData ? (
+            <p className="mt-[22px] italic text-center text-xs text-custom-12">
+              Tap period for tips & impacts.
+            </p>
+          ) : null}
 
           {loadingTime && (
             <div className="absolute inset-0 flex items-center justify-center bg-white/60">

@@ -14,12 +14,15 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 
 const SESSION_NAMES = ["Morning", "Noon", "Afternoon", "Evening"];
 const SESSION_COLORS = ["bg-[#B9E1ED]", "bg-[#8EC4D9]", "bg-[#7CB6CF]", "bg-[#5CA3C2]"];
-const DEFAULT_TIPS = {
-  Morning: ["Great morning hydration, boosts metabolism.", "Drink 250–300ml warm water within 30 min after waking."],
-  Noon: ["Good midday hydration.", "Continue regular water intake throughout the day."],
-  Afternoon: ["Afternoon hydration is adequate.", "Consider increasing intake during afternoon hours."],
-  Evening: ["Evening hydration is adequate.", "Avoid large amounts within 10 min before bed."],
-};
+
+const emptySessions = () =>
+  SESSION_NAMES.map((name, i) => ({
+    name,
+    percentage: 0,
+    ml: 0,
+    tips: [],
+    color: SESSION_COLORS[i],
+  }));
 
 const Month = ({ showUpgrade = true, referenceDate }) => {
   const navigate = useNavigate();
@@ -39,48 +42,7 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
     description: "—",
   });
 
-  const [sessions, setSessions] = useState([
-    {
-      name: "Morning",
-      percentage: 0,
-      ml: 0,
-      tips: [
-        "Great morning hydration, boosts metabolism.",
-        "Drink 250–300ml warm water within 30 min after waking.",
-      ],
-      color: "bg-[#B9E1ED]",
-    },
-    {
-      name: "Noon",
-      percentage: 0,
-      ml: 0,
-      tips: [
-        "Good midday hydration.",
-        "Continue regular water intake throughout the day.",
-      ],
-      color: "bg-[#8EC4D9]",
-    },
-    {
-      name: "Afternoon",
-      percentage: 0,
-      ml: 0,
-      tips: [
-        "Afternoon hydration is adequate.",
-        "Consider increasing intake during afternoon hours.",
-      ],
-      color: "bg-[#7CB6CF]",
-    },
-    {
-      name: "Evening",
-      percentage: 0,
-      ml: 0,
-      tips: [
-        "Evening hydration is adequate.",
-        "Avoid large amounts within 10 min before bed.",
-      ],
-      color: "bg-[#5CA3C2]",
-    },
-  ]);
+  const [sessions, setSessions] = useState(emptySessions);
 
   const currentSession =
     sessions.find((s) => s.name === selectedSession) || sessions[0];
@@ -144,11 +106,11 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
             Afternoon: payload.afternoonMl,
             Evening: payload.eveningMl,
           }[name] ?? 0,
-          tips: DEFAULT_TIPS[name],
+          tips: [],
           color: SESSION_COLORS[i],
         }));
 
-        setSessions(updated);
+        setSessions(enough ? updated : emptySessions());
 
         const backendTotal =
           typeof payload.totalMl === "number"
@@ -200,7 +162,7 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
                 prev.map((s) => {
                   const ai = aiSessions.find((a) => a && a.name === s.name);
                   const tips =
-                    Array.isArray(ai?.tips) && ai.tips.length > 0 ? ai.tips : s.tips;
+                    Array.isArray(ai?.tips) && ai.tips.length > 0 ? ai.tips : [];
                   return { ...s, tips };
                 })
               );
@@ -242,20 +204,26 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
           <TrendInsufficientNotice className="mb-3 max-w-md" />
         )}
         <div
-          className={`w-full max-w-md space-y-4 ${!isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
+          className={`w-full max-w-md space-y-4 ${!isEnoughData ? "opacity-50 grayscale pointer-events-none" : ""}`}
         >
-          {/* Donut Card */}
+          {/* Donut Card — no chart series when below month threshold */}
           <div className="relative rounded-[27.44px] bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.15)] mb-[28px]">
-            <div className="relative mx-auto h-52 w-52">
-              <Doughnut data={data} options={options} />
-
-              {/* Center Text */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-3xl font-bold text-gray-800">
-                  {isEnoughData ? total : "—"}
+            <div
+              className={`relative mx-auto h-52 w-52 ${!isEnoughData ? "flex items-center justify-center rounded-full border border-dashed border-gray-200 bg-gray-50/80" : ""}`}
+            >
+              {isEnoughData ? (
+                <>
+                  <Doughnut data={data} options={options} />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-3xl font-bold text-gray-800">{total}</span>
+                    <span className="text-sm text-gray-500">ml</span>
+                  </div>
+                </>
+              ) : (
+                <span className="text-2xl text-gray-300 select-none" aria-hidden>
+                  —
                 </span>
-                <span className="text-sm text-gray-500">ml</span>
-              </div>
+              )}
             </div>
 
             {loadingMonthlyTime && (
@@ -291,15 +259,15 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
             />
             <StatCard
               title="Best Time"
-              value={bestTime.name}
-              sub={bestTime.description}
+              value={isEnoughData ? bestTime.name : "—"}
+              sub={isEnoughData ? bestTime.description : "—"}
             />
           </div>
         </div>
 
         {/* Water Intake Sessions */}
         <div
-          className={`w-full max-w-md mt-8 shadow-[0_2px_4px_rgba(0,0,0,0.15)] rounded-[27px] bg-white p-5 space-y-4 ${!isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
+          className={`w-full max-w-md mt-8 shadow-[0_2px_4px_rgba(0,0,0,0.15)] rounded-[27px] bg-white p-5 space-y-4 ${!isEnoughData ? "opacity-50 grayscale pointer-events-none" : ""}`}
         >
           {/* Main Session Card */}
           <div className="rounded-[12px] bg-[#eff6ff] p-5 shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
@@ -346,7 +314,7 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
                 }`}
                 ></div>
                 <span>
-                  {session.name}: {session.percentage}%
+                  {session.name}: {isEnoughData ? `${session.percentage}%` : "—"}
                 </span>
               </button>
             ))}
@@ -363,7 +331,7 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
 
       <div className="flex items-center justify-center mb-[47px] mt-[20px]">
         <button
-          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
+          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary shadow-md"
           onClick={() => navigate("/trend-analysis?plan=premium", { state: { trendType: "water" } })}
         >
           In-depth Analysis
@@ -379,15 +347,6 @@ function StatCard({ title, value, sub }) {
       <p className="text-sm text-secondary">{title}</p>
       <p className="mt-1 text-base font-semibold text-[#4682b4]">{value}</p>
       <p className="mt-1 text-xs text-custom-12">{sub}</p>
-    </div>
-  );
-}
-
-function LegendDot({ color, label }) {
-  return (
-    <div className="flex items-center gap-1">
-      <span className={`h-3 w-3 rounded ${color}`} />
-      <span>{label}</span>
     </div>
   );
 }
