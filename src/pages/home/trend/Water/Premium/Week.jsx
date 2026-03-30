@@ -17,6 +17,7 @@ import {
   getTrendWaterWeeklyTime,
   postTrendWaterWeeklyAdvice,
 } from "@/api/http";
+import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -38,6 +39,7 @@ const Week = ({ referenceDate }) => {
   });
   const [advice, setAdvice] = useState({ message: "", tip: "" });
   const [chartLoading, setChartLoading] = useState(true);
+  const [isEnoughData, setIsEnoughData] = useState(false);
   const dayNames = {
     "Mon": "Monday",
     "Tue": "Tuesday",
@@ -68,6 +70,8 @@ const Week = ({ referenceDate }) => {
         ]);
 
         const dailyPayload = dailyRes.data?.data || dailyRes.data;
+        const enough = dailyPayload?.is_enough_data === true;
+        setIsEnoughData(enough);
         if (dailyPayload?.days && dailyPayload?.mlPerDay) {
           setLabels(dailyPayload.days);
           setDailyMl(dailyPayload.mlPerDay);
@@ -80,43 +84,46 @@ const Week = ({ referenceDate }) => {
           const afternoon = weeklyPayload.afternoonMl ?? 0;
           const evening = weeklyPayload.eveningMl ?? 0;
           const total = morning + noon + afternoon + evening;
-          if (total > 0) {
+          if (total > 0 && enough) {
             setTimeShare({
               morning: morning / total,
               noon: noon / total,
               afternoon: afternoon / total,
               evening: evening / total,
             });
+          } else {
+            setTimeShare({ morning: 0, noon: 0, afternoon: 0, evening: 0 });
           }
 
-          try {
-            const adviceRes = await postTrendWaterWeeklyAdvice(api, {
-              morningMl: morning,
-              noonMl: noon,
-              afternoonMl: afternoon,
-              eveningMl: evening,
-              totalMl: total,
-              morningPercent: weeklyPayload.morningPercent ?? 0,
-              noonPercent: weeklyPayload.noonPercent ?? 0,
-              afternoonPercent: weeklyPayload.afternoonPercent ?? 0,
-              eveningPercent: weeklyPayload.eveningPercent ?? 0,
-            });
-            const advicePayload = adviceRes.data?.data ?? adviceRes.data;
-            if (advicePayload?.message != null || advicePayload?.tip != null) {
-              setAdvice({
-                message: advicePayload.message ?? "",
-                tip: advicePayload.tip ?? "",
+          if (enough && total > 0) {
+            try {
+              const adviceRes = await postTrendWaterWeeklyAdvice(api, {
+                morningMl: morning,
+                noonMl: noon,
+                afternoonMl: afternoon,
+                eveningMl: evening,
+                totalMl: total,
+                morningPercent: weeklyPayload.morningPercent ?? 0,
+                noonPercent: weeklyPayload.noonPercent ?? 0,
+                afternoonPercent: weeklyPayload.afternoonPercent ?? 0,
+                eveningPercent: weeklyPayload.eveningPercent ?? 0,
               });
+              const advicePayload = adviceRes.data?.data ?? adviceRes.data;
+              if (advicePayload?.message != null || advicePayload?.tip != null) {
+                setAdvice({
+                  message: advicePayload.message ?? "",
+                  tip: advicePayload.tip ?? "",
+                });
+              } else {
+                setAdvice({ message: "", tip: "" });
+              }
+            } catch (error) {
+              // eslint-disable-next-line no-console
+              console.error("Failed to load premium weekly water advice:", error);
+              setAdvice({ message: "", tip: "" });
             }
-          } catch (error) {
-            // eslint-disable-next-line no-console
-            console.error("Failed to load premium weekly water advice:", error);
-            setAdvice({
-              message: "Review your weekly water distribution.",
-              tip: "Spread intake across the day.",
-            });
-          } finally {
-            // no loading state
+          } else {
+            setAdvice({ message: "", tip: "" });
           }
         }
       } catch (err) {
@@ -251,8 +258,14 @@ const Week = ({ referenceDate }) => {
         </h2>
         <p className="mb-4 text-center text-xs text-custom-12">Weekly Tracker</p>
 
+        {!chartLoading && !isEnoughData && (
+          <TrendInsufficientNotice className="mb-4" />
+        )}
+
         {/* Chart wrapper (IMPORTANT) */}
-        <div className="relative h-60">
+        <div
+          className={`relative h-60 ${!chartLoading && !isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
+        >
           {chartLoading ? (
             <div className="flex h-full items-center justify-center">
               <svg

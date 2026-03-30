@@ -11,6 +11,7 @@ import {
   postTrendUrineWeeklyAdvice,
 } from "@/api/http";
 import Loader from "@/components/common/Loader";
+import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 import Free from "../Free";
@@ -76,6 +77,41 @@ const Week = ({ referenceDate }) => {
   });
   const [timeLoading, setTimeLoading] = useState(false);
 
+  const [urineTrendLoading, setUrineTrendLoading] = useState(true);
+  const [urineTrendOk, setUrineTrendOk] = useState(false);
+
+  useEffect(() => {
+    if (!auth?.user?.id) {
+      setUrineTrendLoading(false);
+      setUrineTrendOk(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setUrineTrendLoading(true);
+      try {
+        const response = await getTrendUrineWeeklyScore(api, {
+          params: {
+            userId: auth.user.id,
+            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
+            timezoneOffsetMinutes: new Date().getTimezoneOffset(),
+          },
+        });
+        const payload = response.data?.data || response.data;
+        if (!cancelled) {
+          setUrineTrendOk(payload?.is_enough_data === true);
+        }
+      } catch (e) {
+        if (!cancelled) setUrineTrendOk(false);
+      } finally {
+        if (!cancelled) setUrineTrendLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [api, auth?.user?.id, referenceDate]);
+
   useEffect(() => {
     if (!auth?.user?.id) return;
 
@@ -119,6 +155,10 @@ const Week = ({ referenceDate }) => {
     if (!auth?.user?.id) return;
 
     const fetchWeeklyAdvice = async () => {
+      if (!urineTrendOk) {
+        setAdviceLoading(false);
+        return;
+      }
       setAdviceLoading(true);
       try {
         const response = await postTrendUrineWeeklyAdvice(api, {
@@ -153,7 +193,15 @@ const Week = ({ referenceDate }) => {
     };
 
     fetchWeeklyAdvice();
-  }, [api, auth?.user?.id, daytimeEpisodes, nightEpisodes, daytimePercent, nightPercent]);
+  }, [
+    api,
+    auth?.user?.id,
+    urineTrendOk,
+    daytimeEpisodes,
+    nightEpisodes,
+    daytimePercent,
+    nightPercent,
+  ]);
 
   const dayNightData = {
     labels: ["Daytime", "Nighttime"],
@@ -188,6 +236,26 @@ const Week = ({ referenceDate }) => {
     let isCancelled = false;
 
     const fetchWeeklyClarity = async () => {
+      if (!urineTrendOk) {
+        setClaritySegments({
+          clearPercent: 0,
+          lightYellowPercent: 0,
+          darkYellowPercent: 0,
+        });
+        setClarityStats({
+          dailyVolumeMl: 0,
+          nighttimePercent: 0,
+          urinationAvgPerDay: 0,
+        });
+        setClarityAdvice({
+          primaryTitle: "",
+          primaryDesc: "",
+          secondaryTitle: "",
+          secondaryDesc: "",
+        });
+        setClarityLoading(false);
+        return;
+      }
       setClarityLoading(true);
       try {
         const response = await getTrendUrineWeeklyScore(api, {
@@ -198,7 +266,12 @@ const Week = ({ referenceDate }) => {
           },
         });
         const payload = response.data?.data || response.data;
-        if (!Array.isArray(payload)) return;
+        if (!payload) return;
+        const rows = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload.series)
+            ? payload.series
+            : [];
 
         const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         const baseDots = dayLabels.map((d) => ({
@@ -207,7 +280,7 @@ const Week = ({ referenceDate }) => {
           score: 0,
         }));
 
-        payload.forEach((item) => {
+        rows.forEach((item) => {
           const jsDay = typeof item.day === "number" ? item.day : 0;
           if (jsDay < 0 || jsDay > 6) return;
           const status =
@@ -295,7 +368,15 @@ const Week = ({ referenceDate }) => {
     return () => {
       isCancelled = true;
     };
-  }, [api, auth?.user?.id, referenceDate, daytimeEpisodes, nightEpisodes, nightPercent]);
+  }, [
+    api,
+    auth?.user?.id,
+    referenceDate,
+    daytimeEpisodes,
+    nightEpisodes,
+    nightPercent,
+    urineTrendOk,
+  ]);
 
   // Fetch time distribution + advice
   useEffect(() => {
@@ -304,6 +385,29 @@ const Week = ({ referenceDate }) => {
     let isCancelled = false;
 
     const fetchWeeklyTime = async () => {
+      if (!urineTrendOk) {
+        setTimeSegments({
+          morningPercent: 0,
+          forenoonPercent: 0,
+          afternoonPercent: 0,
+          eveningPercent: 0,
+          nightPercent: 0,
+        });
+        setTimeStats({
+          dailyVolumeMl: 0,
+          nighttimePercent: 0,
+          urinationAvgPerDay: 0,
+        });
+        setTimeHighlight({ title: "", desc: "" });
+        setTimeAdvice({
+          primaryTitle: "",
+          primaryDesc: "",
+          secondaryTitle: "",
+          secondaryDesc: "",
+        });
+        setTimeLoading(false);
+        return;
+      }
       setTimeLoading(true);
       try {
         const response = await getTrendWaterWeeklyTime(api, {
@@ -389,7 +493,7 @@ const Week = ({ referenceDate }) => {
     return () => {
       isCancelled = true;
     };
-  }, [api, auth?.user?.id, referenceDate]);
+  }, [api, auth?.user?.id, referenceDate, urineTrendOk]);
 
   const [active, setActive] = useState("Day/Night");
   const tabs = ["Day/Night", "Clarity", "Time"];
@@ -413,6 +517,14 @@ const Week = ({ referenceDate }) => {
       </div>
 
       <div className="w-full space-y-4 px-4 py-6">
+        {urineTrendLoading ? (
+          <div className="flex justify-center py-16">
+            <Loader />
+          </div>
+        ) : (
+          <>
+        {!urineTrendOk && <TrendInsufficientNotice className="mb-3" />}
+        <div className={!urineTrendOk ? "opacity-40 grayscale pointer-events-none" : ""}>
         {active === "Day/Night" && (
           <>
             {/* Donut card */}
@@ -740,7 +852,10 @@ const Week = ({ referenceDate }) => {
         <div className="text-center text-sm text-custom-12 italic mt-5">
           For reference only. Consult a doctor if needed.
         </div>
+        </div>
         <Upgrade />
+          </>
+        )}
       </div>
     </>
   );

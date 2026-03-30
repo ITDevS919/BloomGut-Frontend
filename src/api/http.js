@@ -9,6 +9,9 @@ export const getTrendBowelDailyCount = (client, config) =>
 export const getTrendBowelWeeklySummary = (client, config) =>
   client.get("/trend/bowel/weeklySummary", config);
 
+export const getTrendBowelMonthlySummary = (client, config) =>
+  client.get("/trend/bowel/monthlySummary", config);
+
 export const postTrendBowelWeeklyAdvice = (client, data, config) =>
   client.post("/trend/bowel/weeklyAdvice", data, config);
 
@@ -38,6 +41,9 @@ export const postUserProfile = (client, data, config) =>
 
 export const getTrendDietTodayScore = (client, config) =>
   client.get("/trend/diet/todayScore", config);
+
+export const getTrendDietPeriodSummary = (client, config) =>
+  client.get("/trend/diet/periodSummary", config);
 
 export const getTrendDietDailySummary = (client, config) =>
   client.get("/trend/diet/dailySummary", config);
@@ -110,6 +116,9 @@ export const getRecordUrineRecent = (client, config) =>
 
 export const getTrendUrineMonthlyDailyVolume = (client, config) =>
   client.get("/trend/urine/monthlyDailyVolume", config);
+
+export const getTrendUrineYearlySummary = (client, config) =>
+  client.get("/trend/urine/yearlySummary", config);
 
 export const postTrendUrineMonthlyAdvice = (client, data, config) =>
   client.post("/trend/urine/monthlyAdvice", data, config);

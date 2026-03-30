@@ -17,59 +17,108 @@ ChartJS.register(
   Legend
 );
 import { Radar } from "react-chartjs-2";
-import { useEffect, useState } from "react";
-import { Wheat, Beef, Salad, Milk, MoreHorizontal, UtensilsCrossed } from "lucide-react";
-import { IoRestaurant } from "react-icons/io5";
+import { useEffect, useMemo, useState } from "react";
 import { FaUtensils } from "react-icons/fa6";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
-import { postTrendUrineYearlyAdvice } from "@/api/http";
+import { getTrendUrineYearlySummary, postTrendUrineYearlyAdvice } from "@/api/http";
+import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 
 const Year = ({ referenceDate }) => {
   const [showAnalysis, setShowAnalysis] = useState(false);
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
 
+  const [summaryLoading, setSummaryLoading] = useState(true);
+  const [isEnoughData, setIsEnoughData] = useState(false);
+  const [radarLabels, setRadarLabels] = useState([]);
+  const [radarDatasets, setRadarDatasets] = useState([]);
+
   const [yearlyAdvice, setYearlyAdvice] = useState(null);
   const [adviceLoading, setAdviceLoading] = useState(false);
 
-  const data = {
-    labels: [
-      "High Protein Foods",
-      "Caffeinated Drinks",
-      "Sugary Drinks",
-      "Salty Foods",
-      "Spicy Foods",
-      "Processed Foods",
-      "Vegetables and Fruits",
-    ],
-    datasets: [
-      {
-        label: "Dark Yellow",
-        data: [70, 55, 40, 60, 75, 50, 45],
-        borderColor: "#F59E0B",
-        backgroundColor: "rgba(245, 158, 11, 0.25)",
-        pointBackgroundColor: "#F59E0B",
-        pointRadius: 4,
-      },
-      {
-        label: "Urine Odor",
-        data: [55, 45, 50, 65, 80, 60, 40],
-        borderColor: "#EF4444",
-        backgroundColor: "rgba(239, 68, 68, 0.25)",
-        pointBackgroundColor: "#EF4444",
-        pointRadius: 4,
-      },
-      {
-        label: "Frequent",
-        data: [40, 70, 65, 55, 45, 35, 60],
-        borderColor: "#3B82F6",
-        backgroundColor: "rgba(59, 130, 246, 0.25)",
-        pointBackgroundColor: "#3B82F6",
-        pointRadius: 4,
-      },
-    ],
-  };
+  useEffect(() => {
+    if (!auth?.user?.id) return;
+
+    const run = async () => {
+      setSummaryLoading(true);
+      try {
+        const ref =
+          referenceDate && referenceDate.toISOString
+            ? referenceDate.toISOString()
+            : undefined;
+        const res = await getTrendUrineYearlySummary(api, {
+          params: { userId: auth.user.id, referenceDate: ref },
+        });
+        const payload = res.data?.data ?? res.data;
+        if (!payload) return;
+        const enough = payload.is_enough_data === true;
+        setIsEnoughData(enough);
+        setRadarLabels(Array.isArray(payload.radarLabels) ? payload.radarLabels : []);
+        setRadarDatasets(Array.isArray(payload.radarDatasets) ? payload.radarDatasets : []);
+
+        if (!enough) {
+          setYearlyAdvice(null);
+          return;
+        }
+
+        setAdviceLoading(true);
+        try {
+          const categories = payload.radarLabels || [];
+          const series = (payload.radarDatasets || []).map((ds) => ({
+            name: ds.label,
+            values: ds.data || [],
+          }));
+          const foods = categories.map((name, i) => {
+            const v = series[0]?.values?.[i] ?? 0;
+            return { name, yellowPercent: v, odorPercent: v };
+          });
+          const advRes = await postTrendUrineYearlyAdvice(api, {
+            categories,
+            series,
+            foods,
+            year: referenceDate ? referenceDate.getFullYear() : new Date().getFullYear(),
+          });
+          setYearlyAdvice(advRes.data?.data ?? advRes.data ?? null);
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error("Failed to load yearly urine advice:", error);
+          setYearlyAdvice(null);
+        } finally {
+          setAdviceLoading(false);
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load yearly urine summary:", error);
+        setIsEnoughData(false);
+      } finally {
+        setSummaryLoading(false);
+      }
+    };
+
+    run();
+  }, [api, auth?.user?.id, referenceDate]);
+
+  const chartData = useMemo(
+    () => ({
+      labels: radarLabels.length ? radarLabels : ["—"],
+      datasets:
+        radarDatasets.length > 0
+          ? radarDatasets
+          : [
+              {
+                label: "Urine state %",
+                data: [0],
+                borderColor: "#3B82F6",
+                backgroundColor: "rgba(59, 130, 246, 0.25)",
+                pointBackgroundColor: "#3B82F6",
+                pointRadius: 4,
+              },
+            ],
+    }),
+    [radarLabels, radarDatasets]
+  );
+
   const options = {
     responsive: true,
     maintainAspectRatio: false,
@@ -108,91 +157,35 @@ const Year = ({ referenceDate }) => {
     },
   };
 
-  const items = [
-    {
-      title: "High Protein",
-      yellow: data.datasets[0].data[0],
-      odor: data.datasets[1].data[0],
-    },
-    {
-      title: "Sugary Drinks",
-      yellow: data.datasets[0].data[2],
-      odor: data.datasets[1].data[2],
-    },
-    {
-      title: "Alcohol",
-      yellow: data.datasets[0].data[1],
-      odor: data.datasets[1].data[1],
-    },
-    {
-      title: "Spicy Foods",
-      yellow: data.datasets[0].data[4],
-      odor: data.datasets[1].data[4],
-    },
-    {
-      title: "Processed",
-      yellow: data.datasets[0].data[5],
-      odor: data.datasets[1].data[5],
-    },
-    {
-      title: "Fruits & Veg",
-      yellow: data.datasets[0].data[6],
-      odor: data.datasets[1].data[6],
-    },
-  ];
-
-  useEffect(() => {
-    if (!auth?.user?.id) return;
-
-    const fetchYearlyAdvice = async () => {
-      setAdviceLoading(true);
-      try {
-        const payload = {
-          categories: data.labels,
-          series: data.datasets.map((ds) => ({
-            name: ds.label,
-            values: ds.data,
-          })),
-          foods: items.map((f) => ({
-            name: f.title,
-            yellowPercent: f.yellow,
-            odorPercent: f.odor,
-          })),
-          year: referenceDate
-            ? referenceDate.getFullYear()
-            : new Date().getFullYear(),
-        };
-        const res = await postTrendUrineYearlyAdvice(api, payload);
-        const adv = res.data?.data ?? res.data;
-        setYearlyAdvice(adv || null);
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error("Failed to load yearly urine advice:", error);
-        setYearlyAdvice(null);
-      } finally {
-        setAdviceLoading(false);
-      }
-    };
-
-    fetchYearlyAdvice();
-  }, [api, auth?.user?.id, referenceDate]);
+  const items = useMemo(() => {
+    const ds = radarDatasets[0];
+    if (!ds || !Array.isArray(ds.data) || !radarLabels.length) return [];
+    return radarLabels.slice(0, 6).map((title, i) => ({
+      title,
+      yellow: ds.data[i] ?? 0,
+      odor: ds.data[i] ?? 0,
+    }));
+  }, [radarDatasets, radarLabels]);
 
   const mainFoods =
-    yearlyAdvice?.mainFoods && yearlyAdvice.mainFoods.length
-      ? yearlyAdvice.mainFoods
-      : ["Banana", "Broccoli", "Tomato", "Apple"];
+    yearlyAdvice?.mainFoods && yearlyAdvice.mainFoods.length ? yearlyAdvice.mainFoods : [];
 
   const ingredientSuggestions =
     yearlyAdvice?.ingredientSuggestions && yearlyAdvice.ingredientSuggestions.length
       ? yearlyAdvice.ingredientSuggestions
-      : ["Leafy", "Sweet Potato", "Broccoli", "Apple"];
+      : [];
+
+  const loading = summaryLoading || adviceLoading;
 
   return (
     <div className="pl-[15px] pr-[15px] mt-[20px]">
       <div className="">
         <div className="w-full rounded-[20px] bg-white p-5 shadow-md mb-[32px]">
-          <div className="h-64 flex items-center justify-center">
-            {adviceLoading ? (
+          {!summaryLoading && !isEnoughData && <TrendInsufficientNotice className="mb-3" />}
+          <div
+            className={`h-64 flex items-center justify-center ${!summaryLoading && !isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
+          >
+            {summaryLoading ? (
               <div className="flex h-full items-center justify-center py-2">
                 <svg
                   version="1.1"
@@ -241,108 +234,56 @@ const Year = ({ referenceDate }) => {
                 </svg>
               </div>
             ) : (
-              <Radar data={data} options={options} />
+              <Radar data={chartData} options={options} />
             )}
           </div>
         </div>
 
         <div className="flex items-center justify-between mt-5">
-          <div className="text-base font-medium text-primary">
-            Foods Affecting Urine
-          </div>
+          <div className="text-base font-medium text-primary">Foods Affecting Urine</div>
 
-          <button className="text-sm text-blue-500" onClick={() => setShowAnalysis(!showAnalysis)}>
+          <button
+            type="button"
+            className="text-sm text-blue-500"
+            onClick={() => setShowAnalysis(!showAnalysis)}
+          >
             {showAnalysis ? "Hide Analysis" : "View Analysis"}
           </button>
         </div>
         <div className="grid grid-cols-2 gap-3 max-w-sm mt-3">
-          {adviceLoading ? (
+          {loading ? (
             <div className="col-span-2 flex items-center justify-center py-4">
-              <svg
-                version="1.1"
-                xmlns="http://www.w3.org/2000/svg"
-                x="0px"
-                y="0px"
-                width="24px"
-                height="30px"
-                viewBox="0 0 24 30"
-                style={{ enableBackground: "new 0 0 50 50" }}
-                xmlSpace="preserve"
-              >
-                <rect x="0" y="0" width="4" height="10" fill="#ef4444">
-                  <animateTransform
-                    attributeType="xml"
-                    attributeName="transform"
-                    type="translate"
-                    values="0 0; 0 20; 0 0"
-                    begin="0"
-                    dur="0.6s"
-                    repeatCount="indefinite"
-                  />
-                </rect>
-                <rect x="10" y="0" width="4" height="10" fill="#ef4444">
-                  <animateTransform
-                    attributeType="xml"
-                    attributeName="transform"
-                    type="translate"
-                    values="0 0; 0 20; 0 0"
-                    begin="0.2s"
-                    dur="0.6s"
-                    repeatCount="indefinite"
-                  />
-                </rect>
-                <rect x="20" y="0" width="4" height="10" fill="#ef4444">
-                  <animateTransform
-                    attributeType="xml"
-                    attributeName="transform"
-                    type="translate"
-                    values="0 0; 0 20; 0 0"
-                    begin="0.4s"
-                    dur="0.6s"
-                    repeatCount="indefinite"
-                  />
-                </rect>
-              </svg>
+              <span className="text-xs text-gray-400">Loading…</span>
             </div>
-          ) : (
+          ) : isEnoughData && items.length ? (
             items.map((item) => (
               <div key={item.title} className="rounded-[8px] bg-white p-2">
-                <p className="mb-3 text-sm font-medium text-primary">
-                  {item.title}
-                </p>
+                <p className="mb-3 text-sm font-medium text-primary">{item.title}</p>
 
                 <div className="grid grid-cols-2 gap-2">
-                  <Badge
-                    bg="bg-[#FEF9C3]"
-                    label={`Yellow ${item.yellow}%`}
-                  />
-                  <Badge
-                    bg="bg-[#FEF2F2]"
-                    label={`Odor ${item.odor}%`}
-                  />
+                  <Badge bg="bg-[#FEF9C3]" label={`Share ${item.yellow}%`} />
+                  <Badge bg="bg-[#FEF2F2]" label={`Share ${item.odor}%`} />
                 </div>
               </div>
             ))
+          ) : (
+            <div className="col-span-2 text-xs text-gray-400 text-center py-2">
+              {isEnoughData ? "" : ""}
+            </div>
           )}
         </div>
 
-        {showAnalysis && (
+        {showAnalysis && isEnoughData && (
           <div>
-            {/* Fruits & Veg Impact */}
             <div className="w-full max-w-sm rounded-[12px] p-5 bg-white mt-8 space-y-4">
-              {/* Header */}
               <div className="flex items-center gap-2 mb-5">
                 <FaUtensils className="w-5 h-5 text-[#f59e0b]" />
                 <h2 className="text-sm font-medium text-primary">Fruits & Veg Impact</h2>
               </div>
 
-              {/* Main Food Items */}
               <div className="mb-5">
                 <p className="text-sm text-secondary mb-[9px]">
-                  {adviceLoading
-                    ? "Loading main food items…"
-                    : yearlyAdvice?.fruitsVegImpact ||
-                    "Main Food Items"}
+                  {adviceLoading ? "Loading…" : yearlyAdvice?.fruitsVegImpact || ""}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {mainFoods.map((item, index) => (
@@ -356,11 +297,8 @@ const Year = ({ referenceDate }) => {
                 </div>
               </div>
 
-              {/* Dietary Ingredient Suggestions */}
               <div className="rounded-[12px] bg-blue-50 p-4 mb-5">
-                <h3 className="text-sm font-medium text-primary mb-2">
-                  Dietary Ingredient Suggestions
-                </h3>
+                <h3 className="text-sm font-medium text-primary mb-2">Dietary Ingredient Suggestions</h3>
                 <div className="flex flex-wrap gap-2">
                   {ingredientSuggestions.map((item, index) => (
                     <span
@@ -373,16 +311,10 @@ const Year = ({ referenceDate }) => {
                 </div>
               </div>
 
-              {/* Frequency Adjustment */}
               <div className="rounded-[12px] bg-green-50 p-4">
-                <h3 className="text-sm font-medium text-primary mb-[7px]">
-                  Frequency Adjustment
-                </h3>
+                <h3 className="text-sm font-medium text-primary mb-[7px]">Frequency Adjustment</h3>
                 <p className="text-xs text-secondary">
-                  {adviceLoading
-                    ? "Loading frequency tip…"
-                    : yearlyAdvice?.frequencyText ||
-                    "3-5 servings/day of fruits & veg helps urine clarity & health"}
+                  {adviceLoading ? "Loading…" : yearlyAdvice?.frequencyText || ""}
                 </p>
               </div>
             </div>
@@ -392,15 +324,13 @@ const Year = ({ referenceDate }) => {
           For reference only. Consult a doctor if needed.
         </div>
       </div>
-    </div >
+    </div>
   );
 };
 
-function Badge({ bg, text, label }) {
+function Badge({ bg, label }) {
   return (
-    <span
-      className={`rounded-full px-2 py-1 text-xs text-secondary font-['Roboto'] ${bg} ${text}`}
-    >
+    <span className={`rounded-full px-2 py-1 text-xs text-secondary font-['Roboto'] ${bg}`}>
       {label}
     </span>
   );

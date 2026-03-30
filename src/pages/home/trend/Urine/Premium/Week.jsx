@@ -19,6 +19,7 @@ import {
   getTrendWaterDailyMl,
   postTrendUrineHealthTips,
 } from "@/api/http";
+import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 
 ChartJS.register(LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -43,6 +44,8 @@ const Week = ({ referenceDate }) => {
   const [healthTipsLoading, setHealthTipsLoading] = useState(false);
   const [dotsLoading, setDotsLoading] = useState(false);
   const [intakeLoading, setIntakeLoading] = useState(false);
+  const [urineEnough, setUrineEnough] = useState(false);
+  const [waterEnough, setWaterEnough] = useState(false);
 
   useEffect(() => {
     if (!auth?.user?.id) return;
@@ -57,7 +60,22 @@ const Week = ({ referenceDate }) => {
           },
         });
         const payload = response.data?.data || response.data;
-        if (!Array.isArray(payload)) return;
+        if (!payload) return;
+        const enough = payload.is_enough_data === true;
+        setUrineEnough(enough);
+        const rows = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload.series)
+            ? payload.series
+            : [];
+        if (!enough) {
+          setDotData([]);
+          setClearCount(0);
+          setYellowCount(0);
+          setAbnormalCount(0);
+          setClarityRate(0);
+          return;
+        }
 
         const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         // Initialize with 0 clarity for all days; DB data will override when present.
@@ -67,7 +85,7 @@ const Week = ({ referenceDate }) => {
           score: 0,
         }));
 
-        payload.forEach((item) => {
+        rows.forEach((item) => {
           const jsDay = typeof item.day === "number" ? item.day : 0; // 0–6
           if (jsDay < 0 || jsDay > 6) return;
           const status =
@@ -123,6 +141,7 @@ const Week = ({ referenceDate }) => {
           },
         });
         const payload = response.data?.data || response.data;
+        setWaterEnough(payload?.is_enough_data === true);
         if (!payload?.days || !payload?.mlPerDay) return;
 
         const map = {};
@@ -169,7 +188,7 @@ const Week = ({ referenceDate }) => {
   }, [api, auth?.user?.id, referenceDate]);
 
   useEffect(() => {
-    if (!auth?.user?.id || dotData.length === 0) return;
+    if (!auth?.user?.id || dotData.length === 0 || !urineEnough) return;
 
     const fetchHealthTips = async () => {
       setHealthTipsLoading(true);
@@ -210,6 +229,7 @@ const Week = ({ referenceDate }) => {
     weekScore,
     beforeWeekScore,
     dotData,
+    urineEnough,
   ]);
 
   const chartIntake = useMemo(
@@ -275,24 +295,6 @@ const Week = ({ referenceDate }) => {
         },
       },
       datalabels: { display: false },
-      annotation: {
-        annotations: {
-          anomaly: {
-            type: "point",
-            xValue: "Wed",
-            yValue: 2300,
-            backgroundColor: "#EF4444",
-            radius: 6,
-          },
-          normal: {
-            type: "point",
-            xValue: "Fri",
-            yValue: 2500,
-            backgroundColor: "#3B82F6",
-            radius: 6,
-          },
-        },
-      },
     },
     scales: {
       y: {
@@ -324,12 +326,16 @@ const Week = ({ referenceDate }) => {
     },
   };
   const chartLoading = dotsLoading || intakeLoading;
+  const chartDisabled = !urineEnough || !waterEnough;
   return (
     <div className="pl-[15px] pr-[15px] mt-[38px]">
       <div className="text-base font-medium pl-[15px] mb-[10px] text-primary">Water and Urine Analysis</div>
       <div className="w-full rounded-[20px] bg-white p-5 shadow-md space-y-4">
+        {!chartLoading && !urineEnough && <TrendInsufficientNotice />}
         {/* Chart */}
-        <div className="h-48">
+        <div
+          className={`h-48 ${!chartLoading && chartDisabled ? "opacity-40 grayscale pointer-events-none" : ""}`}
+        >
           {chartLoading ? (
             <div className="flex h-full items-center justify-center">
               <svg

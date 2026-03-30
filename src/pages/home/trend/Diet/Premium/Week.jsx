@@ -1,136 +1,45 @@
-import { Chart as ChartJS, LinearScale, PointElement, Tooltip } from "chart.js";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { Line } from "react-chartjs-2";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 import { getTrendDietMacroWeekly, postTrendDietWeeklyAdvice } from "@/api/http";
 import Loader from "@/components/common/Loader";
+import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 
-ChartJS.register(LinearScale, PointElement, Tooltip);
-import { Scatter } from "react-chartjs-2";
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 
 const Week = ({ referenceDate }) => {
   const navigate = useNavigate();
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
 
-  const [showDetailedAnalysis, setShowDetailedAnalysis] = useState(false);
-  const [selectedCorrelation, setSelectedCorrelation] = useState(null);
-
-  // X: meal time dimension, Y: stool quality score (1–7, Bristol-like)
-  const xLabels = ["Breakfast", "Lunch", "Dinner", "Late Night"];
-
-  const stoolScale = [
-    { score: 1, label: "Constipation (Type 1)" },
-    { score: 2, label: "Constipation (Type 2)" },
-    { score: 3, label: "Healthy (Type 3)" },
-    { score: 4, label: "Healthy (Type 4)" },
-    { score: 5, label: "Loose (Type 5)" },
-    { score: 6, label: "Loose (Type 6)" },
-    { score: 7, label: "Diarrhea (Type 7)" },
-  ];
-
-  const strength = {
-    weak: { color: "#84CC16", r: 4, weight: 1 },
-    moderate: { color: "#FACC15", r: 6, weight: 2 },
-    modStrong: { color: "#FB923C", r: 8, weight: 3 },
-    strong: { color: "#EF4444", r: 10, weight: 4 },
-  };
-
-  // Example weekly correlation events (meal + next bowel event)
-  const rawCorrelationEvents = [
-    {
-      mealIndex: 0,
-      mealLabel: "Breakfast",
-      foodType: "High Fat",
-      stoolScore: 2,
-      strengthKey: "strong",
-    },
-    {
-      mealIndex: 1,
-      mealLabel: "Lunch",
-      foodType: "High Fiber",
-      stoolScore: 4,
-      strengthKey: "modStrong",
-    },
-    {
-      mealIndex: 2,
-      mealLabel: "Dinner",
-      foodType: "Spicy / High Fat",
-      stoolScore: 6,
-      strengthKey: "moderate",
-    },
-    {
-      mealIndex: 3,
-      mealLabel: "Late Night",
-      foodType: "Snack / Processed",
-      stoolScore: 5,
-      strengthKey: "moderate",
-    },
-    {
-      mealIndex: 2,
-      mealLabel: "Dinner",
-      foodType: "Balanced",
-      stoolScore: 3,
-      strengthKey: "weak",
-    },
-    {
-      mealIndex: 1,
-      mealLabel: "Lunch",
-      foodType: "Processed / Fast Food",
-      stoolScore: 5,
-      strengthKey: "moderate",
-    },
-  ];
-
-  const correlationPoints = rawCorrelationEvents.map((ev, idx) => ({
-    x: ev.mealIndex,
-    y: ev.stoolScore,
-    strengthKey: ev.strengthKey,
-    index: idx,
-    color: strength[ev.strengthKey].color,
-    r: strength[ev.strengthKey].r,
-  }));
-
-  const data = {
-    datasets: [
-      {
-        label: "Correlation",
-        data: correlationPoints,
-        pointBackgroundColor: (ctx) => ctx.raw.color,
-        pointRadius: (ctx) => ctx.raw.r,
-      },
-    ],
-  };
-
-  const describeCorrelation = (event) => {
-    const stoolInfo =
-      stoolScale.find((s) => s.score === event.stoolScore) || stoolScale[2];
-
-    if (event.mealLabel === "Breakfast" && event.foodType.includes("High Fat")) {
-      return `High‑fat breakfast is linked with ${stoolInfo.label.toLowerCase()}. Greasy or low‑fiber breakfasts may slow gut motility. Add fiber (oats, fruit, whole grains) and increase morning hydration.`;
-    }
-    if (event.mealLabel === "Lunch" && event.foodType.includes("High Fiber")) {
-      return `High‑fiber lunch is associated with ${stoolInfo.label.toLowerCase()}. Vegetables, legumes, and whole grains at lunch appear to support healthier stools the same or next day.`;
-    }
-    if (event.mealLabel === "Late Night") {
-      return `Late‑night snacking is related to ${stoolInfo.label.toLowerCase()}. Eating close to bedtime, especially processed or sugary foods, can make digestion unstable. Try moving the last meal earlier and keeping it lighter.`;
-    }
-
-    return `This hotspot shows that ${event.mealLabel.toLowerCase()} (${event.foodType.toLowerCase()}) is followed by ${stoolInfo.label.toLowerCase()}. Adjust fat, fiber, and timing at this meal to nudge stools toward the healthy 3–4 range.`;
-  };
-
+  const [loadingMacro, setLoadingMacro] = useState(true);
   const [loadingAdvice, setLoadingAdvice] = useState(false);
+  const [isEnoughData, setIsEnoughData] = useState(false);
+  const [chartLabels, setChartLabels] = useState([]);
+  const [fiber, setFiber] = useState([]);
+  const [protein, setProtein] = useState([]);
+  const [fat, setFat] = useState([]);
+  const [sugar, setSugar] = useState([]);
   const [aiAnalysis, setAiAnalysis] = useState([]);
   const [aiRecommendations, setAiRecommendations] = useState([]);
 
   useEffect(() => {
     if (!auth?.user?.id) return;
 
-    const fetchWeeklyDietAdvice = async () => {
-      setLoadingAdvice(true);
+    const run = async () => {
+      setLoadingMacro(true);
       try {
-        // Reuse weekly macro scores as the basis for premium analysis
         const res = await getTrendDietMacroWeekly(api, {
           params: {
             userId: auth.user.id,
@@ -138,7 +47,25 @@ const Week = ({ referenceDate }) => {
           },
         });
         const payload = res.data?.data ?? res.data;
-        if (!payload) return;
+        if (!payload) {
+          setIsEnoughData(false);
+          return;
+        }
+
+        const enough = payload.is_enough_data === true;
+        setIsEnoughData(enough);
+
+        if (Array.isArray(payload.labels)) setChartLabels(payload.labels);
+        if (Array.isArray(payload.fiber)) setFiber(payload.fiber);
+        if (Array.isArray(payload.protein)) setProtein(payload.protein);
+        if (Array.isArray(payload.fat)) setFat(payload.fat);
+        if (Array.isArray(payload.sugar)) setSugar(payload.sugar);
+
+        if (!enough) {
+          setAiAnalysis([]);
+          setAiRecommendations([]);
+          return;
+        }
 
         const avg = (arr) =>
           Array.isArray(arr) && arr.length
@@ -147,103 +74,157 @@ const Week = ({ referenceDate }) => {
               )
             : 0;
 
-        const fiber = avg(payload.fiber);
-        const protein = avg(payload.protein);
-        const fat = avg(payload.fat);
-        const sugar = avg(payload.sugar);
-        const sodium = 60; // neutral placeholder – sodium not tracked explicitly
+        const fiberAvg = avg(payload.fiber);
+        const proteinAvg = avg(payload.protein);
+        const fatAvg = avg(payload.fat);
+        const sugarAvg = avg(payload.sugar);
+        const sodiumAvg = 0;
 
         const overallScore = Math.round(
-          (fiber + protein + (100 - Math.max(0, fat - 60)) + (100 - sugar) + (100 - sodium)) /
+          (fiberAvg +
+            proteinAvg +
+            (100 - Math.max(0, fatAvg - 60)) +
+            (100 - sugarAvg) +
+            (100 - sodiumAvg)) /
             5
         );
 
-        const adviceRes = await postTrendDietWeeklyAdvice(api, {
-          fiberAvg: fiber,
-          proteinAvg: protein,
-          fatAvg: fat,
-          sugarAvg: sugar,
-          sodiumAvg: sodium,
-          overallScore,
-        });
-        const advicePayload = adviceRes.data?.data ?? adviceRes.data;
-        if (advicePayload) {
-          setAiAnalysis(
-            Array.isArray(advicePayload.analysis) ? advicePayload.analysis : []
-          );
-          setAiRecommendations(
-            Array.isArray(advicePayload.recommendations)
-              ? advicePayload.recommendations
-              : []
-          );
+        setLoadingAdvice(true);
+        try {
+          const adviceRes = await postTrendDietWeeklyAdvice(api, {
+            fiberAvg,
+            proteinAvg,
+            fatAvg,
+            sugarAvg,
+            sodiumAvg,
+            overallScore,
+          });
+          const advicePayload = adviceRes.data?.data ?? adviceRes.data;
+          if (advicePayload) {
+            setAiAnalysis(
+              Array.isArray(advicePayload.analysis) ? advicePayload.analysis : []
+            );
+            setAiRecommendations(
+              Array.isArray(advicePayload.recommendations)
+                ? advicePayload.recommendations
+                : []
+            );
+          }
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error("Failed to load premium weekly diet advice:", error);
+          setAiAnalysis([]);
+          setAiRecommendations([]);
+        } finally {
+          setLoadingAdvice(false);
         }
       } catch (error) {
         // eslint-disable-next-line no-console
-        console.error("Failed to load premium weekly diet advice:", error);
-        setAiAnalysis([]);
-        setAiRecommendations([]);
+        console.error("Failed to load macro weekly:", error);
+        setIsEnoughData(false);
       } finally {
-        setLoadingAdvice(false);
+        setLoadingMacro(false);
       }
     };
 
-    fetchWeeklyDietAdvice();
+    run();
   }, [api, auth?.user?.id, referenceDate]);
 
-  const options = {
+  const lineData = useMemo(
+    () => ({
+      labels: chartLabels.length ? chartLabels : ["—", "—", "—", "—", "—", "—", "—"],
+      datasets: [
+        {
+          label: "Fiber",
+          data: fiber.length ? fiber : Array(7).fill(0),
+          borderColor: "#22C55E",
+          backgroundColor: "rgba(34,197,94,0.15)",
+          tension: 0.3,
+          fill: false,
+        },
+        {
+          label: "Protein",
+          data: protein.length ? protein : Array(7).fill(0),
+          borderColor: "#3B82F6",
+          backgroundColor: "rgba(59,130,246,0.15)",
+          tension: 0.3,
+          fill: false,
+        },
+        {
+          label: "Fat",
+          data: fat.length ? fat : Array(7).fill(0),
+          borderColor: "#F59E0B",
+          backgroundColor: "rgba(245,158,11,0.15)",
+          tension: 0.3,
+          fill: false,
+        },
+        {
+          label: "Sugar",
+          data: sugar.length ? sugar : Array(7).fill(0),
+          borderColor: "#EF4444",
+          backgroundColor: "rgba(239,68,68,0.15)",
+          tension: 0.3,
+          fill: false,
+        },
+      ],
+    }),
+    [chartLabels, fiber, protein, fat, sugar]
+  );
+
+  const lineOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { display: false },
-      tooltip: { enabled: false },
+      legend: {
+        position: "bottom",
+        labels: { font: { size: 10 }, usePointStyle: true },
+      },
       datalabels: { display: false },
     },
     scales: {
-      x: {
-        min: -0.5,
-        max: xLabels.length - 0.5,
-        ticks: {
-          callback: (v) => xLabels[v] ?? "",
-          font: { size: 11 },
-        },
+      y: {
+        min: 0,
+        max: 100,
+        ticks: { stepSize: 25 },
         grid: { color: "#E5E7EB" },
       },
-      y: {
-        min: 0.5,
-        max: 7.5,
-        ticks: {
-          stepSize: 1,
-          callback: (v) => {
-            const entry = stoolScale.find((s) => s.score === v);
-            return entry ? `${v}` : "";
-          },
-          font: { size: 10 },
-        },
-        grid: { color: "#E5E7EB" },
+      x: {
+        grid: { display: false },
       },
     },
   };
+
   return (
     <div className="pl-[15px] pr-[15px] mt-[33px]">
       <div className="w-full rounded-[20px] bg-white p-5 shadow-[2px_0_10px_rgba(0,0,0,0.15)] space-y-4">
-        {/* Header */}
         <div>
-          <h2 className="text-base mt-5 text-primary">
-            Meal–Bowel Correlation
-          </h2>
+          <h2 className="text-base mt-5 text-primary">Weekly macro trend</h2>
           <p className="text-xs text-custom-12">
-            Each dot links a meal event with the next bowel result (stool score 1–7).
+            Daily scores (0–100) from your diet records for the selected week (API).
           </p>
         </div>
 
-        {/* Top correlations summary (from AI weeklyAdvice) */}
+        {!loadingMacro && !isEnoughData && <TrendInsufficientNotice />}
+
+        <div
+          className={`h-52 ${!loadingMacro && !isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
+        >
+          {loadingMacro ? (
+            <div className="flex h-full items-center justify-center">
+              <Loader />
+            </div>
+          ) : (
+            <Line data={lineData} options={lineOptions} />
+          )}
+        </div>
+
         <div className="rounded-[10px] bg-[#f9fafb] p-3 text-xs text-secondary border border-custom-8">
-          <p className="font-medium text-primary mb-1">Strongest patterns this week</p>
+          <p className="font-medium text-primary mb-1">Patterns</p>
           {loadingAdvice ? (
             <div className="flex items-center justify-center py-2">
               <Loader />
             </div>
-          ) : aiAnalysis && aiAnalysis.length ? (
+          ) : isEnoughData && aiAnalysis.length ? (
             <ul className="list-disc list-inside space-y-0.5">
               {aiAnalysis.slice(0, 3).map((row, index) => (
                 // eslint-disable-next-line react/no-array-index-key
@@ -251,137 +232,36 @@ const Week = ({ referenceDate }) => {
               ))}
             </ul>
           ) : (
-            <ul className="list-disc list-inside space-y-0.5">
-              <li>Not enough premium diet data this week to rank correlations.</li>
-              <li>Add more detailed diet and stool records to unlock insights.</li>
-            </ul>
+            <p className="text-custom-12">
+              {isEnoughData ? "No AI patterns returned for this week." : ""}
+            </p>
           )}
         </div>
 
-        {/* Chart */}
-        <div className="h-44">
-          <Scatter
-            data={data}
-            options={options}
-            onClick={(events, elements) => {
-              if (!elements || !elements.length) return;
-              const first = elements[0];
-              const index = first.index;
-              const rawPoint = correlationPoints[index];
-              if (!rawPoint) return;
-
-              const event = rawCorrelationEvents[rawPoint.index];
-              if (!event) return;
-
-              setSelectedCorrelation({
-                ...event,
-                description: describeCorrelation(event),
-              });
-            }}
-          />
-        </div>
-
-        {/* Selected hotspot explanation */}
-        {selectedCorrelation && (
-          <div className="rounded-[12px] bg-[#eff6ff] p-4 text-sm border-2 border-[#ededef]">
-            <p className="font-medium mb-1 text-primary">
-              {selectedCorrelation.mealLabel} ({selectedCorrelation.foodType})
-            </p>
-            <p className="text-xs text-custom-12 mb-1">
-              Stool score: {selectedCorrelation.stoolScore}
-            </p>
-            <p className="text-secondary">{selectedCorrelation.description}</p>
-          </div>
-        )}
-
-        {/* Legend */}
-        <div className="flex justify-between text-xs text-gray-600">
-          <Legend color="bg-lime-500" label="Weak" />
-          <Legend color="bg-yellow-400" label="Moderate" />
-          <Legend color="bg-orange-400" label="Mod-Strong" />
-          <Legend color="bg-red-500" label="Strong" />
-        </div>
-
-        {/* Tooltip / Detailed analysis */}
-        {showDetailedAnalysis && (
-          <>
-            {/* Backdrop */}
-            {/* Modal */}
-            <div
-              className="bg-[#eff6ff] rounded-[12px] border-2 border-[#ededef] p-5 pointer-events-auto relative"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Header */}
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-base font-medium text-primary">Detailed Analysis</h3>
-                <button
-                  onClick={() => setShowDetailedAnalysis(false)}
-                  className="text-[#808080] hover:text-[#4A3E35] transition-colors"
-                  aria-label="Close"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Content */}
-              <div className="space-y-2 text-sm text-[#554B40]">
-                {loadingAdvice ? (
-                  <div className="flex items-center justify-center py-2">
-                    <Loader />
-                  </div>
-                ) : aiAnalysis.length ? (
-                  aiAnalysis.map((row, index) => (
-                    // eslint-disable-next-line react/no-array-index-key
-                    <p key={index}>{row.text}</p>
-                  ))
-                ) : (
-                  <>
-                    <p>Not enough diet data this week for detailed insights.</p>
-                    <p>Add more diet records to improve premium analysis.</p>
-                  </>
-                )}
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* High Risk */}
         <div className="rounded-[12px] bg-[#fef2f2] p-4 text-sm border-2 border-[#ededef]">
-          <p className="font-medium mb-[10px] text-primary">High-Risk Pattern</p>
+          <p className="font-medium mb-[10px] text-primary">Watch</p>
           {loadingAdvice ? (
             <div className="flex items-center justify-center py-2">
               <Loader />
             </div>
-          ) : (
+          ) : isEnoughData && aiAnalysis.length ? (
             <p className="text-secondary">
-              {(aiAnalysis.find((row) => row.type === "warn") ||
-                aiAnalysis[0] || { text: "Not enough diet data this week." }
-              ).text}
+              {aiAnalysis.find((row) => row.type === "warn")?.text ||
+                aiAnalysis[0]?.text ||
+                ""}
             </p>
+          ) : (
+            <p className="text-secondary text-custom-12" />
           )}
         </div>
 
-        {/* Overall Trend */}
         <div className="rounded-[12px] bg-[#f0fdf4] p-4 text-sm space-y-1 border-2 border-[#ededef]">
-          <p className="font-medium mb-[10px] text-primary">Overall Diet Trend</p>
+          <p className="font-medium mb-[10px] text-primary">Recommendations</p>
           {loadingAdvice ? (
             <div className="flex items-center justify-center py-2">
               <Loader />
             </div>
-          ) : aiRecommendations.length ? (
+          ) : isEnoughData && aiRecommendations.length ? (
             aiRecommendations.map((line, index) => (
               // eslint-disable-next-line react/no-array-index-key
               <p key={index} className="text-secondary">
@@ -389,25 +269,18 @@ const Week = ({ referenceDate }) => {
               </p>
             ))
           ) : (
-            <>
-              <p className="text-secondary">
-                Diet looks mostly balanced; keep fiber and protein steady.
-              </p>
-              <p className="text-secondary">
-                Reduce very fatty or sugary dinners on a few days.
-              </p>
-            </>
+            <p className="text-secondary text-custom-12" />
           )}
         </div>
       </div>
       <div className="flex justify-center items-center text-custom-12 italic text-sm mt-3 text-center p-4">
-        This analysis is based on recent behavior and health indicators, for
-        reference only
+        This analysis is based on recent behavior and health indicators, for reference only
       </div>
 
       <div className="flex items-center justify-center mt-[27px] mb-[27px]">
         <button
-          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
+          type="button"
+          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary shadow-md"
           onClick={() =>
             navigate("/trend-analysis?plan=free", { state: { trendType: "diet", viewMode: "week" } })
           }
@@ -418,14 +291,5 @@ const Week = ({ referenceDate }) => {
     </div>
   );
 };
-
-function Legend({ color, label }) {
-  return (
-    <div className="flex items-center gap-1 mb-[28px]">
-      <span className={`h-2.5 w-2.5 rounded-full ${color}`} />
-      <span className="text-custom-12">{label}</span>
-    </div>
-  );
-}
 
 export default Week;

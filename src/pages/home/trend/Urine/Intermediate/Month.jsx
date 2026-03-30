@@ -37,6 +37,7 @@ import { FaExclamationTriangle } from "react-icons/fa";
 import { MdErrorOutline, MdOutlineErrorOutline } from "react-icons/md";
 import Upgrade from "./Upgrade";
 import Loader from "@/components/common/Loader";
+import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 
 const Month = ({ referenceDate }) => {
   const navigate = useNavigate();
@@ -45,6 +46,7 @@ const Month = ({ referenceDate }) => {
   const api = useApiClient();
 
   const [dailyVolumes, setDailyVolumes] = useState([]);
+  const [isEnoughData, setIsEnoughData] = useState(false);
   const [monthlyAdvice, setMonthlyAdvice] = useState(null);
   const [adviceLoading, setAdviceLoading] = useState(false);
   const [chartLoading, setChartLoading] = useState(false);
@@ -67,6 +69,9 @@ const Month = ({ referenceDate }) => {
         const payload = response.data?.data || response.data;
         if (!payload || !Array.isArray(payload.days) || !Array.isArray(payload.volumes)) return;
 
+        const enough = payload.is_enough_data === true;
+        setIsEnoughData(enough);
+
         const { days, volumes } = payload;
         const series = days.map((day, idx) => ({
           day,
@@ -74,7 +79,7 @@ const Month = ({ referenceDate }) => {
           volume: volumes[idx] || 0,
         }));
 
-        setDailyVolumes(series);
+        setDailyVolumes(enough ? series : []);
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Failed to load urine monthly volumes:", error);
@@ -93,7 +98,10 @@ const Month = ({ referenceDate }) => {
   }, [api, auth?.user?.id, referenceDate]);
 
   useEffect(() => {
-    if (!auth?.user?.id || dailyVolumes.length === 0) return;
+    if (!auth?.user?.id || dailyVolumes.length === 0 || !isEnoughData) {
+      if (!isEnoughData) setMonthlyAdvice(null);
+      return;
+    }
 
     const fetchMonthlyAdvice = async () => {
       setAdviceLoading(true);
@@ -135,43 +143,20 @@ const Month = ({ referenceDate }) => {
     };
 
     fetchMonthlyAdvice();
-  }, [api, auth?.user?.id, dailyVolumes]);
+  }, [api, auth?.user?.id, dailyVolumes, isEnoughData]);
 
   const labels = useMemo(
-    () => (dailyVolumes.length ? dailyVolumes.map((d) => d.label) : [
-      "1st",
-      "3rd",
-      "5th",
-      "7th",
-      "9th",
-      "11th",
-      "13th",
-      "15th",
-      "17th",
-      "19th",
-      "21st",
-      "23rd",
-      "25th",
-      "27th",
-      "29th",
-      "31st",
-    ]),
+    () => (dailyVolumes.length ? dailyVolumes.map((d) => d.label) : []),
     [dailyVolumes]
   );
 
   const values = useMemo(
-    () =>
-      dailyVolumes.length
-        ? dailyVolumes.map((d) => d.volume)
-        : [
-            2300, 1900, 2100, 1800, 1200, 1100, 1300, 1600, 1500, 1800, 2000,
-            1850, 2100, 3000, 3300, 3600,
-          ],
+    () => (dailyVolumes.length ? dailyVolumes.map((d) => d.volume) : []),
     [dailyVolumes]
   );
 
   const { avgVolume, highestDay, highestVolume, lowestDay, lowestVolume, abnormalCount } = useMemo(() => {
-    if (!dailyVolumes.length)
+    if (!dailyVolumes.length || !isEnoughData)
       return { avgVolume: 0, highestDay: null, highestVolume: 0, lowestDay: null, lowestVolume: 0, abnormalCount: 0 };
     const total = dailyVolumes.reduce((s, d) => s + d.volume, 0);
     const avg = Math.round(total / dailyVolumes.length);
@@ -186,7 +171,7 @@ const Month = ({ referenceDate }) => {
       lowestVolume: low.volume,
       abnormalCount: abnormal,
     };
-  }, [dailyVolumes]);
+  }, [dailyVolumes, isEnoughData]);
 
   const data = {
     labels,
@@ -238,7 +223,12 @@ const Month = ({ referenceDate }) => {
     <>
       <Free showUpgrade={false} />
       <div className="pl-[15px] pr-[15px] mt-[29px]">
-        <div className="w-full max-w-md rounded-[20px] bg-white p-5 shadow-md space-y-5 relative">
+        {!isEnoughData && !chartLoading && (
+          <TrendInsufficientNotice className="mb-3 max-w-md mx-auto" />
+        )}
+        <div
+          className={`w-full max-w-md rounded-[20px] bg-white p-5 shadow-md space-y-5 relative mx-auto ${!isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
+        >
           {/* Header */}
           <h2 className="text-base font-medium text-primary">Urine Trend Analysis</h2>
 
@@ -247,6 +237,10 @@ const Month = ({ referenceDate }) => {
             {chartLoading ? (
               <div className="flex h-full items-center justify-center">
                 <Loader />
+              </div>
+            ) : labels.length === 0 ? (
+              <div className="flex h-full items-center justify-center text-sm text-secondary">
+                —
               </div>
             ) : (
               <Line data={data} options={options} />
@@ -263,9 +257,11 @@ const Month = ({ referenceDate }) => {
           {/* Monthly Header */}
           <div className="flex justify-between items-center">
             <h3 className="text-base text-primary">Monthly</h3>
-            <button className="text-xs text-[#3b82f6]" onClick={() => setShowAnalysis(!showAnalysis)}>
-              {showAnalysis ? "Hide Analysis" : "View Analysis"}
-            </button>
+            {isEnoughData ? (
+              <button className="text-xs text-[#3b82f6]" onClick={() => setShowAnalysis(!showAnalysis)}>
+                {showAnalysis ? "Hide Analysis" : "View Analysis"}
+              </button>
+            ) : null}
           </div>
 
           {/* Stats */}
@@ -273,35 +269,35 @@ const Month = ({ referenceDate }) => {
             <StatCard
               icon={<TrendingUp className="h-4 w-4 text-blue-500" />}
               title="Avg Volume"
-              value={dailyVolumes.length ? `${avgVolume} ml` : "-"}
-              sub="Within Normal Range"
+              value={isEnoughData && dailyVolumes.length ? `${avgVolume} ml` : "—"}
+              sub={isEnoughData ? "Within Normal Range" : "—"}
             />
 
             <StatCard
               icon={<FaExclamationTriangle className="h-4 w-4 text-[#f09129]" />}
               title="Abnormal"
-              value={dailyVolumes.length ? String(abnormalCount) : "-"}
-              sub="Low | High"
+              value={isEnoughData && dailyVolumes.length ? String(abnormalCount) : "—"}
+              sub={isEnoughData ? "Low | High" : "—"}
             />
 
             <StatCard
               icon={<TrendingUp className="h-4 w-4 text-[#f15a5a]" />}
               title="Highest Day"
-              value={highestDay != null ? `${highestDay}th` : "-"}
-              sub={highestVolume ? `${highestVolume} ml` : "-"}
+              value={isEnoughData && highestDay != null ? `${highestDay}th` : "—"}
+              sub={isEnoughData && highestVolume ? `${highestVolume} ml` : "—"}
             />
 
             <StatCard
               icon={<TrendingDown className="h-4 w-4 text-yellow-500" />}
               title="Lowest Day"
-              value={lowestDay != null ? `${lowestDay}th` : "-"}
-              sub={lowestVolume ? `${lowestVolume} ml` : "-"}
+              value={isEnoughData && lowestDay != null ? `${lowestDay}th` : "—"}
+              sub={isEnoughData && lowestVolume ? `${lowestVolume} ml` : "—"}
             />
           </div>
         </div>
       </div>
 
-      {showAnalysis && (
+      {showAnalysis && isEnoughData && (
         <>
           <div className="pl-[15px] pr-[15px] mt-[20px]">
             <div className="w-full max-w-sm rounded-[12px] bg-white p-5 shadow-md space-y-5">
@@ -332,11 +328,7 @@ const Month = ({ referenceDate }) => {
                           <li key={i}>{note}</li>
                         ))}
                       </ul>
-                    ) : (
-                      <ul className="list-disc space-y-2 pl-4 text-secondary">
-                        <li>Review your monthly urine volume trend.</li>
-                      </ul>
-                    )}
+                    ) : null}
                   </div>
               </div>
 
@@ -385,14 +377,7 @@ const Month = ({ referenceDate }) => {
                         <li key={i}>{s}</li>
                       ))}
                     </ul>
-                  ) : (
-                    <ul className="list-disc space-y-2 pl-4 text-secondary">
-                      <li>Daily target: 1800–2400 ml</li>
-                      <li>Drink 300 ml after waking and before meals.</li>
-                      <li>Avoid large amounts within 10 min before bed.</li>
-                      <li>Increase intake during exercise or heat.</li>
-                    </ul>
-                  )}
+                  ) : null}
                 </div>
               </div>
             </div>

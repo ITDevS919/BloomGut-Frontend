@@ -20,6 +20,7 @@ import {
 } from "@/api/http";
 import { useSelector } from "react-redux";
 import Loader from "@/components/common/Loader";
+import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 
 ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend);
 
@@ -42,11 +43,12 @@ const PremiumYear = () => {
   // Yearly gut index series (current vs last year)
   const [gutIndex, setGutIndex] = useState(Array(12).fill(0));
   const [lastYearIndex, setLastYearIndex] = useState(Array(12).fill(0));
-  const [seasonalTrend, setSeasonalTrend] = useState([3, 3, 3, 3]); // SPRING,SUMMER,AUTUMN,WINTER on 1–5 scale
+  const [seasonalTrend, setSeasonalTrend] = useState([0, 0, 0, 0]);
   const [trendLoading, setTrendLoading] = useState(false);
   const [monthsWithData, setMonthsWithData] = useState(0);
+  const [isEnoughData, setIsEnoughData] = useState(false);
 
-  const overallLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const overallLabels = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
   const overallData = {
     labels: overallLabels,
     datasets: [
@@ -54,28 +56,27 @@ const PremiumYear = () => {
         label: "Gut Index",
         data: gutIndex,
         borderColor: "#22C55E", // Green
-        backgroundColor: "rgba(34, 197, 94, 0.16)",
+        backgroundColor: "transparent",
         borderWidth: 3,
         tension: 0.4,
         pointRadius: 5,
         pointHoverRadius: 8,
-        pointBackgroundColor: "#22C55E",
+        pointBackgroundColor: "#ffffff",
         pointBorderColor: "#22C55E",
         pointBorderWidth: 2,
-        fill: true,
       },
       {
         label: "Last Yr",
         data: lastYearIndex,
         borderColor: "#9CA3AF", // Gray
-        backgroundColor: "rgba(156, 163, 175, 0.08)",
+        backgroundColor: "transparent",
         borderDash: [2, 4], // Dotted line (short dash, short gap)
         borderWidth: 2,
         tension: 0.4,
-        pointRadius: 4,
-        pointBackgroundColor: "#F9FAFB",
+        pointRadius: 1,
+        pointBackgroundColor: "#ffffff",
         pointBorderColor: "#9CA3AF",
-        pointBorderWidth: 2,
+        pointBorderWidth: 1,
         fill: false,
       },
     ],
@@ -328,56 +329,61 @@ const PremiumYear = () => {
 
         const trendPayload = trendRes.data?.data ?? trendRes.data;
         if (trendPayload) {
-          if (Array.isArray(trendPayload.gutIndex)) {
+          const enough = trendPayload.is_enough_data === true;
+          setIsEnoughData(enough);
+          if (enough && Array.isArray(trendPayload.gutIndex)) {
             setGutIndex(trendPayload.gutIndex);
-            // Count months with non-zero data
-            const monthsCount = trendPayload.gutIndex.filter(val => val > 0).length;
+            const monthsCount = trendPayload.gutIndex.filter((val) => val > 0).length;
             setMonthsWithData(monthsCount);
+          } else {
+            setGutIndex(Array(12).fill(0));
+            setMonthsWithData(0);
           }
-          if (Array.isArray(trendPayload.lastYearIndex)) {
+          if (enough && Array.isArray(trendPayload.lastYearIndex)) {
             setLastYearIndex(trendPayload.lastYearIndex);
+          } else {
+            setLastYearIndex(Array(12).fill(0));
           }
-          if (Array.isArray(trendPayload.seasonalTrend)) {
+          if (enough && Array.isArray(trendPayload.seasonalTrend)) {
             setSeasonalTrend(trendPayload.seasonalTrend);
+          } else {
+            setSeasonalTrend([0, 0, 0, 0]);
           }
         }
 
-        // After we have the latest foods + trend, request AI advice once.
-        const advicePayload = {
-          foods: (foodsPayload?.foods || []).map((f, idx) => ({
-            food: f.name ?? f.food ?? `Food ${idx + 1}`,
-            sensit: f.sensit,
-            main: f.main,
-            second: f.second,
-          })),
-          gutIndex: Array.isArray(trendPayload?.gutIndex) ? trendPayload.gutIndex : [],
-          lastYearIndex: Array.isArray(trendPayload?.lastYearIndex) ? trendPayload.lastYearIndex : [],
-          seasonalTrend: Array.isArray(trendPayload?.seasonalTrend) ? trendPayload.seasonalTrend : [],
-        };
+        if (trendPayload?.is_enough_data === true) {
+          const advicePayload = {
+            foods: (foodsPayload?.foods || []).map((f, idx) => ({
+              food: f.name ?? f.food ?? `Food ${idx + 1}`,
+              sensit: f.sensit,
+              main: f.main,
+              second: f.second,
+            })),
+            gutIndex: Array.isArray(trendPayload?.gutIndex) ? trendPayload.gutIndex : [],
+            lastYearIndex: Array.isArray(trendPayload?.lastYearIndex) ? trendPayload.lastYearIndex : [],
+            seasonalTrend: Array.isArray(trendPayload?.seasonalTrend) ? trendPayload.seasonalTrend : [],
+          };
 
-        const adviceRes = await postTrendBowelPremiumYearAdvice(api, advicePayload);
-        if (isCancelled) return;
+          const adviceRes = await postTrendBowelPremiumYearAdvice(api, advicePayload);
+          if (isCancelled) return;
 
-        const adviceData = adviceRes.data?.data ?? adviceRes.data;
-        if (adviceData) {
-          setAnalysis({
-            foodTips: adviceData.foodTips ?? "",
-            seasonal: adviceData.seasonal ?? "",
-            actionPlan: adviceData.actionPlan ?? "",
-          });
+          const adviceData = adviceRes.data?.data ?? adviceRes.data;
+          if (adviceData) {
+            setAnalysis({
+              foodTips: adviceData.foodTips ?? "",
+              seasonal: adviceData.seasonal ?? "",
+              actionPlan: adviceData.actionPlan ?? "",
+            });
+          }
+        } else {
+          setAnalysis({ foodTips: "", seasonal: "", actionPlan: "" });
         }
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error("Failed to load yearly bowel data/advice:", err);
         if (!isCancelled) {
-          setAnalysis({
-            foodTips:
-              "Milk, peanuts and seafood appear most associated with symptoms; adjust timing and portion or try alternatives.",
-            seasonal:
-              "Gut index dips in colder months, likely from lower water intake and heavier foods.",
-            actionPlan:
-              "Consider moderating trigger foods and increasing hydration during your weakest seasons; seek medical advice if pain or diarrhea persists.",
-          });
+          setAnalysis({ foodTips: "", seasonal: "", actionPlan: "" });
+          setIsEnoughData(false);
         }
       } finally {
         if (!isCancelled) {
@@ -445,13 +451,17 @@ const PremiumYear = () => {
           Overall Gut Reaction
         </div>
 
+        {!trendLoading && !isEnoughData && <TrendInsufficientNotice className="mb-3" />}
+
         {/* Ideal Range Indicator */}
         <div className="mb-[15px] rounded-[8px] bg-gray-100 px-3 py-2 text-sm text-primary">
           Ideal Range
         </div>
 
         {/* Chart Container with relative positioning for info icon */}
-        <div className="relative h-64">
+        <div
+          className={`relative h-64 ${!trendLoading && !isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
+        >
           <style>{`
             div[id*="chartjs-tooltip"],
             .chartjs-tooltip {
@@ -511,6 +521,13 @@ const PremiumYear = () => {
         </div>
       </div>
 
+      <div className="text-center text-sm text-primary">
+        {new Intl.DateTimeFormat(undefined, {
+          month: "long",
+          year: "numeric",
+        }).format(new Date())}
+      </div>
+
       <div className="text-xs text-custom-12 text-center"></div>
 
       {/* Seasonal Stool Trend Chart */}
@@ -520,7 +537,9 @@ const PremiumYear = () => {
         </div>
 
 
-        <div className="relative h-50 bg-white rounded-[8px] border border-[#e6e6e6] p-2">
+        <div
+          className={`relative h-50 bg-white rounded-[8px] border border-[#e6e6e6] p-2 ${!trendLoading && !isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
+        >
           {/* "Ideal" label on left */}
           {/* <div className="absolute left-2 top-1/2 transform -translate-y-1/2 -translate-x-full">
             <span className="text-sm text-gray-600 whitespace-nowrap">
@@ -553,33 +572,23 @@ const PremiumYear = () => {
             <div className="flex items-center justify-center py-2">
               <Loader />
             </div>
-          ) : monthsWithData === 0 ? (
+          ) : !isEnoughData ? (
             <div className="text-center text-gray-500 items-center justify-center">
-              No data yet. Start recording your bowel health to get AI analysis.
-            </div>
-          ) : monthsWithData < 3 ? (
-            <div className="text-center text-gray-500 items-center justify-center">
-              Insufficient data, unable to analyze yet.
+              Insufficient data, continue recording
             </div>
           ) : (
             <>
               <div>
                 <span className="">Food Tips: </span>
-                <span>{analysis.foodTips || "Use plant milk, lactase, and adjust portion timing for sensitive foods."}</span>
+                <span>{analysis.foodTips}</span>
               </div>
               <div>
                 <span className="text-primary">Seasonal: </span>
-                <span>
-                  {analysis.seasonal ||
-                    "Winter GI index is slightly lower, likely from lower water intake and heavier foods."}
-                </span>
+                <span>{analysis.seasonal}</span>
               </div>
               <div>
                 <span className="text-primary">Action: </span>
-                <span>
-                  {analysis.actionPlan ||
-                    "Increase hydration and fiber in colder months and monitor reactions to top trigger foods."}
-                </span>
+                <span>{analysis.actionPlan}</span>
               </div>
             </>
           )}

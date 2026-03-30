@@ -15,6 +15,7 @@ import useApiClient from "@/hooks/useApiClient";
 import { getTrendDietMacroWeekly, postTrendDietWeeklyAdvice } from "@/api/http";
 import Free from "../Free";
 import Loader from "@/components/common/Loader";
+import { useNavigate } from "react-router-dom";
 
 ChartJS.register(
   RadialLinearScale,
@@ -28,6 +29,7 @@ ChartJS.register(
 const RECOMMENDED_SCORES = [80, 75, 60, 50, 55];
 
 const Week = ({ referenceDate }) => {
+  const navigate = useNavigate();
   const [showAnalysis, setShowAnalysis] = useState(false);
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
@@ -188,7 +190,7 @@ const Week = ({ referenceDate }) => {
   };
   return (
     <>
-      <Free showUpgrade={false} referenceDate={referenceDate} />
+      <Free showUpgrade={false} referenceDate={referenceDate} viewMode="week" />
 
       <div className="pl-[15px] pr-[15spx]">
         <div className="text-primary text-base pl-[15px] mb-3">Weekly Diet Analysis</div>
@@ -362,6 +364,14 @@ const Week = ({ referenceDate }) => {
           This analysis is based on recent behavior and health indicators, for
           reference only
         </div>
+      </div>
+      <div className="flex items-center justify-center mb-[47px]">
+        <button
+          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary shadow-md"
+          onClick={() => navigate("/trend-analysis?plan=premium", { state: { trendType: "diet" } })}
+        >
+          In-depth Analysis
+        </button>
       </div>
     </>
   );

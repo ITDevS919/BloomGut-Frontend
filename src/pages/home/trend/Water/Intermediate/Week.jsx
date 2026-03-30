@@ -16,6 +16,7 @@ import { getTrendWaterWeeklyTime, postTrendWaterWeeklyAdvice } from "@/api/http"
 import Upgrade from "./Upgrade";
 import Free from "../Free";
 import Loader from "@/components/common/Loader";
+import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 
 ChartJS.register(
   BarElement,
@@ -31,17 +32,18 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
   const api = useApiClient();
 
   const [timeMl, setTimeMl] = useState({
-    morningMl: 205,
-    noonMl: 750,
-    afternoonMl: 150,
-    eveningMl: 450,
+    morningMl: 0,
+    noonMl: 0,
+    afternoonMl: 0,
+    eveningMl: 0,
   });
   const [timePercent, setTimePercent] = useState({
-    morningPercent: 31,
-    noonPercent: 125,
-    afternoonPercent: 30,
-    eveningPercent: 150,
+    morningPercent: 0,
+    noonPercent: 0,
+    afternoonPercent: 0,
+    eveningPercent: 0,
   });
+  const [isEnoughData, setIsEnoughData] = useState(false);
   const [advice, setAdvice] = useState({ message: "", tip: "" });
   const [adviceLoading, setAdviceLoading] = useState(false);
   const [loadingTime, setLoadingTime] = useState(false);
@@ -63,8 +65,9 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
           params: { userId: auth.user.id, referenceDate: ref, timezoneOffsetMinutes },
         });
         const payload = response.data?.data || response.data;
-        console.log("water weekly payload", payload);
         if (!payload) return;
+
+        setIsEnoughData(payload.is_enough_data === true);
 
         setTimeMl({
           morningMl: payload.morningMl ?? 0,
@@ -96,7 +99,10 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
   }, [api, auth?.user?.id, referenceDate]);
 
   useEffect(() => {
-    if (!auth?.user?.id) return;
+    if (!auth?.user?.id || !isEnoughData) {
+      setAdvice({ message: "", tip: "" });
+      return;
+    }
 
     const totalMl =
       timeMl.morningMl +
@@ -128,10 +134,7 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Failed to load water weekly advice:", error);
-        setAdvice({
-          message: "Review your weekly water distribution.",
-          tip: "Spread intake across the day.",
-        });
+        setAdvice({ message: "", tip: "" });
       } finally {
         setAdviceLoading(false);
       }
@@ -141,6 +144,7 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
   }, [
     api,
     auth?.user?.id,
+    isEnoughData,
     timeMl.morningMl,
     timeMl.noonMl,
     timeMl.afternoonMl,
@@ -190,14 +194,16 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
     ? timePeriods.reduce((min, p) => (p.percentage < min.percentage ? p : min))
     : null;
   const weeklyTargetMl = 7000;
-  const balanceLabel =
-    lowestPeriod && lowestPeriod.percentage < 20
+  const balanceLabel = !isEnoughData
+    ? "—"
+    : lowestPeriod && lowestPeriod.percentage < 20
       ? "Low"
       : totalWeekMl < weeklyTargetMl
         ? "Below target"
         : "Good";
-  const balanceSub =
-    lowestPeriod && lowestPeriod.percentage < 20
+  const balanceSub = !isEnoughData
+    ? "—"
+    : lowestPeriod && lowestPeriod.percentage < 20
       ? `${lowestPeriod.shortLabel} low`
       : totalWeekMl < weeklyTargetMl
         ? "Increase daily intake"
@@ -277,6 +283,7 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
       </div>
       <div className="p-4">
         <div className="w-full max-w-md rounded-[27px] bg-white p-5 shadow-md mb-[68px] relative">
+          {!isEnoughData && <TrendInsufficientNotice className="mb-4" />}
           {/* Info Block */}
           <div className="mb-4 rounded-[12px] bg-[#eff6ff] px-4 py-3 text-sm text-custom-12">
             Chart shows intake by time period to check balance. Concentrated
@@ -284,45 +291,57 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
           </div>
 
           {/* Chart */}
-          <div className="mb-4 h-48">
+          <div
+            className={`mb-4 h-48 ${!isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
+          >
             <Bar data={data} options={options} />
           </div>
 
           {/* Analysis & Advice (AI) */}
-          <div className="mt-5 space-y-3 rounded-[8px] bg-yellow-50 p-4">
-            <div className="flex items-center gap-2 text-sm text-gray-700 mb-[12px]">
-              <span className="h-3 w-3 rounded-full bg-yellow-400" />
-              <span className="text-secondary font-medium">Analysis & Advice</span>
-            </div>
-            {adviceLoading ? (
-              <div className="flex items-center justify-center py-2">
-                <Loader />
+          {isEnoughData && (
+            <div className="mt-5 space-y-3 rounded-[8px] bg-yellow-50 p-4">
+              <div className="flex items-center gap-2 text-sm text-gray-700 mb-[12px]">
+                <span className="h-3 w-3 rounded-full bg-yellow-400" />
+                <span className="text-secondary font-medium">Analysis & Advice</span>
               </div>
-            ) : (
-              <>
-                {advice.message && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <AlertTriangle className="w-5 h-5 text-[#ffc92b] shrink-0" />
-                    <span className="text-[#f57c00] text-xs">
-                      {advice.message}
-                    </span>
-                  </div>
-                )}
-                {advice.tip && (
-                  <div className="rounded-[8px] bg-[#fdfdfd] px-3 py-2 text-xs text-custom-19">
-                    <span className="font-medium">Tip:</span> {advice.tip}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+              {adviceLoading ? (
+                <div className="flex items-center justify-center py-2">
+                  <Loader />
+                </div>
+              ) : (
+                <>
+                  {advice.message && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <AlertTriangle className="w-5 h-5 text-[#ffc92b] shrink-0" />
+                      <span className="text-[#f57c00] text-xs">
+                        {advice.message}
+                      </span>
+                    </div>
+                  )}
+                  {advice.tip && (
+                    <div className="rounded-[8px] bg-[#fdfdfd] px-3 py-2 text-xs text-custom-19">
+                      <span className="font-medium">Tip:</span> {advice.tip}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
 
           {/* Summary Cards */}
-          <div className="mt-5 grid grid-cols-2 gap-3">
+          <div
+            className={`mt-5 grid grid-cols-2 gap-3 ${!isEnoughData ? "opacity-40 grayscale" : ""}`}
+          >
             <StatCard
               title="Weekly Intake"
-              value={`${totalWeekMl}ml`}
-              sub={totalWeekMl < weeklyTargetMl ? "Below Std." : "On target"}
+              value={isEnoughData ? `${totalWeekMl}ml` : "—"}
+              sub={
+                isEnoughData
+                  ? totalWeekMl < weeklyTargetMl
+                    ? "Below Std."
+                    : "On target"
+                  : "—"
+              }
             />
             <StatCard2 title="Balance" value={balanceLabel} sub={balanceSub} />
           </div>

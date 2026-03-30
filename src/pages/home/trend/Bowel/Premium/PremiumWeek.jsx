@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 import { postTrendBowelPremiumWeekAdvice } from "@/api/http";
 import Loader from "@/components/common/Loader";
+import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 
 const PremiumWeek = () => {
   const navigate = useNavigate();
@@ -21,18 +22,8 @@ const PremiumWeek = () => {
     return "#FFC2B5"; // Pink/Red - High
   };
 
-  // Default sample data; will be overridden by backend values when available
-  const defaultFoodData = [
-    { food: "Milk", abdPain: 0, diarrh: 0, constip: 0, bloat: 0 },
-    { food: "Bread", abdPain: 0, diarrh: 0, constip: 0, bloat: 0 },
-    { food: "Peanuts", abdPain: 0, diarrh: 0, constip: 0, bloat: 0 },
-    { food: "Eggs", abdPain: 0, diarrh: 0, constip: 0, bloat: 0 },
-    { food: "Seafood", abdPain: 0, diarrh: 0, constip: 0, bloat: 0 },
-    { food: "Beans", abdPain: 0, diarrh: 0, constip: 0, bloat: 0 },
-    { food: "Nuts", abdPain: 0, diarrh: 0, constip: 0, bloat: 0 },
-  ];
-
-  const [foodData, setFoodData] = useState(defaultFoodData);
+  const [foodData, setFoodData] = useState([]);
+  const [isEnoughData, setIsEnoughData] = useState(false);
 
   useEffect(() => {
     if (!auth?.user?.id) return;
@@ -45,8 +36,9 @@ const PremiumWeek = () => {
         });
         const data = res.data?.data ?? res.data;
         if (data) {
+          setIsEnoughData(data.is_enough_data === true);
           if (Array.isArray(data.foods)) {
-            setFoodData(data.foods.length > 0 ? data.foods : defaultFoodData);
+            setFoodData(data.foods);
           }
           setAiTooltipMap(data.tooltipMap || {});
           setSummaryTips(Array.isArray(data.summaryTips) ? data.summaryTips : []);
@@ -69,6 +61,10 @@ const PremiumWeek = () => {
         note: aiFood.note,
         tip: aiFood.tip,
       };
+    }
+
+    if (!isEnoughData) {
+      return { note: "", tip: "" };
     }
 
     const p = Number(percentage) || 0;
@@ -151,7 +147,14 @@ const PremiumWeek = () => {
       <div className="text-base pl-[15px] font-medium mb-[11px] text-primary">
         Food vs Symptoms
       </div>
-      <div className="w-full max-w-2xl rounded-[8px] bg-white p-4 shadow-[0_2px_4px_rgba(0,0,0,0.08)] relative">
+      {!aiLoading && !isEnoughData && (
+        <div className="pl-[15px] pr-[15px] mb-3">
+          <TrendInsufficientNotice />
+        </div>
+      )}
+      <div
+        className={`w-full max-w-2xl rounded-[8px] bg-white p-4 shadow-[0_2px_4px_rgba(0,0,0,0.08)] relative ${!aiLoading && !isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
+      >
         {/* Table */}
         <div className="overflow-x-auto bg-quinary rounded-[8px]">
           <table className="w-full border-collapse">
@@ -298,7 +301,7 @@ const PremiumWeek = () => {
         <button
           className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary shadow-sm"
           onClick={() =>
-            navigate("/trend-analysis?plan=premium", {
+            navigate("/trend-analysis?plan=free", {
               state: { trendType: "bowel", viewMode: "week", subscribed: true },
             })
           }

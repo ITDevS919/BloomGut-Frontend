@@ -8,7 +8,7 @@ import {
 } from "@/components/custom/CustomRadioGroup";
 import SegmentedControl from "@/components/custom/SegmentedControl";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { IoIosArrowBack, IoIosArrowUp } from "react-icons/io";
 import { IoIosArrowDown } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
@@ -76,10 +76,39 @@ const StoolPage = () => {
   // Historical records
   const [recentRecords, setRecentRecords] = useState([]);
   const [recordsLoading, setRecordsLoading] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
 
-  // Load recent records on mount
+  // Load recent records on mount (hybrid page: input + feedback + history)
   useEffect(() => {
-
+    let cancelled = false;
+    const run = async () => {
+      if (!auth?.user?.id) {
+        setRecentRecords([]);
+        return;
+      }
+      setRecordsLoading(true);
+      try {
+        const res = await getRecordBowelRecent(api, {
+          params: { userId: auth.user.id, limit: 10 },
+        });
+        if (cancelled) return;
+        const payload = res.data?.data ?? res.data;
+        const records = Array.isArray(payload?.records) ? payload.records : [];
+        setRecentRecords(records);
+      } catch (error) {
+        if (!cancelled) {
+          // eslint-disable-next-line no-console
+          console.error("Failed to load recent stool records:", error);
+          setRecentRecords([]);
+        }
+      } finally {
+        if (!cancelled) setRecordsLoading(false);
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
   }, [auth?.user?.id, api]);
 
   // open
@@ -168,13 +197,18 @@ const StoolPage = () => {
     try {
       const response = await putRecordBowel(api, param);
       toast.success(response.data.data);
-      // Refresh recent records
-      const refreshResponse = await getRecordBowelRecent(api, {
-        params: { userId: auth.user.id, limit: 10 },
-      });
-      const payload = refreshResponse.data?.data ?? refreshResponse.data;
-      const records = Array.isArray(payload?.records) ? payload.records : [];
-      setRecentRecords(records);
+      setLastSavedAt(now.toISOString());
+      try {
+        const refreshResponse = await getRecordBowelRecent(api, {
+          params: { userId: auth.user.id, limit: 10 },
+        });
+        const payload = refreshResponse.data?.data ?? refreshResponse.data;
+        const records = Array.isArray(payload?.records) ? payload.records : [];
+        setRecentRecords(records);
+      } catch (refreshErr) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to refresh recent records after save:", refreshErr);
+      }
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error("Error saving stool record:", error);
@@ -322,8 +356,74 @@ const StoolPage = () => {
   const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+  const liveEntrySummary = useMemo(() => {
+    const parts: string[] = [];
+    if (shapeValue || selectedStoolImage) {
+      parts.push(shapeValue || String(selectedStoolImage));
+    }
+    if (colorValue) parts.push(colorValue);
+    if (amountValue) parts.push(`${amountValue} amount`);
+    if (timeValue) {
+      const label = timeOptions.find((t) => t.value === timeValue)?.label;
+      parts.push(label ? `Time ${label}` : `Time ${timeValue}`);
+    }
+    if (frequencyValue) {
+      const label = frequencyOptions.find((f) => f.value === frequencyValue)?.label;
+      parts.push(label ? `Frequency: ${label}` : `Frequency: ${frequencyValue}`);
+    }
+    if (timeOfDayValue.length) {
+      parts.push(`Time of day: ${timeOfDayValue.join(", ")}`);
+    }
+    if (symptomValue.length) {
+      parts.push(`Symptoms: ${symptomValue.join(", ")}`);
+    }
+    const hasExtra =
+      mucusConditionValue.length > 0 ||
+      textureConditionValue.length > 0 ||
+      odorConditionValue.length > 0;
+    if (hasExtra) parts.push("Additional status noted");
+    if (otherSymptomsValue.trim()) parts.push("Other symptoms");
+    return parts.join(" · ");
+  }, [
+    shapeValue,
+    selectedStoolImage,
+    colorValue,
+    amountValue,
+    timeValue,
+    frequencyValue,
+    timeOfDayValue,
+    symptomValue,
+    mucusConditionValue,
+    textureConditionValue,
+    odorConditionValue,
+    otherSymptomsValue,
+  ]);
+
+  const feedbackStatusLabel = useMemo(() => {
+    if (recordsLoading) return "Loading recent history…";
+    if (isSaving) return "Saving your record…";
+    if (!auth?.user?.id) return "Sign in to save and sync records.";
+    return "Ready — your selections update the summary below.";
+  }, [recordsLoading, isSaving, auth?.user?.id]);
+
+  const lastSavedDisplay = useMemo(() => {
+    const raw = lastSavedAt
+      || (recentRecords[0] as { clientCreatedAt?: string; createdAt?: string } | undefined)?.clientCreatedAt
+      || (recentRecords[0] as { clientCreatedAt?: string; createdAt?: string } | undefined)?.createdAt;
+    if (!raw) return null;
+    try {
+      const d = new Date(raw);
+      return d.toLocaleString(undefined, {
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
+    } catch {
+      return null;
+    }
+  }, [lastSavedAt, recentRecords]);
+
   return (
-    <div className="relative flex flex-col gap-4 font-['Noto_Sans_TC', sans-serif]">
+    <div className="relative flex flex-col gap-4 font-['Noto_Sans_TC', sans-serif] bg-ivory min-h-full">
       <div className="pt-4 px-3">
         <CustomButton
           icon={IoIosArrowBack}
@@ -347,6 +447,55 @@ const StoolPage = () => {
           View Trend
         </CustomButton>
       </div>
+
+      {/* Real-time feedback: status + live entry preview (hybrid record page) */}
+      <section
+        className="px-5 mx-3 rounded-[12px] border border-custom-8 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-4 space-y-3"
+        aria-label="Live status and entry preview"
+      >
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <p className="text-xs font-medium text-custom-12 uppercase tracking-wide mb-1">
+              Live status
+            </p>
+            <p className="text-sm text-primary font-medium">
+              {feedbackStatusLabel}
+            </p>
+          </div>
+          {(isSaving || recordsLoading) && (
+            <div
+              className="h-5 w-5 shrink-0 border-2 border-primary border-t-transparent rounded-full animate-spin"
+              aria-hidden
+            />
+          )}
+        </div>
+        <div className="rounded-[8px] bg-ivory/90 px-3 py-2.5 border border-custom-8/60">
+          <p className="text-xs text-custom-12 mb-1">Current entry preview</p>
+          <p className="text-sm text-secondary leading-snug">
+            {liveEntrySummary
+              ? liveEntrySummary
+              : "Select shape, color, and details — a short summary of this entry appears here as you go."}
+          </p>
+        </div>
+        {lastSavedDisplay && (
+          <p className="text-xs text-custom-12">
+            Last saved:{" "}
+            <span className="text-secondary font-medium">{lastSavedDisplay}</span>
+          </p>
+        )}
+      </section>
+
+      {/* Input area */}
+      <section className="flex flex-col gap-4" aria-labelledby="stool-record-input-heading">
+        <div className="px-6 pt-1">
+          <h2 id="stool-record-input-heading" className="sr-only">
+            Bowel record input
+          </h2>
+          <CustomHeading label="Record input" className="mb-0" />
+          <p className="text-custom-12 text-xs mt-1">
+            Log today&apos;s bowel movement — required fields are marked.
+          </p>
+        </div>
 
       <div className="flex justify-center items-center relative">
         {!isMainImageLoaded && (
@@ -780,6 +929,7 @@ const StoolPage = () => {
           <span>{isSaving ? "Saving..." : "Save"}</span>
         </button>
       </div>
+      </section>
 
       {/* Unsaved Confirmation Modal */}
       {
@@ -829,12 +979,26 @@ const StoolPage = () => {
         )
       }
 
-      {/* Historical Records Section */}
-      <div className="px-6 py-6">
-        <CustomHeading label="Recent Records" className="mb-4" />
-        {recentRecords.length === 0 ? (
-          <div className="text-center py-8 text-secondary">
-            No recent records found
+      {/* Historical records */}
+      <section
+        className="px-6 py-6 border-t border-custom-8/80"
+        aria-labelledby="stool-recent-history-heading"
+      >
+        <h2 id="stool-recent-history-heading" className="sr-only">
+          Recent bowel records
+        </h2>
+        <CustomHeading label="Recent history" className="mb-1" />
+        <p className="text-custom-12 text-xs mb-4">
+          Your latest saved entries (updates after you save or when the page loads).
+        </p>
+        {recordsLoading && recentRecords.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-10 gap-3 text-secondary text-sm">
+            <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            Loading records…
+          </div>
+        ) : recentRecords.length === 0 ? (
+          <div className="text-center py-8 text-secondary text-sm rounded-[12px] bg-white/80 border border-custom-8 px-4">
+            No recent records yet — complete the form above and tap Save.
           </div>
         ) : (
           <div className="space-y-3">
@@ -860,7 +1024,7 @@ const StoolPage = () => {
             ))}
           </div>
         )}
-      </div>
+      </section>
     </div >
   );
 };

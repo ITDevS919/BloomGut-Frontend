@@ -17,7 +17,7 @@ const Upgrade = () => {
         </div>
         <div className="text-base text-custom-12 mb-5">Upgrade to Unlock</div>
         <div className="text-xs text-gray-500 mb-5">
-          See bowel–health link & get tips
+        Unlock bowel insights & find what affects your gut
         </div>
         <button className="bg-[#fbb657] text-white px-6 py-2 rounded-full shadow-md cursor-pointer"
           onClick={() =>

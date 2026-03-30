@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 import { postTrendBowelPremiumMonthAdvice } from "@/api/http";
 import Loader from "@/components/common/Loader";
+import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 
 const PremiumMonth = () => {
   const navigate = useNavigate();
@@ -22,17 +23,8 @@ const PremiumMonth = () => {
     return "#FFC2B5"; // Pink/Red - High
   };
 
-  const defaultFoodData = [
-    { food: "Milk", week1: 82, week2: 70, week3: 65, week4: 55 },
-    { food: "Bread", week1: 20, week2: 80, week3: 52, week4: 63 },
-    { food: "Peanuts", week1: 50, week2: 82, week3: 86, week4: 70 },
-    { food: "Eggs", week1: 30, week2: 40, week3: 58, week4: 80 },
-    { food: "Seafood", week1: 80, week2: 60, week3: 45, week4: 40 },
-    { food: "Beans", week1: 40, week2: 30, week3: 60, week4: 50 },
-    { food: "Nuts", week1: 60, week2: 50, week3: 30, week4: 20 },
-  ];
-
-  const [foodData, setFoodData] = useState(defaultFoodData);
+  const [foodData, setFoodData] = useState([]);
+  const [isEnoughData, setIsEnoughData] = useState(false);
 
   const getTooltipData = (food, week, percentage) => {
     const aiFood = aiTooltipMap?.[food]?.[week];
@@ -41,6 +33,10 @@ const PremiumMonth = () => {
         note: aiFood.note,
         tip: aiFood.tip,
       };
+    }
+
+    if (!isEnoughData) {
+      return { note: "", tip: "" };
     }
 
     const tooltipMap = {
@@ -121,7 +117,8 @@ const PremiumMonth = () => {
         });
         const data = res.data?.data ?? res.data;
         if (data) {
-          if (Array.isArray(data.foods) && data.foods.length) {
+          setIsEnoughData(data.is_enough_data === true);
+          if (Array.isArray(data.foods)) {
             setFoodData(data.foods);
           }
           setAiTooltipMap(data.tooltipMap || {});
@@ -143,7 +140,14 @@ const PremiumMonth = () => {
       <div className="text-base pl-[15px] font-medium mb-[11px] text-primary">
         Food vs Symptoms
       </div>
-      <div className="w-full max-w-2xl rounded-[8px] bg-white p-4 shadow-[0_2px_4px_rgba(0,0,0,0.08)] relative">
+      {!aiLoading && !isEnoughData && (
+        <div className="pl-[15px] pr-[15px] mb-3">
+          <TrendInsufficientNotice />
+        </div>
+      )}
+      <div
+        className={`w-full max-w-2xl rounded-[8px] bg-white p-4 shadow-[0_2px_4px_rgba(0,0,0,0.08)] relative ${!aiLoading && !isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
+      >
         {/* Table */}
         <div className="overflow-x-auto bg-quinary rounded-[8px]">
           <table className="w-full border-collapse">

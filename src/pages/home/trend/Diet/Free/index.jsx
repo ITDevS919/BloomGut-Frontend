@@ -6,9 +6,8 @@ import useApiClient from "@/hooks/useApiClient";
 import {
   getTrendBowelDailyTrendForDiet,
   getTrendDietCategory,
-  getTrendDietDailySummary,
   getTrendDietMacroWeekly,
-  getTrendDietTodayScore,
+  getTrendDietPeriodSummary,
   getTrendUrineWeeklyScore,
 } from "@/api/http";
 import Loader from "@/components/common/Loader";
@@ -32,15 +31,16 @@ const getIndicatorColor = (value) => {
   return "#F66B6B"; // Red segment (0–60)
 };
 
-const Free = ({ showUpgrade = true, referenceDate }) => {
+const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
   const [selectedDate, setSelectedDate] = useState("3/16");
 
   // Urine health summary (reused on Diet Free screen)
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
-  const [weekScore, setWeekScore] = useState(0);
-  const [beforeWeekScore, setBeforeWeekScore] = useState(0);
-  const [hasTodayDietRecord, setHasTodayDietRecord] = useState(false);
+  /** Diet health score: period average (week or calendar month from API) */
+  const [periodAverageScore, setPeriodAverageScore] = useState(0);
+  const [periodChangePercent, setPeriodChangePercent] = useState(null);
+  const [periodSummaryEnough, setPeriodSummaryEnough] = useState(false);
   const [clarityRate, setClarityRate] = useState(0);
   const [clearCount, setClearCount] = useState(0);
   const [yellowCount, setYellowCount] = useState(0);
@@ -77,56 +77,37 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
   const [loadingDietScores, setLoadingDietScores] = useState(true);
   const [loadingTrendData, setLoadingTrendData] = useState(true);
+  const [trendMacroOk, setTrendMacroOk] = useState(false);
+  const [trendCategoryOk, setTrendCategoryOk] = useState(false);
+  const [trendBowelOk, setTrendBowelOk] = useState(false);
 
   useEffect(() => {
     if (!auth?.user?.id) return;
 
-    const fetchDietScores = async () => {
+    const fetchDietPeriodSummary = async () => {
       try {
-        const response = await getTrendDietTodayScore(api, {
+        const response = await getTrendDietPeriodSummary(api, {
           params: {
             userId: auth.user.id,
             referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
             timezoneOffsetMinutes: new Date().getTimezoneOffset(),
+            period: viewMode === "month" ? "month" : "week",
           },
         });
         const payload = response.data?.data || response.data;
         if (!payload) return;
-        setWeekScore(payload.todayScore ?? 0);
-        setBeforeWeekScore(payload.yesterdayScore ?? 0);
+        setPeriodSummaryEnough(payload.is_enough_data === true);
+        setPeriodAverageScore(
+          typeof payload.periodAverageScore === "number" ? payload.periodAverageScore : 0
+        );
+        const cp = payload.changePercent;
+        setPeriodChangePercent(typeof cp === "number" && !Number.isNaN(cp) ? cp : null);
       } catch (error) {
         // eslint-disable-next-line no-console
-        console.error("Failed to load diet today score:", error);
-      }
-    };
-
-    const checkTodayDietRecord = async () => {
-      try {
-        const response = await getTrendDietDailySummary(api, {
-          params: {
-            userId: auth.user.id,
-            referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
-            timezoneOffsetMinutes: new Date().getTimezoneOffset(),
-          },
-        });
-        const payload = response.data?.data ?? response.data;
-        if (!payload) {
-          setHasTodayDietRecord(false);
-          return;
-        }
-
-        const calories = Number(payload.calories || 0);
-        const hasData =
-          calories > 0 ||
-          Number(payload.protein_g || 0) > 0 ||
-          Number(payload.fat_g || 0) > 0 ||
-          Number(payload.carb_g || 0) > 0;
-
-        setHasTodayDietRecord(hasData);
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error("Failed to check today's diet record:", error);
-        setHasTodayDietRecord(false);
+        console.error("Failed to load diet period summary:", error);
+        setPeriodSummaryEnough(false);
+        setPeriodAverageScore(0);
+        setPeriodChangePercent(null);
       }
     };
 
@@ -142,14 +123,25 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
           },
         });
         const payload = response.data?.data || response.data;
-        if (!Array.isArray(payload)) return;
+        if (!payload) return;
+        const rows = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload.series)
+            ? payload.series
+            : [];
+        if (
+          !Array.isArray(payload) &&
+          payload.is_enough_data !== true
+        ) {
+          return;
+        }
 
         let clarity = 0;
         let clear = 0;
         let yellow = 0;
         let abnormal = 0;
 
-        payload.forEach((item) => {
+        rows.forEach((item) => {
           const score = item.score ?? 0;
           clarity += score;
           if (score >= 66) clear += 1;
@@ -157,7 +149,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
           else abnormal += 1;
         });
 
-        const daysCount = payload.length || 1;
+        const daysCount = rows.length || 1;
         const avgScore = clarity / daysCount;
         const maxTotal = 100;
 
@@ -174,14 +166,14 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
     const run = async () => {
       setLoadingDietScores(true);
       try {
-        await Promise.all([fetchDietScores(), fetchWeeklyDots(), checkTodayDietRecord()]);
+        await Promise.all([fetchDietPeriodSummary(), fetchWeeklyDots()]);
       } finally {
         setLoadingDietScores(false);
       }
     };
 
     run();
-  }, [api, auth?.user?.id, referenceDate]);
+  }, [api, auth?.user?.id, referenceDate, viewMode]);
 
   useEffect(() => {
     if (!auth?.user?.id) return;
@@ -196,8 +188,15 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
           },
         });
         const payload = res.data?.data ?? res.data;
-        if (payload && Array.isArray(payload.values) && payload.values.length === 5) {
+        setTrendCategoryOk(payload?.is_enough_data === true);
+        if (
+          payload?.is_enough_data === true &&
+          Array.isArray(payload.values) &&
+          payload.values.length === 5
+        ) {
           setDailyTypeValues(payload.values);
+        } else {
+          setDailyTypeValues([0, 0, 0, 0, 0]);
         }
       } catch (error) {
         // eslint-disable-next-line no-console
@@ -217,13 +216,25 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
           },
         });
         const payload = res.data?.data ?? res.data;
-        if (!payload || !Array.isArray(payload.labels)) return;
+        if (!payload || !Array.isArray(payload.labels)) {
+          setTrendMacroOk(false);
+          return;
+        }
 
-        setDietMacroLabels(payload.labels);
-        if (Array.isArray(payload.fiber)) setFiberSeries(payload.fiber);
-        if (Array.isArray(payload.protein)) setProteinSeries(payload.protein);
-        if (Array.isArray(payload.fat)) setFatSeries(payload.fat);
-        if (Array.isArray(payload.sugar)) setSugarSeries(payload.sugar);
+        setTrendMacroOk(payload.is_enough_data === true);
+        if (payload.is_enough_data === true) {
+          setDietMacroLabels(payload.labels);
+          if (Array.isArray(payload.fiber)) setFiberSeries(payload.fiber);
+          if (Array.isArray(payload.protein)) setProteinSeries(payload.protein);
+          if (Array.isArray(payload.fat)) setFatSeries(payload.fat);
+          if (Array.isArray(payload.sugar)) setSugarSeries(payload.sugar);
+        } else {
+          setDietMacroLabels([]);
+          setFiberSeries([]);
+          setProteinSeries([]);
+          setFatSeries([]);
+          setSugarSeries([]);
+        }
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Failed to load diet macro weekly trend:", error);
@@ -242,13 +253,25 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
           },
         });
         const payload = res.data?.data ?? res.data;
-        if (!payload || !Array.isArray(payload.labels)) return;
+        if (!payload || !Array.isArray(payload.labels)) {
+          setTrendBowelOk(false);
+          return;
+        }
 
-        setBowelLabels(payload.labels);
-        if (Array.isArray(payload.freq)) setBowelFreq(payload.freq);
-        if (Array.isArray(payload.consis)) setBowelConsis(payload.consis);
-        if (Array.isArray(payload.ease)) setBowelEase(payload.ease);
-        if (Array.isArray(payload.overall)) setBowelOverall(payload.overall);
+        setTrendBowelOk(payload.is_enough_data === true);
+        if (payload.is_enough_data === true) {
+          setBowelLabels(payload.labels);
+          if (Array.isArray(payload.freq)) setBowelFreq(payload.freq);
+          if (Array.isArray(payload.consis)) setBowelConsis(payload.consis);
+          if (Array.isArray(payload.ease)) setBowelEase(payload.ease);
+          if (Array.isArray(payload.overall)) setBowelOverall(payload.overall);
+        } else {
+          setBowelLabels([]);
+          setBowelFreq([]);
+          setBowelConsis([]);
+          setBowelEase([]);
+          setBowelOverall([]);
+        }
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Failed to load bowel daily trend for diet:", error);
@@ -476,6 +499,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
     tooltipEl.style.left = `${positionX + tooltip.caretX - card.offsetWidth / 2}px`;
     tooltipEl.style.top = `${positionY + tooltip.caretY - card.offsetHeight - 16}px`;
   };
+
   const dietTrendData = {
     labels: chartDates,
     datasets: [
@@ -656,9 +680,10 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
     },
   };
 
-  const effectiveScore = hasTodayDietRecord ? weekScore : 0;
-  const effectiveStatus =
-    hasTodayDietRecord && effectiveScore > 0
+  const effectiveScore = periodSummaryEnough ? periodAverageScore : 0;
+  const effectiveStatus = !periodSummaryEnough
+    ? "Insufficient data, continue recording"
+    : effectiveScore > 0
       ? effectiveScore > 75
         ? "Excellent"
         : effectiveScore > 50
@@ -667,27 +692,41 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
             ? "Fair"
             : "Poor"
       : "Not Recorded";
-  const effectiveChangeText = hasTodayDietRecord
-    ? `${beforeWeekScore > effectiveScore ? "-" : "+"}${Math.abs(
-      beforeWeekScore - effectiveScore
-    )}% vs Last`
-    : "";
+
+  const changeLabel = viewMode === "month" ? "last month" : "last week";
+  const effectiveChangeText =
+    periodSummaryEnough && periodChangePercent !== null
+      ? `${periodChangePercent > 0 ? "+" : periodChangePercent < 0 ? "-" : ""}${Math.abs(
+        periodChangePercent
+      )}% vs ${changeLabel}`
+      : "";
+  const changePercentTextColor =
+    periodSummaryEnough && periodChangePercent !== null
+      ? periodChangePercent > 0
+        ? "#1ABC9C"
+        : periodChangePercent < 0
+          ? "#F66B6B"
+          : "#999999"
+      : "#B5A6D2";
   const scorePosition = getScorePosition(effectiveScore);
 
   return (
     <main className="pr-[15px] pl-[15px]">
-      {/* Score Card (uses urine weekly score) */}
+      {/* Score Card: period average diet health (week or month) vs previous period */}
       <div className="bg-white rounded-[27px] p-[32px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[29px] relative">
         <div className="flex items-center justify-between">
           <div className="pl-[50px]">
             <div className="text-3xl font-medium text-[#B5A6D2] text-center">
-              {effectiveScore}
+              {periodSummaryEnough ? effectiveScore : "—"}
             </div>
             <div className="text-sm text-custom-12 text-center">
               {effectiveStatus}
             </div>
           </div>
-          <div className="text-base text-[#B5A6D2] text-center pr-[50px]">
+          <div
+            className="text-base text-center pr-[50px]"
+            style={{ color: changePercentTextColor }}
+          >
             {effectiveChangeText}
           </div>
         </div>
@@ -699,9 +738,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
             style={{
               background: `linear-gradient(to right,
                   #F66B6B 0%,
-                  #F66B6B 60%,
                   #FBC02D 60%,
-                  #FBC02D 80%,
                   #1ABC9C 80%,
                   #1ABC9C 100%)`,
             }}
@@ -732,7 +769,9 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
       {/* Daily Type Distribution */}
       <div className="text-base mb-3 font-medium pl-[15px] text-primary">Daily Types</div>
-      <div className="bg-white rounded-[20px] p-6 shadow-[2px_0_10px_rgba(3,3,3,0.1)] mb-[34px] relative">
+      <div
+        className={`bg-white rounded-[20px] p-6 shadow-[2px_0_10px_rgba(3,3,3,0.1)] mb-[34px] relative ${!trendCategoryOk ? "opacity-60 grayscale" : ""}`}
+      >
         <div className="flex items-end justify-between gap-2">
           {dailyTypeValues.map((value, index) => (
             <div
@@ -804,7 +843,14 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
       {/* Diet Trends */}
       <div className="text-primary text-base font-medium pl-[15px] mb-[14px] mt-9">Diet & Bowel Trends</div>
-      <div className="w-full rounded-[27px] bg-white shadow-[0_2px_4px_rgba(0,0,0,0.08)] space-y-4">
+      {(!trendMacroOk || !trendCategoryOk) && (
+        <div className="text-sm text-[#705d57] pl-[15px] mb-2">
+          Insufficient data, continue recording
+        </div>
+      )}
+      <div
+        className={`w-full rounded-[27px] bg-white shadow-[0_2px_4px_rgba(0,0,0,0.08)] space-y-4 ${!trendMacroOk || !trendCategoryOk ? "opacity-60 grayscale" : ""}`}
+      >
         {/* Date pills */}
         <div className="flex gap-2 overflow-x-auto items-center justify-center pt-[23px]">
           {dates.map((d) => (
@@ -870,7 +916,14 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
       </div>
 
       {/* Bowel Trend */}
-      <div className="w-full rounded-[27px] bg-white shadow-[0_2px_4px_rgba(0,0,0,0.08)] space-y-4 mt-8">
+      {!trendBowelOk && (
+        <div className="text-sm text-[#705d57] pl-[15px] mb-2 mt-6">
+          Insufficient data, continue recording
+        </div>
+      )}
+      <div
+        className={`w-full rounded-[27px] bg-white shadow-[0_2px_4px_rgba(0,0,0,0.08)] space-y-4 mt-8 ${!trendBowelOk ? "opacity-60 grayscale" : ""}`}
+      >
         {/* Date pills */}
         <div className="flex gap-2 overflow-x-auto items-center justify-center pt-[23px]">
           {dates.map((d) => (

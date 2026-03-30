@@ -39,6 +39,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
   const [dotsLoaded, setDotsLoaded] = useState(false);
   const [scoreLoaded, setScoreLoaded] = useState(false);
   const [tipsLoaded, setTipsLoaded] = useState(true);
+  const [trendSufficient, setTrendSufficient] = useState(false);
 
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
@@ -56,7 +57,16 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
           },
         });
         const payload = response.data?.data || response.data;
-        if (!Array.isArray(payload)) return;
+        if (!payload) return;
+
+        const rows = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload.series)
+            ? payload.series
+            : [];
+        const trendOk = Array.isArray(payload)
+          ? true
+          : payload.is_enough_data === true;
 
         const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         // Initialize weekly dots with score 0; DB values will override where present.
@@ -66,7 +76,18 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
           score: 0,
         }));
 
-        payload.forEach((item) => {
+        if (!trendOk) {
+          setTrendSufficient(false);
+          setClearCount(0);
+          setYellowCount(0);
+          setAbnormalCount(0);
+          setClarityRate(0);
+          setDotData(baseDots);
+          return;
+        }
+        setTrendSufficient(true);
+
+        rows.forEach((item) => {
           const jsDay = typeof item.day === "number" ? item.day : 0; // 0–6
           if (jsDay < 0 || jsDay > 6) return;
           const status =
@@ -135,7 +156,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
   }, [api, auth?.user?.id, referenceDate]);
 
   useEffect(() => {
-    if (!auth?.user?.id || dotData.length === 0) return;
+    if (!auth?.user?.id || dotData.length === 0 || !trendSufficient) return;
 
     const fetchHealthTips = async () => {
       setTipsLoaded(false);
@@ -176,6 +197,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
     abnormalCount,
     weekScore,
     beforeWeekScore,
+    trendSufficient,
   ]);
 
   const hasTodayUrineRecord = (() => {
@@ -191,21 +213,36 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
   const effectiveWeekScore = hasTodayUrineRecord ? weekScore : 0;
   const effectiveStatus =
-    hasTodayUrineRecord && effectiveWeekScore > 0
-      ? effectiveWeekScore > 75
-        ? "Excellent"
-        : effectiveWeekScore > 50
-          ? "Good"
-          : effectiveWeekScore > 25
-            ? "Fair"
-            : "Poor"
-      : "Not Recorded";
-  const effectiveChangeText = hasTodayUrineRecord
-    ? `${beforeWeekScore > effectiveWeekScore ? "-" : "+"}${Math.abs(
-      beforeWeekScore - effectiveWeekScore
-    )}% vs Last`
-    : "";
-  const scorePosition = getScorePosition(effectiveWeekScore);
+    !trendSufficient
+      ? "Insufficient data, continue recording"
+      : hasTodayUrineRecord && effectiveWeekScore > 0
+        ? effectiveWeekScore > 75
+          ? "Excellent"
+          : effectiveWeekScore > 50
+            ? "Good"
+            : effectiveWeekScore > 25
+              ? "Fair"
+              : "Poor"
+        : "Not Recorded";
+  const weekScoreDelta =
+    trendSufficient && hasTodayUrineRecord
+      ? effectiveWeekScore - beforeWeekScore
+      : null;
+  const effectiveChangeText =
+    weekScoreDelta !== null
+      ? `${weekScoreDelta < 0 ? "-" : "+"}${Math.abs(weekScoreDelta)}% vs Last`
+      : "";
+  const changePercentTextColor =
+    weekScoreDelta !== null
+      ? weekScoreDelta > 0
+        ? "#1ABC9C"
+        : weekScoreDelta < 0
+          ? "#F66B6B"
+          : "#999999"
+      : "#F09129";
+  const scorePosition = getScorePosition(
+    trendSufficient ? effectiveWeekScore : 0
+  );
 
   const loadingScore = !scoreLoaded;
   const loadingDots = !dotsLoaded;
@@ -213,17 +250,22 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
   return (
     <main className="pl-[15px] pr-[15px]">
-      <div className="bg-white rounded-[27px] p-[32px] shadow-md mb-[36px] relative">
+      <div
+        className={`bg-white rounded-[27px] p-[32px] shadow-md mb-[36px] relative ${!trendSufficient ? "opacity-60 grayscale" : ""}`}
+      >
         <div className="flex items-center justify-between">
           <div className="pl-[50px]">
             <div className="text-3xl font-medium text-[#F09129] text-center">
-              {effectiveWeekScore}
+              {trendSufficient ? effectiveWeekScore : "—"}
             </div>
             <div className="text-sm text-custom-12 text-center">
               {effectiveStatus}
             </div>
           </div>
-          <div className="text-sm pr-[50px] text-[#F09129] text-right">
+          <div
+            className="text-sm pr-[50px] text-right"
+            style={{ color: changePercentTextColor }}
+          >
             {effectiveChangeText}
           </div>
         </div>
@@ -269,7 +311,9 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
       <div className="text-primary font-medium mb-4 sm:mb-5 pl-1 sm:pl-[15px]">
         Weekly Urine Report
       </div>
-      <div className="w-full max-w-sm rounded-[20px] bg-white p-4 shadow-[2px_0_10px_rgba(3,3,3,0.1)] space-y-4 relative mx-auto">
+      <div
+        className={`w-full max-w-sm rounded-[20px] bg-white p-4 shadow-[2px_0_10px_rgba(3,3,3,0.1)] space-y-4 relative mx-auto ${!trendSufficient ? "opacity-60 grayscale" : ""}`}
+      >
         {/* Status dots */}
         <div className="flex justify-between gap-2">
           {dotData.map((d) => (

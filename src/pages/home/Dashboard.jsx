@@ -83,7 +83,7 @@ const hexForUrineRecord = (record) => {
   return "#9ca3af";
 };
 
-/** `records` = newest first (API). Five slots, left→right time order; empty right slots = grey. */
+/** `records` = newest first (API). Five slots left→right = oldest → newest; empty slots on the right = grey. */
 const buildFiveDotSlots = (records, hexForRecord) => {
   const slots = Array.from({ length: 5 }, () => ({
     filled: false,
@@ -91,9 +91,10 @@ const buildFiveDotSlots = (records, hexForRecord) => {
   }));
   const n = Math.min(5, records.length);
   for (let i = 0; i < n; i += 1) {
+    const record = records[n - 1 - i];
     slots[i] = {
       filled: true,
-      hex: hexForRecord(records[i]),
+      hex: hexForRecord(record),
     };
   }
   return slots;
@@ -440,7 +441,11 @@ const Dashboard = () => {
           },
         });
         const payload = res.data?.data ?? res.data;
-        const scores = Array.isArray(payload) ? payload : [];
+        const scores = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload?.series)
+            ? payload.series
+            : [];
         if (!scores.length) {
           setUrineStatus("Not Recorded");
           return;

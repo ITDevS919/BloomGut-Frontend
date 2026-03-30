@@ -5,6 +5,7 @@ import useApiClient from "@/hooks/useApiClient";
 import {
   getTrendBowelDailyCount,
   getTrendBowelWeeklySummary,
+  getTrendBowelMonthlySummary,
   postTrendBowelWeeklyAdvice,
 } from "@/api/http";
 import usePremiumEntitlement from "@/hooks/usePremiumEntitlement";
@@ -15,25 +16,34 @@ import Type4Image from "@/assets/Images/bowel-types/Type 4.webp";
 import Type5Image from "@/assets/Images/bowel-types/Type 5.webp";
 import Upgrade from "./Upgrade";
 import Loader from "@/components/common/Loader";
-import Intermediate from "../Intermediate";
 
 // Lazy‑load the heavy Chart.js + react-chartjs-2 bundle
 const DailyBowelChart = lazy(() => import("./DailyBowelChart"));
 
 const BOWEL_PRIMARY_COLOR = "#1abc9c";
 
-const Free = ({ showUpgrade = true, referenceDate }) => {
+/** 0–100 score zones: bar gradient + thumb color use the same bounds. */
+const BOWEL_SCORE_RED_MAX = 60;
+const BOWEL_SCORE_YELLOW_MAX = 80;
+
+const bowelScoreTrackGradient = `linear-gradient(to right,
+  #F66B6B 0%,
+  #FBC02D 60%,
+  #1ABC9C 80%,
+  #1ABC9C 100%)`;
+
+const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
   const { premiumEntitled } = usePremiumEntitlement();
 
   const [loadingDailyCounts, setLoadingDailyCounts] = useState(false);
-  const [loadingWeeklySummary, setLoadingWeeklySummary] = useState(false);
+  const [loadingSummary, setLoadingSummary] = useState(false);
   const [hasRequestedAdvice, setHasRequestedAdvice] = useState(false);
   const [loadingAiAdvice, setLoadingAiAdvice] = useState(false);
 
-  // Daily bowel count data
-  const [dailyData, setDailyData] = useState([1, 2, 3, 1, 2, 0, 1]);
+  // Daily bowel count data (filled from API)
+  const [dailyData, setDailyData] = useState([0, 0, 0, 0, 0, 0, 0]);
   const [days, setDays] = useState([
     "Mon",
     "Tue",
@@ -44,14 +54,19 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
     "Sun",
   ]);
 
-  // Weekly bowel health summary
-  const [score, setScore] = useState(78);
-  const [status, setStatus] = useState("Good");
-  const [change, setChange] = useState("+0% vs Last");
-  const [scorePosition, setScorePosition] = useState(45);
-  const [dailyTypeValues, setDailyTypeValues] = useState([15, 30, 35, 20, 0]);
+  // Populated from weekly summary (week mode) or monthly summary (month mode); drives effectiveScore.
+  const [score, setScore] = useState(0);
+  const [recordCount, setRecordCount] = useState(0);
+  const [status, setStatus] = useState("Not Recorded");
+  const [change, setChange] = useState("");
+  /** Raw Δ from API for coloring (+ / − / 0); null if no numeric comparison. */
+  const [changePercentDelta, setChangePercentDelta] = useState(null);
+  const [scorePosition, setScorePosition] = useState(0);
+  const [dailyTypeValues, setDailyTypeValues] = useState([0, 0, 0, 0, 0]);
   const [aiWeeklySummary, setAiWeeklySummary] = useState("");
   const [aiDayTooltips, setAiDayTooltips] = useState([]);
+  /** Trend Analysis SRS: enough distinct record days for week/month view */
+  const [trendSufficient, setTrendSufficient] = useState(false);
 
   useEffect(() => {
     if (!auth?.user?.id) return;
@@ -87,11 +102,71 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
       }
     };
 
-    const fetchWeeklySummary = async () => {
+    const fetchPeriodSummary = async () => {
       try {
-        setLoadingWeeklySummary(true);
-        // const referenceDate = new Date().toISOString();
+        setLoadingSummary(true);
+        setChangePercentDelta(null);
         const timezoneOffsetMinutes = new Date().getTimezoneOffset();
+
+        if (viewMode === "month") {
+          const response = await getTrendBowelMonthlySummary(api, {
+            params: {
+              userId: auth.user.id,
+              referenceDate,
+              timezoneOffsetMinutes,
+            },
+          });
+          const payload = response.data?.data || response.data;
+          if (!payload) return;
+
+          if (!isCancelled) {
+            setTrendSufficient(payload.is_enough_data === true);
+          }
+
+          const monthlyAvgRaw =
+            typeof payload.monthlyAverageScore === "number"
+              ? payload.monthlyAverageScore
+              : typeof payload.score === "number"
+                ? payload.score
+                : null;
+
+          if (monthlyAvgRaw !== null) {
+            const rounded = Math.round(monthlyAvgRaw);
+            const clamped = Math.max(0, Math.min(100, rounded));
+            if (!isCancelled) {
+              setScore(clamped);
+              setScorePosition(clamped);
+            }
+          }
+
+          if (typeof payload.monthRecordCount === "number" && !isCancelled) {
+            setRecordCount(payload.monthRecordCount);
+          }
+
+          let changeText = "";
+          if (typeof payload.changePercent === "number") {
+            const cp = payload.changePercent;
+            const sign = cp > 0 ? "+" : "";
+            changeText = `${sign}${cp}% vs last`;
+            if (!isCancelled) setChangePercentDelta(cp);
+          } else if (
+            payload.changePercent === null &&
+            typeof payload.previousMonthRecordCount === "number" &&
+            payload.previousMonthRecordCount === 0
+          )
+
+            if (!isCancelled) {
+              setChange(changeText);
+            }
+          if (payload.status && !isCancelled) {
+            setStatus(payload.status);
+          }
+          if (Array.isArray(payload.typeDistribution) && !isCancelled) {
+            setDailyTypeValues(payload.typeDistribution);
+          }
+          return;
+        }
+
         const response = await getTrendBowelWeeklySummary(api, {
           params: {
             userId: auth.user.id,
@@ -102,75 +177,64 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         const payload = response.data?.data || response.data;
         if (!payload) return;
 
-        // Prefer explicit today/yesterday scores if backend provides them,
-        // since the UI copy compares "today" vs "yesterday".
-        const todayScore =
-          typeof payload.todayScore === "number"
-            ? Math.round(payload.todayScore)
-            : null;
-        const yesterdayScore =
-          typeof payload.yesterdayScore === "number"
-            ? Math.round(payload.yesterdayScore)
-            : null;
+        if (!isCancelled) {
+          setTrendSufficient(payload.is_enough_data === true);
+        }
 
-        if (todayScore !== null) {
-          if (!isCancelled) {
-            setScore(todayScore);
-          }
-          const clamped = Math.max(0, Math.min(100, todayScore));
-          if (!isCancelled) {
-            setScorePosition(clamped);
-          }
-        } else if (typeof payload.score === "number") {
-          const rounded = Math.round(payload.score);
-          if (!isCancelled) {
-            setScore(rounded);
-          }
+        const weeklyAvgRaw =
+          typeof payload.weeklyAverageScore === "number"
+            ? payload.weeklyAverageScore
+            : typeof payload.score === "number"
+              ? payload.score
+              : null;
+
+        if (weeklyAvgRaw !== null) {
+          const rounded = Math.round(weeklyAvgRaw);
           const clamped = Math.max(0, Math.min(100, rounded));
           if (!isCancelled) {
+            setScore(clamped);
             setScorePosition(clamped);
           }
         }
 
-        // Build the "today vs yesterday" change text.
-        let changeText = "";
-        if (todayScore !== null && yesterdayScore !== null) {
-          const diff = todayScore - yesterdayScore;
-          const absDiff = Math.abs(diff);
-          const sign = diff > 0 ? "+" : diff < 0 ? "-" : "";
-          changeText = `${sign}${absDiff}% vs Yesterday`;
-        } else if (typeof payload.changePercent === "number") {
-          const sign = payload.changePercent > 0 ? "+" : "";
-          changeText = `${sign}${payload.changePercent}% vs Last`;
+        if (typeof payload.weekRecordCount === "number" && !isCancelled) {
+          setRecordCount(payload.weekRecordCount);
         }
 
-        if (!isCancelled && changeText) {
+        let changeText = "";
+        if (typeof payload.changePercent === "number") {
+          const cp = payload.changePercent;
+          const sign = cp > 0 ? "+" : "";
+          changeText = `${sign}${cp}% vs last`;
+          if (!isCancelled) setChangePercentDelta(cp);
+        }
+
+        if (!isCancelled) {
           setChange(changeText);
         }
 
-        if (payload.status) {
-          if (!isCancelled) {
-            setStatus(payload.status);
-          }
+        if (payload.status && !isCancelled) {
+          setStatus(payload.status);
         }
 
-        if (Array.isArray(payload.typeDistribution)) {
-          if (!isCancelled) {
-            setDailyTypeValues(payload.typeDistribution);
-          }
+        if (Array.isArray(payload.typeDistribution) && !isCancelled) {
+          setDailyTypeValues(payload.typeDistribution);
         }
       } catch (error) {
         // eslint-disable-next-line no-console
-        console.error("Failed to load bowel weekly summary:", error);
+        console.error(
+          `Failed to load bowel ${viewMode === "month" ? "monthly" : "weekly"} summary:`,
+          error
+        );
       } finally {
         if (!isCancelled) {
-          setLoadingWeeklySummary(false);
+          setLoadingSummary(false);
         }
       }
     };
 
     const loadAll = async () => {
-      await Promise.all([fetchDailyCounts(), fetchWeeklySummary()]);
+      await Promise.all([fetchDailyCounts(), fetchPeriodSummary()]);
     };
 
     loadAll();
@@ -178,7 +242,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
     return () => {
       isCancelled = true;
     };
-  }, [api, auth?.user?.id, referenceDate]);
+  }, [api, auth?.user?.id, referenceDate, viewMode]);
 
   // Function to get color based on value
   const getPointColor = (value) => {
@@ -218,14 +282,16 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
   ];
 
   const getIndicatorColor = (value) => {
-    if (value >= 81) return BOWEL_PRIMARY_COLOR;
-    if (value >= 61) return "#FBC02D"; // Yellow segment (61–80)
-    return "#F66B6B"; // Red segment (0–60)
+    const v = Math.max(0, Math.min(100, Number(value) || 0));
+    if (v > BOWEL_SCORE_YELLOW_MAX) return BOWEL_PRIMARY_COLOR;
+    if (v > BOWEL_SCORE_RED_MAX) return "#FBC02D";
+    return "#F66B6B";
   };
 
-  const getIndicatorStyle = (value) => {
-    const clamped = Math.max(0, Math.min(100, Number(value) || 0));
-    const translateX = clamped <= 0 ? "0" : clamped >= 100 ? "-100%" : "-50%";
+  const getIndicatorStyle = (positionPercent) => {
+    const clamped = Math.max(0, Math.min(100, Number(positionPercent) || 0));
+    const translateX =
+      clamped <= 0 ? "0" : clamped >= 100 ? "-100%" : "-50%";
     return {
       left: `${clamped}%`,
       transform: `translateX(${translateX})`,
@@ -236,11 +302,11 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
   useEffect(() => {
     if (!auth?.user?.id || !premiumEntitled) return;
     if (!Array.isArray(dailyData) || !dailyData.length) return;
-    if (loadingDailyCounts || loadingWeeklySummary) return;
+    if (loadingDailyCounts || loadingSummary) return;
     if (hasRequestedAdvice) return;
 
     const hasAnyData = dailyData.some((v) => Number(v || 0) > 0);
-    if (!hasAnyData) {
+    if (!trendSufficient || !hasAnyData) {
       setAiWeeklySummary("");
       return;
     }
@@ -294,44 +360,64 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
     dailyTypeValues,
     dailyData,
     loadingDailyCounts,
-    loadingWeeklySummary,
+    loadingSummary,
     hasRequestedAdvice,
     premiumEntitled,
+    trendSufficient,
   ]);
 
-  const hasTodayBowelRecord = (() => {
-    if (!Array.isArray(days) || !Array.isArray(dailyData) || !days.length) {
-      return false;
+  /** Week mode: any log in the week (API count or daily chart). Month mode: any log in the month. */
+  const hasBowelData =
+    viewMode === "month"
+      ? recordCount > 0
+      : recordCount > 0 ||
+      (Array.isArray(dailyData) &&
+        dailyData.some((v) => Number(v || 0) > 0));
+
+  const showTrendAnalysis = trendSufficient;
+
+  /** Same as `score`: this week’s shape-based average (week mode) or this month’s (month mode). */
+  const effectiveScore = showTrendAnalysis && hasBowelData ? score : 0;
+  const effectiveStatus =
+    showTrendAnalysis && hasBowelData
+      ? status
+      : "Insufficient data, continue recording";
+  const effectiveChange = showTrendAnalysis && hasBowelData ? change : "";
+  const effectiveChangeColor = (() => {
+    if (!showTrendAnalysis || !hasBowelData || !effectiveChange) return "#999999";
+    const d = changePercentDelta;
+    if (d === null || typeof d !== "number" || Number.isNaN(d)) {
+      return "#999999";
     }
-
-    const weekLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const todayLabel = weekLabels[new Date().getDay()];
-    const idx = days.indexOf(todayLabel);
-    const todayCount = idx >= 0 ? Number(dailyData[idx] || 0) : 0;
-
-    return todayCount > 0;
+    if (d > 0) return "#1ABC9C";
+    if (d < 0) return "#F66B6B";
+    return "#999999";
   })();
+  const effectiveScorePosition =
+    showTrendAnalysis && hasBowelData ? scorePosition : 0;
+  const effectiveDailyTypeValues =
+    showTrendAnalysis && hasBowelData ? dailyTypeValues : [0, 0, 0, 0, 0];
 
-  const effectiveScore = hasTodayBowelRecord ? score : 0;
-  const effectiveStatus = hasTodayBowelRecord ? status : "Not Recorded";
-  const effectiveChange = hasTodayBowelRecord ? change : "";
-  const effectiveScorePosition = hasTodayBowelRecord ? scorePosition : 0;
-  const effectiveDailyTypeValues = hasTodayBowelRecord
-    ? dailyTypeValues
-    : [0, 0, 0, 0, 0];
+  const chartDailyCounts =
+    showTrendAnalysis && Array.isArray(dailyData)
+      ? dailyData
+      : [0, 0, 0, 0, 0, 0, 0];
+
+  const periodAverageLabel =
+    viewMode === "month" ? "This month's average" : "This week's average";
 
   const dailyBowelChartData = {
     labels: days,
     datasets: [
       {
-        data: dailyData,
+        data: chartDailyCounts,
         borderColor: "#6b7280", // Dark gray for dotted line
         backgroundColor: "transparent",
         borderWidth: 2,
         borderDash: [5, 5], // Dotted line
         pointRadius: 16, // Size of circles
         pointBackgroundColor: "white",
-        pointBorderColor: dailyData.map(getPointColor),
+        pointBorderColor: chartDailyCounts.map(getPointColor),
         pointBorderWidth: 2,
         pointHoverRadius: 18,
         tension: 0.4, // Smooth curve,
@@ -501,55 +587,74 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         }
       `}</style>
       {/* Score Card */}
-      <div className="bg-white rounded-[27px] p-[32px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[29px] relative">
+      <div
+        className={`bg-white rounded-[27px] p-[32px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[29px] relative ${!showTrendAnalysis ? "opacity-60 grayscale" : ""}`}
+      >
         <>
           <div className="flex items-center justify-between mb-4">
             <div className="pl-[50px]">
               <div className="text-3xl font-bold text-[#F66B6B] text-center">
-                {effectiveScore}
+                {showTrendAnalysis ? effectiveScore : "—"}
               </div>
-              <div className="text-sm text-custom-12 text-center">
+              <div className="text-sm text-custom-12 text-center mt-1">
                 {effectiveStatus}
               </div>
             </div>
-            <div className="text-base pr-[50px] text-center text-[#F66B6B]">
+            <div
+              className="text-base pr-[50px] text-center"
+              style={{ color: effectiveChangeColor }}
+            >
               {effectiveChange}
             </div>
           </div>
 
-          {/* Progress Bar (Health Score) */}
+          {/* Progress bar: gradient zones = score bands; thumb = live score + matching zone color */}
           <div className="mt-4">
             <div
-              className="h-2 rounded-full relative overflow-visible"
-              style={{
-                background: `linear-gradient(to right,
-                  #F66B6B 0%,
-                  #F66B6B 60%,
-                  #FBC02D 60%,
-                  #FBC02D 80%,
-                  #1ABC9C 80%,
-                  #1ABC9C 100%)`,
-              }}
+              className="relative overflow-visible"
+              role="meter"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={hasBowelData ? effectiveScore : 0}
+              aria-label={`Bowel ${viewMode === "month" ? "monthly" : "weekly"} average score ${hasBowelData ? effectiveScore : 0} out of 100`}
             >
-              {/* Indicator (outer ring + inner fill) */}
-              {/* <div
-                className="absolute -top-2.5 w-5 h-5 rounded-full border border-[#9E9E9E] bg-white flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.12)]"
-
-              > */}
               <div
-                className="w-3 h-2 rounded-full absolute items-center justify-center -top-0.3 border-[#1ABC9C] border"
+                className="h-2 rounded-full relative overflow-hidden"
+                style={{ background: bowelScoreTrackGradient }}
+              />
+              <div
+                className="pointer-events-none absolute left-0 right-0 top-0 z-1 h-2"
+                aria-hidden
+              >
+                <span
+                  className="absolute top-0 bottom-0 w-px bg-black/20"
+                  style={{
+                    left: `${BOWEL_SCORE_RED_MAX}%`,
+                    transform: "translateX(-50%)",
+                  }}
+                />
+                <span
+                  className="absolute top-0 bottom-0 w-px bg-black/20"
+                  style={{
+                    left: `${BOWEL_SCORE_YELLOW_MAX}%`,
+                    transform: "translateX(-50%)",
+                  }}
+                />
+              </div>
+              <div
+                className="w-3 h-2 rounded-full absolute -top-0.5 border-2 box-border shadow-[0_2px_6px_rgba(0,0,0,0.12)] z-10"
                 style={{
                   backgroundColor: "white",
-                  left: `${effectiveScorePosition}%`,
-                  transform: "translateX(-50%)",
+                  borderColor: getIndicatorColor(effectiveScore),
+                  ...getIndicatorStyle(effectiveScorePosition),
                 }}
+                aria-hidden
               />
             </div>
-            {/* </div> */}
           </div>
         </>
 
-        {loadingWeeklySummary && (
+        {loadingSummary && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/60">
             <Loader />
           </div>
@@ -557,7 +662,9 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
       </div>
       {/* Stool Type Cards */}
       <div className="text-base mb-3 font-medium pl-[15px] text-primary">Daily Types</div>
-      <div className="bg-white rounded-[20px] p-6 shadow-[2px_0_10px_rgba(3,3,3,0.1)] mb-[34px] relative">
+      <div
+        className={`bg-white rounded-[20px] p-6 shadow-[2px_0_10px_rgba(3,3,3,0.1)] mb-[34px] relative ${!showTrendAnalysis ? "opacity-60 grayscale" : ""}`}
+      >
         <div className="flex items-end justify-between gap-2">
           {effectiveDailyTypeValues.map((value, index) => (
             <div key={index} className="flex flex-col items-center flex-1">
@@ -610,7 +717,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
           ))}
         </div>
 
-        {loadingWeeklySummary && (
+        {loadingSummary && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/60">
             <Loader />
           </div>
@@ -622,7 +729,9 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         Daily Bowel Count
       </div>
       <div className="mb-[35px]">
-        <div className="bg-white rounded-[27px] px-6 pt-6 pb-6 shadow-[0_2px_4px_rgba(0,0,0,0.08)] relative">
+        <div
+          className={`bg-white rounded-[27px] px-6 pt-6 pb-6 shadow-[0_2px_4px_rgba(0,0,0,0.08)] relative ${!showTrendAnalysis ? "opacity-60 grayscale" : ""}`}
+        >
           <div className="relative h-50 w-full min-h-0">
             <Suspense
               fallback={

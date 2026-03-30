@@ -123,7 +123,7 @@ const Month = ({ referenceDate }) => {
   };
   return (
     <>
-      <Free showUpgrade={false} referenceDate={referenceDate} />
+      <Free showUpgrade={false} referenceDate={referenceDate} viewMode="month" />
       <div className="pl-[15px] pr-[15px]">
         <div className="text-primary text-base pl-[15px] mb-3">Monthly Diet Category</div>
         <div className="w-full max-w-sm rounded-[20px] bg-white p-5 shadow-md space-y-4">
@@ -252,7 +252,7 @@ const Month = ({ referenceDate }) => {
 
       <div className="flex items-center justify-center mb-[47px]">
         <button
-          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
+          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary shadow-md"
           onClick={() => navigate("/trend-analysis?plan=premium", { state: { trendType: "diet" } })}
         >
           In-depth Analysis

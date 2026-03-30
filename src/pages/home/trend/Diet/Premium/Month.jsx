@@ -8,6 +8,7 @@ import useApiClient from "@/hooks/useApiClient";
 import { postTrendDietMonthlyAdvice } from "@/api/http";
 import Loader from "@/components/common/Loader";
 import { useNavigate } from "react-router-dom";
+import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 
 ChartJS.register(ArcElement, Tooltip, ChartDataLabels);
 
@@ -20,6 +21,7 @@ const Month = ({ referenceDate }) => {
     { label: "Water", value: 0, color: "#06B6D4" },
     { label: "Iron", value: 0, color: "#F87171" },
   ]);
+  const [isEnoughData, setIsEnoughData] = useState(false);
 
   const data = {
     datasets: rings.map((r, i) => ({
@@ -50,15 +52,9 @@ const Month = ({ referenceDate }) => {
   const api = useApiClient();
   const navigate = useNavigate();
 
-  const [focusText, setFocusText] = useState("Low calcium, adjust diet");
-  const [summaryText, setSummaryText] = useState(
-    "Overall diet is fairly balanced; focusing on more fiber and fewer heavy/fried foods will support gut health."
-  );
-  const [goalLines, setGoalLines] = useState([
-    "More lunch protein (chicken, legumes)",
-    "More calcium (dairy, tofu, greens)",
-    "Maintain hydration",
-  ]);
+  const [focusText, setFocusText] = useState("");
+  const [summaryText, setSummaryText] = useState("");
+  const [goalLines, setGoalLines] = useState([]);
   const [loadingAdvice, setLoadingAdvice] = useState(false);
 
   useEffect(() => {
@@ -74,54 +70,51 @@ const Month = ({ referenceDate }) => {
         const payload = res.data?.data ?? res.data;
         if (!payload) return;
 
+        const enough = payload.is_enough_data === true;
+        setIsEnoughData(enough);
+
+        if (!enough) {
+          setRings([
+            { label: "Fiber", value: 0, color: "#22C55E" },
+            { label: "Protein", value: 0, color: "#3B82F6" },
+            { label: "Calcium", value: 0, color: "#F59E0B" },
+            { label: "Vit C", value: 0, color: "#FACC15" },
+            { label: "Water", value: 0, color: "#06B6D4" },
+            { label: "Iron", value: 0, color: "#F87171" },
+          ]);
+          setFocusText("");
+          setSummaryText("");
+          setGoalLines([]);
+          return;
+        }
+
         const percents = payload.percents || {};
-        setRings((prev) => {
-          const getPrev = (label, fallback) => {
-            const found = prev.find((r) => r.label === label);
-            return found ? found.value : fallback;
-          };
-          const fiberVal =
-            typeof percents.fiber === "number"
-              ? percents.fiber
-              : getPrev("Fiber", 72);
-          const proteinVal =
-            typeof percents.protein === "number"
-              ? percents.protein
-              : getPrev("Protein", 67);
-          const calciumVal =
-            typeof percents.calcium === "number"
-              ? percents.calcium
-              : getPrev("Calcium", 55);
-          const vitCVal =
-            typeof percents.vitC === "number"
-              ? percents.vitC
-              : getPrev("Vit C", 65);
-          const waterVal =
-            typeof percents.water === "number"
-              ? percents.water
-              : getPrev("Water", 62);
-          const ironVal =
-            typeof percents.iron === "number"
-              ? percents.iron
-              : getPrev("Iron", 68);
-          return [
-            { label: "Fiber", value: fiberVal, color: "#22C55E" },
-            { label: "Protein", value: proteinVal, color: "#3B82F6" },
-            { label: "Calcium", value: calciumVal, color: "#F59E0B" },
-            { label: "Vit C", value: vitCVal, color: "#FACC15" },
-            { label: "Water", value: waterVal, color: "#06B6D4" },
-            { label: "Iron", value: ironVal, color: "#F87171" },
-          ];
-        });
+        const fiberVal = typeof percents.fiber === "number" ? percents.fiber : 0;
+        const proteinVal = typeof percents.protein === "number" ? percents.protein : 0;
+        const fatVal = typeof percents.fat === "number" ? percents.fat : 0;
+        const sugarVal = typeof percents.sugar === "number" ? percents.sugar : 0;
+
+        setRings([
+          { label: "Fiber", value: fiberVal, color: "#22C55E" },
+          { label: "Protein", value: proteinVal, color: "#3B82F6" },
+          { label: "Fat", value: fatVal, color: "#F59E0B" },
+          { label: "Sugar", value: sugarVal, color: "#FACC15" },
+          { label: "Water", value: 0, color: "#06B6D4" },
+          { label: "Iron", value: 0, color: "#F87171" },
+        ]);
 
         const advice = payload.advice || {};
 
         if (typeof advice.highlight === "string" && advice.highlight.trim()) {
           setFocusText(advice.highlight.trim());
+        } else {
+          setFocusText("");
         }
 
         if (typeof advice.overall === "string" && advice.overall.trim()) {
           setSummaryText(advice.overall.trim());
+        } else {
+          setSummaryText("");
         }
 
         if (Array.isArray(advice.perMacro) && advice.perMacro.length) {
@@ -129,9 +122,9 @@ const Month = ({ referenceDate }) => {
             .map((m) => m.advice)
             .filter((t) => typeof t === "string" && t.trim())
             .slice(0, 3);
-          if (lines.length) {
-            setGoalLines(lines);
-          }
+          setGoalLines(lines);
+        } else {
+          setGoalLines([]);
         }
       } catch (error) {
         // eslint-disable-next-line no-console
@@ -150,8 +143,12 @@ const Month = ({ referenceDate }) => {
       <div className="w-full rounded-[20px] bg-white p-5 shadow-[2px_0_10px_rgba(0,0,0,0.15)] space-y-4">
         <h2 className="text-base mt-1 text-secondary">Monthly Overview</h2>
 
+        {!loadingAdvice && !isEnoughData && <TrendInsufficientNotice className="mb-3" />}
+
         {/* Chart */}
-        <div className="flex justify-center">
+        <div
+          className={`flex justify-center ${!loadingAdvice && !isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
+        >
           <div className="h-52 w-52 flex items-center justify-center">
             {loadingAdvice ? (
               <Loader />
@@ -177,7 +174,7 @@ const Month = ({ referenceDate }) => {
             </span>
           </div>
           <p className="text-secondary">
-            {loadingAdvice ? "Analyzing monthly diet focus…" : focusText}
+            {loadingAdvice ? "Analyzing monthly diet focus…" : isEnoughData ? focusText : ""}
           </p>
         </div>
 
@@ -193,7 +190,7 @@ const Month = ({ referenceDate }) => {
 
       <div className="flex items-center justify-center mt-[27px] mb-[27px]">
         <button
-          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary"
+          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary shadow-md"
           onClick={() =>
             navigate("/trend-analysis?plan=free", { state: { trendType: "diet", viewMode: "month" } })
           }
@@ -247,32 +244,7 @@ function Collapse({
           barColor: r.color,
         };
       })
-      : [
-        {
-          label: "Fiber",
-          percentage: 68,
-          badgeBg: "#FFFDE7",
-          barColor: "#4CAF50",
-        },
-        {
-          label: "Protein",
-          percentage: 62,
-          badgeBg: "#FFFDE7",
-          barColor: "#2196F3",
-        },
-        {
-          label: "Fat",
-          percentage: 55,
-          badgeBg: "#FBE9E7",
-          barColor: "#F59E0B",
-        },
-        {
-          label: "Sugar",
-          percentage: 48,
-          badgeBg: "#FBE9E7",
-          barColor: "#EF4444",
-        },
-      ];
+      : [];
 
   return (
     <div className="rounded-[7px] border-2 border-custom-8 overflow-hidden">

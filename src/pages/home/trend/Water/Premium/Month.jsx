@@ -14,6 +14,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 import { getTrendWaterMonthlyWeeks } from "@/api/http";
+import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 
 ChartJS.register(
   BarElement,
@@ -31,64 +32,30 @@ const Month = ({ referenceDate }) => {
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
   const [labels, setLabels] = useState(["Week 1", "Week 2", "Week 3", "Week 4"]);
+  const emptyWeek = (label) => ({
+    label,
+    morningMl: 0,
+    noonMl: 0,
+    afternoonMl: 0,
+    eveningMl: 0,
+    totalMl: 0,
+    avgDailyMl: 0,
+    morningPercent: 0,
+    noonPercent: 0,
+    afternoonPercent: 0,
+    eveningPercent: 0,
+  });
   const [weeks, setWeeks] = useState([
-    {
-      label: "Week 1",
-      morningMl: 260,
-      noonMl: 230,
-      afternoonMl: 200,
-      eveningMl: 170,
-      totalMl: 860,
-      avgDailyMl: 270,
-      morningPercent: 0,
-      noonPercent: 0,
-      afternoonPercent: 0,
-      eveningPercent: 0,
-    },
-    {
-      label: "Week 2",
-      morningMl: 320,
-      noonMl: 300,
-      afternoonMl: 220,
-      eveningMl: 150,
-      totalMl: 990,
-      avgDailyMl: 300,
-      morningPercent: 0,
-      noonPercent: 0,
-      afternoonPercent: 0,
-      eveningPercent: 0,
-    },
-    {
-      label: "Week 3",
-      morningMl: 230,
-      noonMl: 210,
-      afternoonMl: 260,
-      eveningMl: 180,
-      totalMl: 880,
-      avgDailyMl: 255,
-      morningPercent: 0,
-      noonPercent: 0,
-      afternoonPercent: 0,
-      eveningPercent: 0,
-    },
-    {
-      label: "Week 4",
-      morningMl: 240,
-      noonMl: 230,
-      afternoonMl: 250,
-      eveningMl: 170,
-      totalMl: 890,
-      avgDailyMl: 265,
-      morningPercent: 0,
-      noonPercent: 0,
-      afternoonPercent: 0,
-      eveningPercent: 0,
-    },
+    emptyWeek("Week 1"),
+    emptyWeek("Week 2"),
+    emptyWeek("Week 3"),
+    emptyWeek("Week 4"),
   ]);
   const [selectedWeekIndex, setSelectedWeekIndex] = useState(null);
   const [aiAdviceByWeek, setAiAdviceByWeek] = useState({});
   const [aiLoadingWeek, setAiLoadingWeek] = useState(null);
   const [chartLoading, setChartLoading] = useState(true);
+  const [isEnoughData, setIsEnoughData] = useState(false);
 
   useEffect(() => {
     if (!auth?.user?.id) return;
@@ -105,6 +72,7 @@ const Month = ({ referenceDate }) => {
         });
         const payload = res.data?.data ?? res.data;
         if (!payload) return;
+        setIsEnoughData(payload.is_enough_data === true);
         if (Array.isArray(payload.labels) && payload.labels.length === 4) {
           setLabels(payload.labels);
         }
@@ -124,6 +92,61 @@ const Month = ({ referenceDate }) => {
               eveningPercent: w.eveningPercent ?? 0,
             }))
           );
+        } else {
+          setWeeks([
+            {
+              label: "Week 1",
+              morningMl: 0,
+              noonMl: 0,
+              afternoonMl: 0,
+              eveningMl: 0,
+              totalMl: 0,
+              avgDailyMl: 0,
+              morningPercent: 0,
+              noonPercent: 0,
+              afternoonPercent: 0,
+              eveningPercent: 0,
+            },
+            {
+              label: "Week 2",
+              morningMl: 0,
+              noonMl: 0,
+              afternoonMl: 0,
+              eveningMl: 0,
+              totalMl: 0,
+              avgDailyMl: 0,
+              morningPercent: 0,
+              noonPercent: 0,
+              afternoonPercent: 0,
+              eveningPercent: 0,
+            },
+            {
+              label: "Week 3",
+              morningMl: 0,
+              noonMl: 0,
+              afternoonMl: 0,
+              eveningMl: 0,
+              totalMl: 0,
+              avgDailyMl: 0,
+              morningPercent: 0,
+              noonPercent: 0,
+              afternoonPercent: 0,
+              eveningPercent: 0,
+            },
+            {
+              label: "Week 4",
+              morningMl: 0,
+              noonMl: 0,
+              afternoonMl: 0,
+              eveningMl: 0,
+              totalMl: 0,
+              avgDailyMl: 0,
+              morningPercent: 0,
+              noonPercent: 0,
+              afternoonPercent: 0,
+              eveningPercent: 0,
+            },
+          ]);
         }
       } catch (err) {
         // eslint-disable-next-line no-console
@@ -339,8 +362,12 @@ const Month = ({ referenceDate }) => {
       </h2>
       <p className="mb-4 text-center text-xs text-gray-400">Monthly Trend</p>
 
+      {!chartLoading && !isEnoughData && <TrendInsufficientNotice className="mb-3" />}
+
       {/* Chart */}
-      <div className="relative h-60">
+      <div
+        className={`relative h-60 ${!chartLoading && !isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
+      >
         {chartLoading ? (
           <div className="flex h-full items-center justify-center">
             <svg

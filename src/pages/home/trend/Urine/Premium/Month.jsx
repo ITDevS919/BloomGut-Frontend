@@ -27,6 +27,7 @@ import {
   getTrendWaterMonthlyDailyMl,
   postTrendUrineMonthlyAdvice,
 } from "@/api/http";
+import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 
 const Month = ({ referenceDate }) => {
   const [mode, setMode] = useState("line");
@@ -41,6 +42,7 @@ const Month = ({ referenceDate }) => {
   const [adviceLoading, setAdviceLoading] = useState(false);
   const [urineLoading, setUrineLoading] = useState(false);
   const [intakeLoading, setIntakeLoading] = useState(false);
+  const [urineEnough, setUrineEnough] = useState(false);
 
   useEffect(() => {
     if (!auth?.user?.id) return;
@@ -55,11 +57,10 @@ const Month = ({ referenceDate }) => {
           },
         });
         const payload = response.data?.data || response.data;
-        if (
-          !payload ||
-          !Array.isArray(payload.days) ||
-          !Array.isArray(payload.volumes)
-        ) {
+        if (!payload) return;
+        setUrineEnough(payload.is_enough_data === true);
+        if (!Array.isArray(payload.days) || !Array.isArray(payload.volumes)) {
+          setDailyVolumes([]);
           return;
         }
 
@@ -118,7 +119,7 @@ const Month = ({ referenceDate }) => {
   }, [api, auth?.user?.id, referenceDate]);
 
   useEffect(() => {
-    if (!auth?.user?.id || dailyVolumes.length === 0) return;
+    if (!auth?.user?.id || dailyVolumes.length === 0 || !urineEnough) return;
 
     const fetchMonthlyAdvice = async () => {
       setAdviceLoading(true);
@@ -164,52 +165,21 @@ const Month = ({ referenceDate }) => {
     };
 
     fetchMonthlyAdvice();
-  }, [api, auth?.user?.id, dailyVolumes]);
+  }, [api, auth?.user?.id, dailyVolumes, urineEnough]);
 
   const labels = useMemo(
-    () =>
-      dailyVolumes.length
-        ? dailyVolumes.map((d) => d.label)
-        : [
-            "1st",
-            "3rd",
-            "5th",
-            "7th",
-            "9th",
-            "11th",
-            "13th",
-            "15th",
-            "17th",
-            "19th",
-            "21st",
-            "23rd",
-            "25th",
-            "27th",
-            "29th",
-            "31st",
-          ],
+    () => (dailyVolumes.length ? dailyVolumes.map((d) => d.label) : []),
     [dailyVolumes]
   );
 
   const urine = useMemo(
-    () =>
-      dailyVolumes.length
-        ? dailyVolumes.map((d) => d.volume)
-        : [
-            900, 1300, 800, 1100, 700, 600, 950, 1200, 900, 1100, 700, 1400, 1600,
-            1500, 1700, 1800,
-          ],
+    () => (dailyVolumes.length ? dailyVolumes.map((d) => d.volume) : []),
     [dailyVolumes]
   );
 
   const intake = useMemo(() => {
     if (intakePerDay.length) return intakePerDay;
-    if (urine.length)
-      return urine.map((v) => v + 800); // simple offset fallback
-    return [
-      1800, 2400, 2100, 2300, 2000, 1900, 2100, 2500, 2300, 2400, 2200, 2600,
-      2500, 2450, 2400, 2350,
-    ];
+    return urine.length ? urine.map(() => 0) : [];
   }, [intakePerDay, urine]);
 
   const avgUrine = useMemo(
@@ -315,8 +285,12 @@ const Month = ({ referenceDate }) => {
           </Tab>
         </div>
 
+        {!chartLoading && !urineEnough && <TrendInsufficientNotice className="mb-2" />}
+
         {/* Chart */}
-        <div className="h-56">
+        <div
+          className={`h-56 ${!chartLoading && !urineEnough ? "opacity-40 grayscale pointer-events-none" : ""}`}
+        >
           {chartLoading ? (
             <div className="flex h-full items-center justify-center">
               <svg

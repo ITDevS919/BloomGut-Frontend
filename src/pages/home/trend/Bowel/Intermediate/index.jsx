@@ -288,7 +288,7 @@ const Intermediate = () => {
         plan={plan}
         onUpgradeRedirect={() => navigate("/setting/upgrade-plan?trendType=bowel&showPremium=true")}
       />
-      <Free showUpgrade={false} referenceDate={referenceDate} />
+      <Free showUpgrade={false} referenceDate={referenceDate} viewMode={viewMode} />
       <div className="pl-[15px] pr-[15px]">
         {/* Content */}
 

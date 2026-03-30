@@ -24,6 +24,7 @@ import Loader from "@/components/common/Loader";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 import { getTrendDietYearlySummary, postTrendDietYearlyAdvice } from "@/api/http";
+import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 
 const Year = ({ referenceDate }) => {
   const auth = useSelector((state) => state.auth);
@@ -44,16 +45,17 @@ const Year = ({ referenceDate }) => {
     "Nov",
     "Dec",
   ]);
-  const [fiberYear, setFiberYear] = useState([20, 22, 25, 28, 30, 35, 38, 36, 32, 30, 28, 25]);
-  const [proteinYear, setProteinYear] = useState([18, 20, 22, 25, 28, 30, 32, 30, 28, 26, 24, 22]);
-  const [fatYear, setFatYear] = useState([25, 26, 27, 28, 30, 32, 30, 28, 26, 25, 24, 23]);
-  const [sugarYear, setSugarYear] = useState([37, 32, 26, 19, 12, 3, 0, 6, 14, 19, 24, 30]);
+  const [fiberYear, setFiberYear] = useState(Array(12).fill(0));
+  const [proteinYear, setProteinYear] = useState(Array(12).fill(0));
+  const [fatYear, setFatYear] = useState(Array(12).fill(0));
+  const [sugarYear, setSugarYear] = useState(Array(12).fill(0));
+  const [isEnoughData, setIsEnoughData] = useState(false);
   const [yearlySummary, setYearlySummary] = useState("");
   const [yearlyGoals, setYearlyGoals] = useState([
-    
+
   ]);
   const [keyTransitions, setKeyTransitions] = useState([
-    
+
   ]);
   const [loadingYear, setLoadingYear] = useState(false);
   const [loadingAdvice, setLoadingAdvice] = useState(false);
@@ -75,6 +77,9 @@ const Year = ({ referenceDate }) => {
         const payload = res.data?.data ?? res.data;
         if (!payload) return;
 
+        const enough = payload.is_enough_data === true;
+        setIsEnoughData(enough);
+
         if (Array.isArray(payload.labels) && payload.labels.length === 12) {
           setInTakeRatioLabels(payload.labels);
         }
@@ -82,6 +87,14 @@ const Year = ({ referenceDate }) => {
         if (Array.isArray(payload.protein)) setProteinYear(payload.protein);
         if (Array.isArray(payload.fat)) setFatYear(payload.fat);
         if (Array.isArray(payload.sugar)) setSugarYear(payload.sugar);
+
+        if (!enough) {
+          setYearlySummary("");
+          setYearlyGoals([]);
+          setKeyTransitions([]);
+          setLoadingAdvice(false);
+          return;
+        }
 
         setLoadingAdvice(true);
         try {
@@ -347,7 +360,11 @@ const Year = ({ referenceDate }) => {
           Intake Ratio (%)
         </h2>
 
-        <div className="h-40">
+        {!loadingYear && !isEnoughData && <TrendInsufficientNotice className="mb-3" />}
+
+        <div
+          className={`h-40 ${!loadingYear && !isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
+        >
           {loadingYear ? (
             <Loader />
           ) : (
@@ -582,7 +599,7 @@ const Year = ({ referenceDate }) => {
               {loadingAdvice
                 ? "Summarizing how your yearly diet pattern relates to gut comfort…"
                 : yearlySummary ||
-                  "Fiber and protein appear supportive, while higher fat and sugar periods may relate to gut discomfort."}
+                "Fiber and protein appear supportive, while higher fat and sugar periods may relate to gut discomfort."}
             </p>
             <ul className="list-disc pl-4 space-y-1 text-secondary text-sm">
               {yearlyGoals.map((goal, index) => (
@@ -597,6 +614,17 @@ const Year = ({ referenceDate }) => {
       <div className="flex justify-center items-center text-custom-12 p-4 italic text-sm mt-3 text-center">
         This analysis is based on recent behavior and health indicators, for
         reference only
+      </div>
+
+      <div className="flex items-center justify-center mt-[27px] mb-[27px]">
+        <button
+          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary shadow-md"
+          onClick={() =>
+            navigate("/trend-analysis?plan=free", { state: { trendType: "diet", viewMode: "week" } })
+          }
+        >
+          OverView
+        </button>
       </div>
     </div>
   );

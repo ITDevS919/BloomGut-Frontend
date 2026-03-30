@@ -13,6 +13,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 import { getTrendWaterYearlySummary } from "@/api/http";
+import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 
 ChartJS.register(LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -26,6 +27,7 @@ const Year = ({ referenceDate }) => {
   const [yearAdvice, setYearAdvice] = useState({ title: "", message: "", tip: "" });
   const [yearAdviceLoading, setYearAdviceLoading] = useState(false);
   const [chartLoading, setChartLoading] = useState(true);
+  const [isEnoughData, setIsEnoughData] = useState(false);
 
   const monthNames = [
     "January",
@@ -43,12 +45,8 @@ const Year = ({ referenceDate }) => {
   ];
 
   const [labels, setLabels] = useState(monthNames.map((_, i) => i + 1));
-  const [dailyAvg, setDailyAvg] = useState(
-    [2200, 2350, 2280, 2450, 2200, 1850, 2000, 2250, 2400, 2500, 2350, 2220]
-  );
-  const [regularity, setRegularity] = useState(
-    [85, 88, 86, 90, 84, 78, 82, 86, 90, 94, 92, 89]
-  );
+  const [dailyAvg, setDailyAvg] = useState(Array(12).fill(0));
+  const [regularity, setRegularity] = useState(Array(12).fill(0));
 
   useEffect(() => {
     if (!auth?.user?.id) return;
@@ -65,6 +63,7 @@ const Year = ({ referenceDate }) => {
         });
         const payload = res.data?.data ?? res.data;
         if (!payload) return;
+        setIsEnoughData(payload.is_enough_data === true);
         if (Array.isArray(payload.labels) && payload.labels.length === 12) {
           // keep numeric 1..12 labels for chart but use payload labels for tooltips
           setLabels(payload.labels.map((_, idx) => idx + 1));
@@ -246,8 +245,12 @@ const Year = ({ referenceDate }) => {
           Yearly Intake & Regularity
         </p>
 
+        {!chartLoading && !isEnoughData && <TrendInsufficientNotice className="mb-3" />}
+
         {/* Chart */}
-        <div className="relative h-72">
+        <div
+          className={`relative h-72 ${!chartLoading && !isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
+        >
           {chartLoading ? (
             <div className="flex h-full items-center justify-center">
               <svg
@@ -307,6 +310,7 @@ const Year = ({ referenceDate }) => {
                 onMouseEnter={(e) => {
                   const rect = e.currentTarget.getBoundingClientRect();
                   if (
+                    isEnoughData &&
                     !yearAdvice.title &&
                     !yearAdvice.message &&
                     !yearAdvice.tip &&

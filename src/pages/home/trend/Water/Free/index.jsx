@@ -119,6 +119,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
   const [loadingDailyMl, setLoadingDailyMl] = useState(false);
   const [loadingWeeklySummary, setLoadingWeeklySummary] = useState(false);
+  const [trendSufficient, setTrendSufficient] = useState(false);
 
   const goal = 2000;
   const toPercentRaw = (ml) => Math.round((ml / goal) * 100);
@@ -128,7 +129,11 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
     return Math.max(0, Math.min(100, raw));
   };
 
-  const dayPercents = mlPerDay.map((ml) => toPercent(ml, { cap: false }));
+  const chartMl =
+    trendSufficient && Array.isArray(mlPerDay)
+      ? mlPerDay
+      : [0, 0, 0, 0, 0, 0, 0];
+  const dayPercents = chartMl.map((ml) => toPercent(ml, { cap: false }));
   const totalWeekPercent = dayPercents.reduce((sum, v) => sum + v, 0);
   const avgPercent = dayPercents.length
     ? Math.round(totalWeekPercent / dayPercents.length)
@@ -156,6 +161,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
           if (!isCancelled) {
             setLabels(payload.days);
             setMlPerDay(payload.mlPerDay);
+            setTrendSufficient(payload.is_enough_data === true);
           }
         }
       } catch (error) {
@@ -186,6 +192,10 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
         const payload = response.data?.data || response.data;
         if (!payload) return;
+
+        if (!isCancelled) {
+          setTrendSufficient(payload.is_enough_data === true);
+        }
 
         if (typeof payload.score === "number") {
           const rounded = Math.round(payload.score);
@@ -321,7 +331,9 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
       <div className="text-base font-medium mb-5 text-primary">
         Daily Intake (ml)
       </div>
-      <div className="bg-white rounded-[12px] shadow p-6 mb-[39px] relative">
+      <div
+        className={`bg-white rounded-[12px] shadow p-6 mb-[39px] relative ${!trendSufficient ? "opacity-60 grayscale" : ""}`}
+      >
         <Suspense
           fallback={
             <div className="absolute inset-0 flex items-center justify-center bg-white/60">
@@ -330,7 +342,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
           }
         >
           <WaterBarChart
-            data={buildChartData(labels, mlPerDay)}
+            data={buildChartData(labels, chartMl)}
             options={options}
             plugins={[goalLine]}
             loading={loadingDailyMl}
@@ -342,7 +354,9 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
       <div className="text-base font-medium mb-[9px] text-primary">
         Daily Intake Rate
       </div>
-      <div className="bg-white rounded-[27px] shadow p-6 flex gap-8 justify-center mb-5 relative">
+      <div
+        className={`bg-white rounded-[27px] shadow p-6 flex gap-8 justify-center mb-5 relative ${!trendSufficient ? "opacity-60 grayscale" : ""}`}
+      >
         <Suspense
           fallback={
             <div className="absolute inset-0 flex items-center justify-center bg-white/60">
