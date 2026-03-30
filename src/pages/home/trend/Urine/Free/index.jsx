@@ -277,9 +277,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
             style={{
               background: `linear-gradient(to right,
                   #F66B6B 0%,
-                  #F66B6B 60%,
                   #FBC02D 60%,
-                  #FBC02D 80%,
                   #1ABC9C 80%,
                   #1ABC9C 100%)`,
             }}

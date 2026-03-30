@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const DateRangeSelectorLightPurple = (props) => {
   const [viewMode, setViewMode] = useState(props.initialViewMode || "week"); // "week" or "month"
@@ -99,6 +100,8 @@ const DateRangeSelectorLightPurple = (props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.initialViewMode]);
 
+  const navigate = useNavigate();
+
   return (
     <div className="bg-ivory mb-[28px] mt-[31px]">
       {/* Date Range Selector */}
@@ -153,11 +156,12 @@ const DateRangeSelectorLightPurple = (props) => {
             value="month"
             checked={viewMode === "month"}
             onChange={() => {
-              setViewMode("month");
-              props.setViewMode("month");
-              if (props.onDateChange) {
-                props.onDateChange(currentDate, "month");
-              }
+              // setViewMode("month");
+              // props.setViewMode("month");
+              // if (props.onDateChange) {
+              //   props.onDateChange(currentDate, "month");
+              // }
+              navigate("/setting/upgrade-plan?trendType=diet&showPremium=true");
             }}
             className="w-4 h-4 appearance-none border-2 border-white outline-1 outline-gray-300 rounded-sm checked:bg-[#B5A6D2] checked:border-white cursor-pointer bg-white"
           />

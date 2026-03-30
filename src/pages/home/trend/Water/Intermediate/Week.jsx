@@ -17,6 +17,7 @@ import Upgrade from "./Upgrade";
 import Free from "../Free";
 import Loader from "@/components/common/Loader";
 import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
+import { useLocation, useSearchParams } from "react-router-dom";
 
 ChartJS.register(
   BarElement,
@@ -275,6 +276,12 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
     },
   };
 
+
+  const [searchParams] = useSearchParams();
+  const plan = searchParams.get("plan");
+  const location = useLocation();
+  const isSubscribed = location.state?.subscribed || false;
+
   return (
     <div className=" mt-[44px]">
       <Free showUpgrade={false} referenceDate={referenceDate} />
@@ -366,7 +373,17 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
             </div>
           )}
         </div>
-        {showUpgrade && <Upgrade />}
+        {plan !== "premium" && plan !== "pro" && !isSubscribed && <Upgrade />}
+        {(plan === "premium" || plan === "pro" || isSubscribed) && (
+          <div className="flex items-center justify-center mb-[47px]">
+            <button
+              className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary shadow-md"
+              onClick={() => navigate("/trend-analysis?plan=premium", { state: { trendType: "diet" } })}
+            >
+              In-depth Analysis
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const DateRangeSelectorBlue = (props) => {
   const [viewMode, setViewMode] = useState(props.initialViewMode || "week"); // "week" or "month"
   const [currentDate, setCurrentDate] = useState(new Date());
-
+  const navigate = useNavigate();
   // Format date range based on view mode
   const formatDateRange = (date, mode) => {
     const months = [
@@ -155,13 +156,14 @@ const DateRangeSelectorBlue = (props) => {
             value="month"
             checked={viewMode === "month"}
             onChange={() => {
-              setViewMode("month");
-              if (props.setViewMode) {
-                props.setViewMode("month");
-              }
-              if (props.onDateChange) {
-                props.onDateChange(currentDate, "month");
-              }
+              // setViewMode("month");
+              // if (props.setViewMode) {
+              //   props.setViewMode("month");
+              // }
+              // if (props.onDateChange) {
+              //   props.onDateChange(currentDate, "month");
+              // }
+              navigate("/setting/upgrade-plan?trendType=water&showPremium=true");
             }}
             className="w-4 h-4 appearance-none border-2 border-white outline-1 outline-gray-300 rounded-sm checked:bg-[#79B6E2] checked:border-white cursor-pointer bg-white"
           />

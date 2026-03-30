@@ -5,16 +5,8 @@ import useApiClient from "@/hooks/useApiClient";
 import { getTrendWaterDailyMl, getTrendWaterWeeklySummary } from "@/api/http";
 import Loader from "@/components/common/Loader";
 
-const WATER_PRIMARY_COLOR = "#4682B4";
-
 const getScorePosition = (score) =>
   Math.max(0, Math.min(100, Math.round(typeof score === "number" ? score : 0)));
-
-const getIndicatorColor = (value) => {
-  if (value >= 81) return WATER_PRIMARY_COLOR;
-  if (value >= 61) return "#FBC02D"; // Yellow segment (61–80)
-  return "#F66B6B"; // Red segment (0–60)
-};
 
 // Lazy‑load heavy Chart.js / react-chartjs-2 charts
 const WaterBarChart = lazy(() =>
@@ -113,9 +105,8 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
   const [labels, setLabels] = useState(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]);
   const [mlPerDay, setMlPerDay] = useState([1600, 1850, 2100, 2300, 2200, 2450, 1900]);
-  const [score, setScore] = useState(null);
-  const [status, setStatus] = useState("Good");
-  const [change, setChange] = useState("+0% vs Last");
+  const [score, setScore] = useState(0);
+  const [weeklyChangePercent, setWeeklyChangePercent] = useState(null);
 
   const [loadingDailyMl, setLoadingDailyMl] = useState(false);
   const [loadingWeeklySummary, setLoadingWeeklySummary] = useState(false);
@@ -205,16 +196,13 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         }
 
         if (typeof payload.changePercent === "number") {
-          const sign = payload.changePercent > 0 ? "+" : "";
-          const text = `${sign}${payload.changePercent}% vs Last`;
           if (!isCancelled) {
-            setChange(text);
+            setWeeklyChangePercent(payload.changePercent);
           }
+        } else if (!isCancelled) {
+          setWeeklyChangePercent(null);
         }
 
-        if (payload.status && !isCancelled) {
-          setStatus(payload.status);
-        }
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Failed to load water weekly summary:", error);
@@ -244,51 +232,48 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
   const todayMl =
     todayIndex >= 0 && Array.isArray(mlPerDay) ? Number(mlPerDay[todayIndex] || 0) : 0;
 
-  const yesterdayWeekIndex = (todayWeekIndex + 6) % 7;
-  const yesterdayLabel = weekLabels[yesterdayWeekIndex];
-  const yesterdayIndex = labels.indexOf(yesterdayLabel);
-  const yesterdayMl =
-    yesterdayIndex >= 0 && Array.isArray(mlPerDay) ? Number(mlPerDay[yesterdayIndex] || 0) : 0;
-
   const hasTodayWaterRecord = todayMl > 0;
-  const todayScore = toPercent(todayMl);
 
-  const getTodayStatus = (ml, percent) => {
-    if (!hasTodayWaterRecord) return "Not Recorded";
-    if (ml < goal * 0.6) return "Too Low";
-    if (ml <= goal * 1.2) return "Good";
-    return "Too High";
-  };
-
-  const effectiveScore = hasTodayWaterRecord ? todayScore : 0;
-  const effectiveStatus = getTodayStatus(todayMl, todayScore);
-  const changeVsYesterday =
-    hasTodayWaterRecord && yesterdayMl > 0
-      ? Math.round(((todayMl - yesterdayMl) / yesterdayMl) * 100)
-      : null;
-  const effectiveChange =
-    changeVsYesterday !== null
-      ? `${changeVsYesterday > 0 ? "+" : ""}${changeVsYesterday}% vs Last`
+  const effectiveWeekScore = hasTodayWaterRecord ? score : 0;
+  const effectiveStatus =
+    !trendSufficient
+      ? "Insufficient data, continue recording"
+      : hasTodayWaterRecord && effectiveWeekScore > 0
+        ? effectiveWeekScore > 75
+          ? "Excellent"
+          : effectiveWeekScore > 50
+            ? "Good"
+            : effectiveWeekScore > 25
+              ? "Fair"
+              : "Poor"
+        : "Not Recorded";
+  const effectiveChangeText =
+    trendSufficient && hasTodayWaterRecord && weeklyChangePercent !== null
+      ? `${weeklyChangePercent < 0 ? "-" : "+"}${Math.abs(weeklyChangePercent)}% vs Last`
       : "";
   const changePercentTextColor =
-    changeVsYesterday !== null
-      ? changeVsYesterday > 0
+    trendSufficient && hasTodayWaterRecord && weeklyChangePercent !== null
+      ? weeklyChangePercent > 0
         ? "#1ABC9C"
-        : changeVsYesterday < 0
+        : weeklyChangePercent < 0
           ? "#F66B6B"
           : "#999999"
-      : "#4682B4";
-  const scorePosition = getScorePosition(effectiveScore);
+      : "#F09129";
+  const scorePosition = getScorePosition(
+    trendSufficient ? effectiveWeekScore : 0
+  );
 
   const loadingStats = loadingDailyMl || loadingWeeklySummary;
 
   return (
     <main className="pl-[15px] pr-[15px]">
-      <div className="bg-white rounded-[27px] p-[32px] shadow-md mb-[36px] relative">
+      <div
+        className={`bg-white rounded-[27px] p-[32px] shadow-md mb-[36px] relative ${!trendSufficient ? "opacity-60 grayscale" : ""}`}
+      >
         <div className="flex items-center justify-between">
           <div className="pl-[50px]">
-            <div className="text-3xl font-medium text-[#4682B4] text-center">
-              {effectiveScore}
+            <div className="text-3xl font-medium text-[#F09129] text-center">
+              {trendSufficient ? effectiveWeekScore : "—"}
             </div>
             <div className="text-sm text-custom-12 text-center">
               {effectiveStatus}
@@ -298,7 +283,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
             className="text-sm pr-[50px] text-right"
             style={{ color: changePercentTextColor }}
           >
-            {effectiveChange && <div>{effectiveChange}</div>}
+            {effectiveChangeText}
           </div>
         </div>
 
@@ -309,9 +294,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
             style={{
               background: `linear-gradient(to right,
                   #F66B6B 0%,
-                  #F66B6B 60%,
                   #FBC02D 60%,
-                  #FBC02D 80%,
                   #1ABC9C 80%,
                   #1ABC9C 100%)`,
             }}
@@ -325,7 +308,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
               className="w-3 h-2 rounded-full absolute items-center justify-center -top-0.3 border-[#1ABC9C] border"
               style={{
                 backgroundColor: "white",
-                left: `${effectiveScore}%`,
+                left: `${scorePosition}%`,
                 transform: "translateX(-50%)",
               }}
             />
@@ -333,7 +316,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
           {/* </div> */}
         </div>
 
-        {loadingWeeklySummary && (
+        {loadingStats && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/60">
             <Loader />
           </div>

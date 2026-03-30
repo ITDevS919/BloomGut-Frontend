@@ -16,7 +16,8 @@ import { getTrendDietMacroWeekly, postTrendDietWeeklyAdvice } from "@/api/http";
 import Free from "../Free";
 import Loader from "@/components/common/Loader";
 import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import Upgrade from "./Upgrade";
 
 ChartJS.register(
   RadialLinearScale,
@@ -80,8 +81,8 @@ const Week = ({ referenceDate }) => {
         const avg = (arr) =>
           Array.isArray(arr) && arr.length
             ? Math.round(
-                arr.reduce((sum, v) => sum + (Number(v) || 0), 0) / arr.length
-              )
+              arr.reduce((sum, v) => sum + (Number(v) || 0), 0) / arr.length
+            )
             : 0;
 
         const fiber = avg(payload.fiber);
@@ -100,13 +101,13 @@ const Week = ({ referenceDate }) => {
           typeof payload.analysis?.avg_score === "number"
             ? payload.analysis.avg_score
             : Math.round(
-                (fiber +
-                  protein +
-                  (100 - Math.max(0, fat - 60)) +
-                  (100 - sugar) +
-                  sodium) /
-                  5
-              );
+              (fiber +
+                protein +
+                (100 - Math.max(0, fat - 60)) +
+                (100 - sugar) +
+                sodium) /
+              5
+            );
 
         setAiLoading(true);
         try {
@@ -229,6 +230,12 @@ const Week = ({ referenceDate }) => {
       },
     },
   };
+
+  const [searchParams] = useSearchParams();
+  const plan = searchParams.get("plan");
+  const location = useLocation();
+  const isSubscribed = location.state?.subscribed || false;
+
   return (
     <>
       <Free showUpgrade={false} referenceDate={referenceDate} viewMode="week" />
@@ -399,14 +406,17 @@ const Week = ({ referenceDate }) => {
           reference only
         </div>
       </div>
-      <div className="flex items-center justify-center mb-[47px]">
-        <button
-          className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary shadow-md"
-          onClick={() => navigate("/trend-analysis?plan=premium", { state: { trendType: "diet" } })}
-        >
-          In-depth Analysis
-        </button>
-      </div>
+      {plan !== "premium" && plan !== "pro" && !isSubscribed && <Upgrade />}
+      {(plan === "premium" || plan === "pro" || isSubscribed) && (
+        <div className="flex items-center justify-center mb-[47px]">
+          <button
+            className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary shadow-md"
+            onClick={() => navigate("/trend-analysis?plan=premium", { state: { trendType: "diet" } })}
+          >
+            In-depth Analysis
+          </button>
+        </div>
+      )}
     </>
   );
 };

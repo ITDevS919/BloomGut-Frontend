@@ -707,16 +707,20 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
         : periodChangePercent < 0
           ? "#F66B6B"
           : "#999999"
-      : "#B5A6D2";
-  const scorePosition = getScorePosition(effectiveScore);
+      : "#F09129";
+  const scorePosition = getScorePosition(
+    periodSummaryEnough ? effectiveScore : 0
+  );
 
   return (
     <main className="pr-[15px] pl-[15px]">
       {/* Score Card: period average diet health (week or month) vs previous period */}
-      <div className="bg-white rounded-[27px] p-[32px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[29px] relative">
+      <div
+        className={`bg-white rounded-[27px] p-[32px] shadow-md mb-[36px] relative ${!periodSummaryEnough ? "opacity-60 grayscale" : ""}`}
+      >
         <div className="flex items-center justify-between">
           <div className="pl-[50px]">
-            <div className="text-3xl font-medium text-[#B5A6D2] text-center">
+            <div className="text-3xl font-medium text-[#F09129] text-center">
               {periodSummaryEnough ? effectiveScore : "—"}
             </div>
             <div className="text-sm text-custom-12 text-center">
@@ -724,7 +728,7 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
             </div>
           </div>
           <div
-            className="text-base text-center pr-[50px]"
+            className="text-sm pr-[50px] text-right"
             style={{ color: changePercentTextColor }}
           >
             {effectiveChangeText}
@@ -752,7 +756,7 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
               className="w-3 h-2 rounded-full absolute items-center justify-center -top-0.3 border-[#1ABC9C] border"
               style={{
                 backgroundColor: "white",
-                left: `${effectiveScore}%`,
+                left: `${scorePosition}%`,
                 transform: "translateX(-50%)",
               }}
             />
