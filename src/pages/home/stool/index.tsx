@@ -8,7 +8,7 @@ import {
 } from "@/components/custom/CustomRadioGroup";
 import SegmentedControl from "@/components/custom/SegmentedControl";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { IoIosArrowBack, IoIosArrowUp } from "react-icons/io";
 import { IoIosArrowDown } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
@@ -31,6 +31,40 @@ import Type5 from "@/assets/Images/stool-types/Type 5.webp";
 import Type6 from "@/assets/Images/stool-types/Type 6.webp";
 import Type7 from "@/assets/Images/stool-types/Type 7.webp";
 import { toast } from "sonner";
+
+type BowelRecordFromApi = {
+  id?: string;
+  shape?: string;
+  color?: string;
+  amount?: string;
+  time?: string;
+  frequency?: string;
+  timeOfday?: string[];
+  symptomLog?: string[];
+  mucusCondition?: string[];
+  textureCondition?: string[];
+  odorCondition?: string[];
+  otherSymptoms?: string;
+  clientCreatedAt?: string;
+  createdAt?: string;
+};
+
+/** Bristol labels → thumbnails (for grid) and main circle image (for backfill). */
+const STOOL_SHAPE_ROWS = [
+  { label: "Hard Lumps", thumb: StoolType1, main: Type1 },
+  { label: "Lumpy", thumb: StoolType2, main: Type2 },
+  { label: "Firm", thumb: StoolType3, main: Type3 },
+  { label: "Smooth", thumb: StoolType4, main: Type4 },
+  { label: "Soft", thumb: StoolType5, main: Type5 },
+  { label: "Mushy", thumb: StoolType6, main: Type6 },
+  { label: "Watery", thumb: StoolType7, main: Type7 },
+] as const;
+
+const asStringArray = (v: unknown): string[] => {
+  if (Array.isArray(v)) return v.filter((x): x is string => typeof x === "string");
+  if (typeof v === "string" && v) return [v];
+  return [];
+};
 
 const StoolPage = () => {
 
@@ -73,33 +107,161 @@ const StoolPage = () => {
   // Save loading state
   const [isSaving, setIsSaving] = useState(false);
 
-  // Historical records
-  const [recentRecords, setRecentRecords] = useState([]);
   const [recordsLoading, setRecordsLoading] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
 
-  // Load recent records on mount (hybrid page: input + feedback + history)
+  const [mucusOpen, setMucusOpen] = useState(false);
+  const [textureOpen, setTextureOpen] = useState(false);
+  const [odorOpen, setOdorOpen] = useState(false);
+  const [otherSymptomsOpen, setOtherSymptomsOpen] = useState(false);
+
+  const resetBowelFormToTemplate = useCallback(() => {
+    setShapeValue("");
+    setColorValue("");
+    setAmountValue("Small");
+    setTimeValue("");
+    setFrequencyValue("");
+    setTimeOfDayValue([]);
+    setSymptomValue([]);
+    setMucusConditionValue([]);
+    setTextureConditionValue([]);
+    setOdorConditionValue([]);
+    setOtherSymptomsValue("");
+    setSelectedStool(null);
+    setSelectedStoolImage(null);
+    setSelectedColor(null);
+    setTimeOfDayChecked({});
+    setSymptomChecked({});
+    setMucusChecked({});
+    setTextureChecked({});
+    setOdorChecked({});
+    setMucusOpen(false);
+    setTextureOpen(false);
+    setOdorOpen(false);
+    setOtherSymptomsOpen(false);
+    setValidationErrors({});
+    setLastSavedAt(null);
+  }, []);
+
+  const applyLatestSavedRecord = useCallback((record: BowelRecordFromApi) => {
+    setValidationErrors({});
+
+    const row = STOOL_SHAPE_ROWS.find((r) => r.label === record.shape);
+    if (row) {
+      setShapeValue(row.label);
+      setSelectedStool(row.main);
+      setSelectedStoolImage(row.label);
+    } else if (record.shape) {
+      setShapeValue(record.shape);
+      setSelectedStool(null);
+      setSelectedStoolImage(null);
+    } else {
+      setShapeValue("");
+      setSelectedStool(null);
+      setSelectedStoolImage(null);
+    }
+
+    if (record.color) {
+      setColorValue(record.color);
+      setSelectedColor(record.color);
+    } else {
+      setColorValue("");
+      setSelectedColor(null);
+    }
+
+    const amt = record.amount;
+    if (amt === "Medium" || amt === "Large" || amt === "Small") {
+      setAmountValue(amt);
+    } else {
+      setAmountValue("Small");
+    }
+
+    setTimeValue(record.time && record.time !== "card" ? record.time : "");
+    setFrequencyValue(
+      record.frequency && record.frequency !== "card" ? record.frequency : ""
+    );
+
+    const tod = asStringArray(record.timeOfday);
+    setTimeOfDayValue(tod);
+    setTimeOfDayChecked({
+      morning: tod.includes("morning"),
+      noon: tod.includes("noon"),
+      evening: tod.includes("evening"),
+    });
+
+    const symptoms = asStringArray(record.symptomLog);
+    setSymptomValue(symptoms);
+    setSymptomChecked({
+      constipated: symptoms.includes("constipated"),
+      diarrhea: symptoms.includes("diarrhea"),
+      stomachPain: symptoms.includes("stomachPain"),
+      bloating: symptoms.includes("bloating"),
+      bellyAche: symptoms.includes("bellyAche"),
+      none: symptoms.includes("none"),
+    });
+
+    const mucus = asStringArray(record.mucusCondition);
+    setMucusConditionValue(mucus);
+    setMucusChecked({
+      mucus_clear: mucus.includes("mucus_clear"),
+      black_clots: mucus.includes("black_clots"),
+    });
+
+    const texture = asStringArray(record.textureCondition);
+    setTextureConditionValue(texture);
+    setTextureChecked({
+      viscous: texture.includes("viscous"),
+      undigested_food: texture.includes("undigested_food"),
+    });
+
+    const odor = asStringArray(record.odorCondition);
+    setOdorConditionValue(odor);
+    setOdorChecked({
+      odor_yellow: odor.includes("odor_yellow"),
+      odor_metallic: odor.includes("odor_metallic"),
+      odor_foul: odor.includes("odor_foul"),
+    });
+
+    const other =
+      typeof record.otherSymptoms === "string" ? record.otherSymptoms : "";
+    setOtherSymptomsValue(other);
+
+    setMucusOpen(mucus.length > 0);
+    setTextureOpen(texture.length > 0);
+    setOdorOpen(odor.length > 0);
+    setOtherSymptomsOpen(other.trim().length > 0);
+
+    const ts = record.clientCreatedAt || record.createdAt;
+    if (ts) setLastSavedAt(ts);
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     const run = async () => {
       if (!auth?.user?.id) {
-        setRecentRecords([]);
+        resetBowelFormToTemplate();
+        setRecordsLoading(false);
         return;
       }
       setRecordsLoading(true);
       try {
         const res = await getRecordBowelRecent(api, {
-          params: { userId: auth.user.id, limit: 10 },
+          params: { userId: auth.user.id, limit: 1 },
         });
         if (cancelled) return;
         const payload = res.data?.data ?? res.data;
         const records = Array.isArray(payload?.records) ? payload.records : [];
-        setRecentRecords(records);
+        const latest = records[0] as BowelRecordFromApi | undefined;
+        if (latest) {
+          applyLatestSavedRecord(latest);
+        } else {
+          resetBowelFormToTemplate();
+        }
       } catch (error) {
         if (!cancelled) {
           // eslint-disable-next-line no-console
-          console.error("Failed to load recent stool records:", error);
-          setRecentRecords([]);
+          console.error("Failed to load latest stool record:", error);
+          resetBowelFormToTemplate();
         }
       } finally {
         if (!cancelled) setRecordsLoading(false);
@@ -109,13 +271,7 @@ const StoolPage = () => {
     return () => {
       cancelled = true;
     };
-  }, [auth?.user?.id, api]);
-
-  // open
-  const [mucusOpen, setMucusOpen] = useState(false);
-  const [textureOpen, setTextureOpen] = useState(false);
-  const [odorOpen, setOdorOpen] = useState(false);
-  const [otherSymptomsOpen, setOtherSymptomsOpen] = useState(false);
+  }, [auth?.user?.id, api, applyLatestSavedRecord, resetBowelFormToTemplate]);
 
   const handleSaveRecord = async () => {
     if (isSaving) return;
@@ -200,14 +356,46 @@ const StoolPage = () => {
       setLastSavedAt(now.toISOString());
       try {
         const refreshResponse = await getRecordBowelRecent(api, {
-          params: { userId: auth.user.id, limit: 10 },
+          params: { userId: auth.user.id, limit: 1 },
         });
         const payload = refreshResponse.data?.data ?? refreshResponse.data;
         const records = Array.isArray(payload?.records) ? payload.records : [];
-        setRecentRecords(records);
+        const latest = records[0] as BowelRecordFromApi | undefined;
+        if (latest) {
+          applyLatestSavedRecord(latest);
+        } else {
+          applyLatestSavedRecord({
+            shape: param.shape,
+            color: param.color,
+            amount: param.amount,
+            time: param.time,
+            frequency: param.frequency,
+            timeOfday: param.timeOfday,
+            symptomLog: param.symptomLog,
+            mucusCondition: param.mucusCondition,
+            textureCondition: param.textureCondition,
+            odorCondition: param.odorCondition,
+            otherSymptoms: param.otherSymptoms,
+            clientCreatedAt: param.clientCreatedAt,
+          });
+        }
       } catch (refreshErr) {
         // eslint-disable-next-line no-console
-        console.error("Failed to refresh recent records after save:", refreshErr);
+        console.error("Failed to refresh latest record after save:", refreshErr);
+        applyLatestSavedRecord({
+          shape: param.shape,
+          color: param.color,
+          amount: param.amount,
+          time: param.time,
+          frequency: param.frequency,
+          timeOfday: param.timeOfday,
+          symptomLog: param.symptomLog,
+          mucusCondition: param.mucusCondition,
+          textureCondition: param.textureCondition,
+          odorCondition: param.odorCondition,
+          otherSymptoms: param.otherSymptoms,
+          clientCreatedAt: param.clientCreatedAt,
+        });
       }
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -235,72 +423,15 @@ const StoolPage = () => {
   const handleViewTrend = () => {
     navigate("/trend-analysis", { state: { trendType: "bowel" } });
   };
-  const stoolImages = [
-    {
-      label: "Hard Lumps",
-      image: StoolType1,
-      onclick: () => {
-        setShapeValue("Hard Lumps");
-        setSelectedStool(Type1);
-        setSelectedStoolImage("Hard Lumps");
-      },
+  const stoolImages = STOOL_SHAPE_ROWS.map((row) => ({
+    label: row.label,
+    image: row.thumb,
+    onclick: () => {
+      setShapeValue(row.label);
+      setSelectedStool(row.main);
+      setSelectedStoolImage(row.label);
     },
-    {
-      label: "Lumpy",
-      image: StoolType2,
-      onclick: () => {
-        setShapeValue("Lumpy");
-        setSelectedStool(Type2);
-        setSelectedStoolImage("Lumpy");
-      }
-
-    },
-    {
-      label: "Firm",
-      image: StoolType3,
-      onclick: () => {
-        setShapeValue("Firm");
-        setSelectedStool(Type3);
-        setSelectedStoolImage("Firm");
-      }
-    },
-    {
-      label: "Smooth",
-      image: StoolType4,
-      onclick: () => {
-        setShapeValue("Smooth");
-        setSelectedStool(Type4);
-        setSelectedStoolImage("Smooth");
-      }
-    },
-    {
-      label: "Soft",
-      image: StoolType5,
-      onclick: () => {
-        setShapeValue("Soft");
-        setSelectedStool(Type5);
-        setSelectedStoolImage("Soft");
-      }
-    },
-    {
-      label: "Mushy",
-      image: StoolType6,
-      onclick: () => {
-        setShapeValue("Mushy");
-        setSelectedStool(Type6);
-        setSelectedStoolImage("Mushy");
-      }
-    },
-    {
-      label: "Watery",
-      image: StoolType7,
-      onclick: () => {
-        setShapeValue("Watery");
-        setSelectedStool(Type7);
-        setSelectedStoolImage("Watery");
-      }
-    },
-  ];
+  }));
 
   const colorOptions = [
     { label: "Brown", colorCode: "#8b4513", onclick: () => { setColorValue("Brown"); setSelectedColor("Brown"); } },
@@ -400,16 +531,14 @@ const StoolPage = () => {
   ]);
 
   const feedbackStatusLabel = useMemo(() => {
-    if (recordsLoading) return "Loading recent history…";
+    if (recordsLoading) return "Loading your last saved choices…";
     if (isSaving) return "Saving your record…";
     if (!auth?.user?.id) return "Sign in to save and sync records.";
-    return "Ready — your selections update the summary below.";
+    return "This page shows your current input — adjust choices and tap Save.";
   }, [recordsLoading, isSaving, auth?.user?.id]);
 
   const lastSavedDisplay = useMemo(() => {
-    const raw = lastSavedAt
-      || (recentRecords[0] as { clientCreatedAt?: string; createdAt?: string } | undefined)?.clientCreatedAt
-      || (recentRecords[0] as { clientCreatedAt?: string; createdAt?: string } | undefined)?.createdAt;
+    const raw = lastSavedAt;
     if (!raw) return null;
     try {
       const d = new Date(raw);
@@ -420,7 +549,7 @@ const StoolPage = () => {
     } catch {
       return null;
     }
-  }, [lastSavedAt, recentRecords]);
+  }, [lastSavedAt]);
 
   return (
     <div className="relative flex flex-col gap-4 font-['Noto_Sans_TC', sans-serif] bg-ivory min-h-full">
@@ -448,15 +577,15 @@ const StoolPage = () => {
         </CustomButton>
       </div>
 
-      {/* Real-time feedback: status + live entry preview (hybrid record page) */}
+      {/* Current input status + summary (not a history list) */}
       <section
         className="px-5 mx-3 rounded-[12px] border border-custom-8 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-4 space-y-3"
-        aria-label="Live status and entry preview"
+        aria-label="Current input status and summary"
       >
         <div className="flex items-start justify-between gap-2">
           <div>
             <p className="text-xs font-medium text-custom-12 uppercase tracking-wide mb-1">
-              Live status
+              Input status
             </p>
             <p className="text-sm text-primary font-medium">
               {feedbackStatusLabel}
@@ -470,7 +599,7 @@ const StoolPage = () => {
           )}
         </div>
         <div className="rounded-[8px] bg-ivory/90 px-3 py-2.5 border border-custom-8/60">
-          <p className="text-xs text-custom-12 mb-1">Current entry preview</p>
+          <p className="text-xs text-custom-12 mb-1">Selection summary</p>
           <p className="text-sm text-secondary leading-snug">
             {liveEntrySummary
               ? liveEntrySummary
@@ -493,7 +622,8 @@ const StoolPage = () => {
           </h2>
           <CustomHeading label="Record input" className="mb-0" />
           <p className="text-custom-12 text-xs mt-1">
-            Log today&apos;s bowel movement — required fields are marked.
+            Your last saved choices load when you open this page (backfill). Edit
+            for a new entry, then Save. Use the list elsewhere for history.
           </p>
         </div>
 
@@ -979,52 +1109,6 @@ const StoolPage = () => {
         )
       }
 
-      {/* Historical records */}
-      <section
-        className="px-6 py-6 border-t border-custom-8/80"
-        aria-labelledby="stool-recent-history-heading"
-      >
-        <h2 id="stool-recent-history-heading" className="sr-only">
-          Recent bowel records
-        </h2>
-        <CustomHeading label="Recent history" className="mb-1" />
-        <p className="text-custom-12 text-xs mb-4">
-          Your latest saved entries (updates after you save or when the page loads).
-        </p>
-        {recordsLoading && recentRecords.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-10 gap-3 text-secondary text-sm">
-            <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            Loading records…
-          </div>
-        ) : recentRecords.length === 0 ? (
-          <div className="text-center py-8 text-secondary text-sm rounded-[12px] bg-white/80 border border-custom-8 px-4">
-            No recent records yet — complete the form above and tap Save.
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {recentRecords.map((record, index) => (
-              <div key={record.id || index} className="bg-white rounded-lg p-4 shadow-sm border border-custom-8">
-                <div className="flex justify-between items-start mb-2">
-                  <div className="text-sm text-secondary">
-                    {new Date(record.clientCreatedAt || record.createdAt).toLocaleDateString()}
-                  </div>
-                  <div className="text-sm text-secondary">
-                    {new Date(record.clientCreatedAt || record.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div><span className="font-medium">Shape:</span> {record.shape}</div>
-                  <div><span className="font-medium">Color:</span> {record.color}</div>
-                  <div><span className="font-medium">Amount:</span> {record.amount}</div>
-                  <div><span className="font-medium">Time:</span> {record.time}</div>
-                  <div><span className="font-medium">Frequency:</span> {record.frequency}</div>
-                  <div><span className="font-medium">Symptoms:</span> {record.symptomLog?.join(', ') || 'None'}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
     </div >
   );
 };
