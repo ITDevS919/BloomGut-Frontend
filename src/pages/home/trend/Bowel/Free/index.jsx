@@ -32,6 +32,17 @@ const bowelScoreTrackGradient = `linear-gradient(to right,
   #1ABC9C 80%,
   #1ABC9C 100%)`;
 
+/** API may send score delta as number or numeric string */
+const parseScoreChangeDelta = (raw) => {
+  if (raw === null || raw === undefined) return null;
+  if (typeof raw === "number" && Number.isFinite(raw)) return raw;
+  if (typeof raw === "string" && raw.trim() !== "") {
+    const n = Number(raw);
+    if (Number.isFinite(n)) return n;
+  }
+  return null;
+};
+
 const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
@@ -68,20 +79,37 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
   /** Trend Analysis SRS: enough distinct record days for week/month view */
   const [trendSufficient, setTrendSufficient] = useState(false);
 
+  const referenceTimeKey =
+    referenceDate instanceof Date && !Number.isNaN(referenceDate.getTime())
+      ? referenceDate.getTime()
+      : typeof referenceDate === "string" && referenceDate.trim()
+        ? referenceDate
+        : 0;
+
+  useEffect(() => {
+    setHasRequestedAdvice(false);
+  }, [referenceTimeKey, viewMode]);
+
   useEffect(() => {
     if (!auth?.user?.id) return;
 
     let isCancelled = false;
 
+    const referenceIso =
+      referenceDate instanceof Date && !Number.isNaN(referenceDate.getTime())
+        ? referenceDate.toISOString()
+        : typeof referenceDate === "string" && referenceDate.trim()
+          ? referenceDate
+          : new Date().toISOString();
+
     const fetchDailyCounts = async () => {
       try {
         setLoadingDailyCounts(true);
-        // const referenceDate = new Date().toISOString();
         const timezoneOffsetMinutes = new Date().getTimezoneOffset();
         const response = await getTrendBowelDailyCount(api, {
           params: {
             userId: auth.user.id,
-            referenceDate,
+            referenceDate: referenceIso,
             timezoneOffsetMinutes,
           },
         });
@@ -106,22 +134,23 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
       try {
         setLoadingSummary(true);
         setChangePercentDelta(null);
+        setChange("");
         const timezoneOffsetMinutes = new Date().getTimezoneOffset();
 
         if (viewMode === "month") {
           const response = await getTrendBowelMonthlySummary(api, {
             params: {
               userId: auth.user.id,
-              referenceDate,
+              referenceDate: referenceIso,
               timezoneOffsetMinutes,
             },
           });
           const payload = response.data?.data || response.data;
           if (!payload) return;
 
-          // if (!isCancelled) {
-          //   setTrendSufficient(payload.is_enough_data === true);
-          // }
+          if (!isCancelled) {
+            setTrendSufficient(payload.is_enough_data === true);
+          }
 
           const monthlyAvgRaw =
             typeof payload.monthlyAverageScore === "number"
@@ -143,21 +172,24 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
             setRecordCount(payload.monthRecordCount);
           }
 
-          let changeText = "";
-          if (typeof payload.changePercent === "number") {
-            const cp = payload.changePercent;
-            const sign = cp > 0 ? "+" : "";
-            changeText = `${sign}${cp}% vs last`;
-            if (!isCancelled) setChangePercentDelta(cp);
-          } else if (
-            payload.changePercent === null &&
-            typeof payload.previousMonthRecordCount === "number" &&
-            payload.previousMonthRecordCount === 0
-          )
+          const versusMonth =
+            typeof payload.changeVersusPreviousLabel === "string" &&
+            payload.changeVersusPreviousLabel.trim()
+              ? payload.changeVersusPreviousLabel.trim()
+              : "vs last month";
 
-            if (!isCancelled) {
-              setChange(changeText);
-            }
+          let changeText = "";
+          const cpMonth = parseScoreChangeDelta(payload.changePercent);
+          if (cpMonth !== null) {
+            const sign = cpMonth > 0 ? "+" : "";
+            changeText = `${sign}${cpMonth}% ${versusMonth}`;
+            if (!isCancelled) setChangePercentDelta(cpMonth);
+          } else {
+            if (!isCancelled) setChangePercentDelta(null);
+          }
+          if (!isCancelled) {
+            setChange(changeText);
+          }
           if (payload.status && !isCancelled) {
             setStatus(payload.status);
           }
@@ -170,7 +202,7 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
         const response = await getTrendBowelWeeklySummary(api, {
           params: {
             userId: auth.user.id,
-            referenceDate,
+            referenceDate: referenceIso,
             timezoneOffsetMinutes,
           },
         });
@@ -201,12 +233,20 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
           setRecordCount(payload.weekRecordCount);
         }
 
+        const versusWeek =
+          typeof payload.changeVersusPreviousLabel === "string" &&
+          payload.changeVersusPreviousLabel.trim()
+            ? payload.changeVersusPreviousLabel.trim()
+            : "vs last week";
+
         let changeText = "";
-        if (typeof payload.changePercent === "number") {
-          const cp = payload.changePercent;
-          const sign = cp > 0 ? "+" : "";
-          changeText = `${sign}${cp}% vs last`;
-          if (!isCancelled) setChangePercentDelta(cp);
+        const cpWeek = parseScoreChangeDelta(payload.changePercent);
+        if (cpWeek !== null) {
+          const sign = cpWeek > 0 ? "+" : "";
+          changeText = `${sign}${cpWeek}% ${versusWeek}`;
+          if (!isCancelled) setChangePercentDelta(cpWeek);
+        } else {
+          if (!isCancelled) setChangePercentDelta(null);
         }
 
         if (!isCancelled) {
@@ -242,7 +282,7 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
     return () => {
       isCancelled = true;
     };
-  }, [api, auth?.user?.id, referenceDate, viewMode]);
+  }, [api, auth?.user?.id, referenceTimeKey, viewMode]);
 
   // Function to get color based on value
   const getPointColor = (value) => {
@@ -377,14 +417,15 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
   const showTrendAnalysis = trendSufficient;
 
   /** Same as `score`: this week’s shape-based average (week mode) or this month’s (month mode). */
-  const effectiveScore = showTrendAnalysis && hasBowelData ? score : 0;
+  const effectiveScore = hasBowelData ? score : 0;
   const effectiveStatus =
-    showTrendAnalysis && hasBowelData
+    hasBowelData
       ? status
       : "Insufficient data, continue recording";
-  const effectiveChange = showTrendAnalysis && hasBowelData ? change : "";
+  /** Period-over-period copy from API; not gated on hasBowelData so it still shows when comparable */
+  const effectiveChange = change.trim();
   const effectiveChangeColor = (() => {
-    if (!showTrendAnalysis || !hasBowelData || !effectiveChange) return "#999999";
+    // if (!showTrendAnalysis || !hasBowelData || !effectiveChange) return "#999999";
     const d = changePercentDelta;
     if (d === null || typeof d !== "number" || Number.isNaN(d)) {
       return "#999999";
@@ -394,9 +435,9 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
     return "#999999";
   })();
   const effectiveScorePosition =
-    showTrendAnalysis && hasBowelData ? scorePosition : 0;
+    hasBowelData ? scorePosition : 0;
   const effectiveDailyTypeValues =
-    showTrendAnalysis && hasBowelData ? dailyTypeValues : [0, 0, 0, 0, 0];
+    hasBowelData ? dailyTypeValues : [0, 0, 0, 0, 0];
 
   const chartDailyCounts =
     Array.isArray(dailyData)
@@ -588,21 +629,26 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
       `}</style>
       {/* Score Card */}
       <div
-        className={`bg-white rounded-[27px] p-[32px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[29px] relative ${!showTrendAnalysis ? "opacity-60 grayscale" : ""}`}
+        className={`bg-white rounded-[27px] p-[32px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[29px] relative`}
       >
         <>
           <div className="flex items-center justify-between mb-4">
             <div className="pl-[50px]">
               <div className="text-3xl font-bold text-[#F66B6B] text-center">
-                {showTrendAnalysis ? effectiveScore : "—"}
+                {effectiveScore}
               </div>
               <div className="text-sm text-custom-12 text-center mt-1">
                 {effectiveStatus}
               </div>
             </div>
             <div
-              className="text-base pr-[50px] text-center"
+              className="text-base pr-[50px] text-center max-w-[140px] leading-snug"
               style={{ color: effectiveChangeColor }}
+              aria-label={
+                viewMode === "month"
+                  ? `Score change vs last month: ${effectiveChange || "not available"}`
+                  : `Score change vs last week: ${effectiveChange || "not available"}`
+              }
             >
               {effectiveChange}
             </div>
@@ -663,7 +709,7 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
       {/* Stool Type Cards */}
       <div className="text-base mb-3 font-medium pl-[15px] text-primary">Daily Types</div>
       <div
-        className={`bg-white rounded-[20px] p-6 shadow-[2px_0_10px_rgba(3,3,3,0.1)] mb-[34px] relative ${!showTrendAnalysis ? "opacity-60 grayscale" : ""}`}
+        className={`bg-white rounded-[20px] p-6 shadow-[2px_0_10px_rgba(3,3,3,0.1)] mb-[34px] relative`}
       >
         <div className="flex items-end justify-between gap-2">
           {effectiveDailyTypeValues.map((value, index) => (
