@@ -119,9 +119,9 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
           const payload = response.data?.data || response.data;
           if (!payload) return;
 
-          if (!isCancelled) {
-            setTrendSufficient(payload.is_enough_data === true);
-          }
+          // if (!isCancelled) {
+          //   setTrendSufficient(payload.is_enough_data === true);
+          // }
 
           const monthlyAvgRaw =
             typeof payload.monthlyAverageScore === "number"
@@ -399,7 +399,7 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
     showTrendAnalysis && hasBowelData ? dailyTypeValues : [0, 0, 0, 0, 0];
 
   const chartDailyCounts =
-    showTrendAnalysis && Array.isArray(dailyData)
+    Array.isArray(dailyData)
       ? dailyData
       : [0, 0, 0, 0, 0, 0, 0];
 
@@ -730,7 +730,7 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
       </div>
       <div className="mb-[35px]">
         <div
-          className={`bg-white rounded-[27px] px-6 pt-6 pb-6 shadow-[0_2px_4px_rgba(0,0,0,0.08)] relative ${!showTrendAnalysis ? "opacity-60 grayscale" : ""}`}
+          className={`bg-white rounded-[27px] px-6 pt-6 pb-6 shadow-[0_2px_4px_rgba(0,0,0,0.08)] relative`}
         >
           <div className="relative h-50 w-full min-h-0">
             <Suspense
