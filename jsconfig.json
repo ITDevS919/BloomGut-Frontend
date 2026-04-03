@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "jsx": "react-jsx",
+    "types": ["vite/client", "vite-plugin-pwa/client"],
     "baseUrl": "src",
     "paths": {
       "@/*": ["*"]

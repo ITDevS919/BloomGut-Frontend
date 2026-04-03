@@ -30,8 +30,10 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
+      injectRegister: null,
       includeAssets: ["apple-touch-icon.png"],
       manifest: {
+        id: "https://bloomgut.app/",
         name: "Bloomgut",
         short_name: "Bloomgut",
         description: "Bloomgut health tracking",
@@ -41,6 +43,7 @@ export default defineConfig({
         orientation: "portrait-primary",
         scope: "/",
         start_url: "/",
+        categories: ["health", "lifestyle"],
         icons: [
           {
             src: "pwa-192x192.png",
