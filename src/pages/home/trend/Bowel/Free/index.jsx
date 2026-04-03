@@ -76,9 +76,6 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
   const [dailyTypeValues, setDailyTypeValues] = useState([0, 0, 0, 0, 0]);
   const [aiWeeklySummary, setAiWeeklySummary] = useState("");
   const [aiDayTooltips, setAiDayTooltips] = useState([]);
-  /** Trend Analysis SRS: enough distinct record days for week/month view */
-  const [trendSufficient, setTrendSufficient] = useState(false);
-
   const referenceTimeKey =
     referenceDate instanceof Date && !Number.isNaN(referenceDate.getTime())
       ? referenceDate.getTime()
@@ -148,10 +145,6 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
           const payload = response.data?.data || response.data;
           if (!payload) return;
 
-          if (!isCancelled) {
-            setTrendSufficient(payload.is_enough_data === true);
-          }
-
           const monthlyAvgRaw =
             typeof payload.monthlyAverageScore === "number"
               ? payload.monthlyAverageScore
@@ -208,10 +201,6 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
         });
         const payload = response.data?.data || response.data;
         if (!payload) return;
-
-        if (!isCancelled) {
-          setTrendSufficient(payload.is_enough_data === true);
-        }
 
         const weeklyAvgRaw =
           typeof payload.weeklyAverageScore === "number"
@@ -346,7 +335,7 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
     if (hasRequestedAdvice) return;
 
     const hasAnyData = dailyData.some((v) => Number(v || 0) > 0);
-    if (!trendSufficient || !hasAnyData) {
+    if (!hasAnyData) {
       setAiWeeklySummary("");
       return;
     }
@@ -403,7 +392,6 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
     loadingSummary,
     hasRequestedAdvice,
     premiumEntitled,
-    trendSufficient,
   ]);
 
   /** Week mode: any log in the week (API count or daily chart). Month mode: any log in the month. */
@@ -414,14 +402,12 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
       (Array.isArray(dailyData) &&
         dailyData.some((v) => Number(v || 0) > 0));
 
-  const showTrendAnalysis = trendSufficient;
-
   /** Same as `score`: this week’s shape-based average (week mode) or this month’s (month mode). */
   const effectiveScore = hasBowelData ? score : 0;
   const effectiveStatus =
     hasBowelData
       ? status
-      : "Insufficient data, continue recording";
+      : "Not Recorded";
   /** Period-over-period copy from API; not gated on hasBowelData so it still shows when comparable */
   const effectiveChange = change.trim();
   const effectiveChangeColor = (() => {

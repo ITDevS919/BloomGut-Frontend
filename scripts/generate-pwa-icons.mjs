@@ -11,30 +11,40 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..");
 const logoPath = path.join(root, "src", "assets", "logo.png");
 const publicDir = path.join(root, "public");
-// theme_color from vite PWA config
-const bg = { r: 21, g: 128, b: 61, alpha: 1 };
+const BLACK_CUTOFF = 28;
 
-async function squareIcon(size, outName) {
-  const inner = Math.max(32, size - Math.round(size * 0.18));
-  const resized = await sharp(logoPath)
-    .resize(inner, inner, { fit: "inside" })
-    .toBuffer();
-
-  await sharp({
-    create: {
-      width: size,
-      height: size,
+async function removeNearBlackBackground(inputPath) {
+  const { data, info } = await sharp(inputPath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    if (r <= BLACK_CUTOFF && g <= BLACK_CUTOFF && b <= BLACK_CUTOFF) {
+      data[i + 3] = 0;
+    }
+  }
+  return sharp(data, {
+    raw: {
+      width: info.width,
+      height: info.height,
       channels: 4,
-      background: bg,
     },
-  })
-    .composite([{ input: resized, gravity: "center" }])
+  }).png().toBuffer();
+}
+
+async function squareIcon(cleanBuffer, size, outName) {
+  await sharp(cleanBuffer)
+    .resize(size, size, {
+      fit: "contain",
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    })
     .png()
     .toFile(path.join(publicDir, outName));
 }
 
 await mkdir(publicDir, { recursive: true });
-await squareIcon(512, "pwa-512x512.png");
-await squareIcon(192, "pwa-192x192.png");
-await squareIcon(180, "apple-touch-icon.png");
+const cleanLogo = await removeNearBlackBackground(logoPath);
+await squareIcon(cleanLogo, 512, "pwa-512x512.png");
+await squareIcon(cleanLogo, 192, "pwa-192x192.png");
+await squareIcon(cleanLogo, 180, "apple-touch-icon.png");
 console.log("Wrote public/pwa-512x512.png, pwa-192x192.png, apple-touch-icon.png");

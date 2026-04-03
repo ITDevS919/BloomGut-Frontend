@@ -24,8 +24,6 @@ import Loader from "@/components/common/Loader";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 import { getTrendDietYearlySummary, postTrendDietYearlyAdvice } from "@/api/http";
-import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
-
 const Year = ({ referenceDate }) => {
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
@@ -49,7 +47,6 @@ const Year = ({ referenceDate }) => {
   const [proteinYear, setProteinYear] = useState(Array(12).fill(0));
   const [fatYear, setFatYear] = useState(Array(12).fill(0));
   const [sugarYear, setSugarYear] = useState(Array(12).fill(0));
-  const [isEnoughData, setIsEnoughData] = useState(false);
   const [yearlySummary, setYearlySummary] = useState("");
   const [yearlyGoals, setYearlyGoals] = useState([
 
@@ -77,9 +74,6 @@ const Year = ({ referenceDate }) => {
         const payload = res.data?.data ?? res.data;
         if (!payload) return;
 
-        const enough = payload.is_enough_data === true;
-        setIsEnoughData(enough);
-
         if (Array.isArray(payload.labels) && payload.labels.length === 12) {
           setInTakeRatioLabels(payload.labels);
         }
@@ -87,14 +81,6 @@ const Year = ({ referenceDate }) => {
         if (Array.isArray(payload.protein)) setProteinYear(payload.protein);
         if (Array.isArray(payload.fat)) setFatYear(payload.fat);
         if (Array.isArray(payload.sugar)) setSugarYear(payload.sugar);
-
-        if (!enough) {
-          setYearlySummary("");
-          setYearlyGoals([]);
-          setKeyTransitions([]);
-          setLoadingAdvice(false);
-          return;
-        }
 
         setLoadingAdvice(true);
         try {
@@ -360,11 +346,7 @@ const Year = ({ referenceDate }) => {
           Intake Ratio (%)
         </h2>
 
-        {!loadingYear && !isEnoughData && <TrendInsufficientNotice className="mb-3" />}
-
-        <div
-          className={`h-40 ${!loadingYear && !isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
-        >
+        <div className="h-40">
           {loadingYear ? (
             <Loader />
           ) : (

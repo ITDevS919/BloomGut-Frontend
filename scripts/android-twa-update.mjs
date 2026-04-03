@@ -1,9 +1,8 @@
 /**
- * Builds the Android TWA (signed release when keystore is configured).
+ * Applies twa-manifest.json to the Gradle project (non-interactive).
  * Runs Bubblewrap from native/android-twa (not frontend).
  *
- *   npm run android:twa:build
- *   npm run android:twa:build -- --skipPwaValidation
+ *   npm run android:twa:update
  */
 import { spawn } from "node:child_process";
 import path from "node:path";
@@ -14,8 +13,7 @@ const runner = path.join(
   "bubblewrap-runner.mjs"
 );
 
-const extra = process.argv.slice(2);
-const child = spawn(process.execPath, [runner, "build", ...extra], {
+const child = spawn(process.execPath, [runner, "update"], {
   stdio: "inherit",
   shell: false,
 });

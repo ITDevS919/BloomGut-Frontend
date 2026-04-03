@@ -5,7 +5,6 @@ import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 import { postTrendDietMonthlyAdvice } from "@/api/http";
 import Loader from "@/components/common/Loader";
-import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 import { Pie } from "react-chartjs-2";
@@ -18,7 +17,6 @@ const Month = ({ referenceDate }) => {
   const api = useApiClient();
 
   const [showAnalysis, setShowAnalysis] = useState(false);
-  const [isEnoughData, setIsEnoughData] = useState(false);
   const [fiberPercent, setFiberPercent] = useState(0);
   const [proteinPercent, setProteinPercent] = useState(0);
   const [fatPercent, setFatPercent] = useState(0);
@@ -42,20 +40,6 @@ const Month = ({ referenceDate }) => {
         });
         const payload = res.data?.data ?? res.data;
         if (!payload) return;
-
-        const enough = payload.is_enough_data === true;
-        setIsEnoughData(enough);
-
-        if (!enough) {
-          setFiberPercent(0);
-          setProteinPercent(0);
-          setFatPercent(0);
-          setSugarPercent(0);
-          setHighlight("");
-          setPerMacroAdvice([]);
-          setOverallAdvice("");
-          return;
-        }
 
         const percents = payload.percents;
         if (percents && typeof percents === "object") {
@@ -144,12 +128,7 @@ const Month = ({ referenceDate }) => {
       <Free showUpgrade={false} referenceDate={referenceDate} viewMode="month" />
       <div className="pl-[15px] pr-[15px]">
         <div className="text-primary text-base pl-[15px] mb-3">Monthly Diet Category</div>
-        {!isEnoughData && !loading && (
-          <TrendInsufficientNotice className="mb-3 max-w-sm mx-auto" />
-        )}
-        <div
-          className={`w-full max-w-sm rounded-[20px] bg-white p-5 shadow-md space-y-4 mx-auto ${!isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
-        >
+        <div className="w-full max-w-sm rounded-[20px] bg-white p-5 shadow-md space-y-4 mx-auto">
           {/* Donut */}
           <div className="h-48 flex justify-center items-center relative">
             <Pie data={data} options={options} />
@@ -163,28 +142,23 @@ const Month = ({ referenceDate }) => {
           {/* Header */}
           <div className="flex justify-between items-center text-sm">
             <h3 className="text-primary">Monthly Diet Overview</h3>
-            {isEnoughData ? (
-              <button
-                className="text-blue-500 hover:underline italic"
-                onClick={() => setShowAnalysis(!showAnalysis)}
-              >
-                {showAnalysis ? "Hide Analysis" : "Click to view"}
-              </button>
-            ) : null}
+            <button
+              className="text-blue-500 hover:underline italic"
+              onClick={() => setShowAnalysis(!showAnalysis)}
+            >
+              {showAnalysis ? "Hide Analysis" : "Click to view"}
+            </button>
           </div>
 
           {/* Breakdown */}
-          {isEnoughData ? (
-            <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
-              <LegendItem color="#28B070" label="Fiber" value={`${fiberPercent}%`} />
-              <LegendItem color="#2196F3" label="Protein" value={`${proteinPercent}%`} />
-              <LegendItem color="#FFC107" label="Fat" value={`${fatPercent}%`} />
-              <LegendItem color="#F44336" label="Sugar" value={`${sugarPercent}%`} />
-            </div>
-          ) : null}
+          <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
+            <LegendItem color="#28B070" label="Fiber" value={`${fiberPercent}%`} />
+            <LegendItem color="#2196F3" label="Protein" value={`${proteinPercent}%`} />
+            <LegendItem color="#FFC107" label="Fat" value={`${fatPercent}%`} />
+            <LegendItem color="#F44336" label="Sugar" value={`${sugarPercent}%`} />
+          </div>
 
-          {/* Highlight */}
-          {isEnoughData && highlight ? (
+          {highlight ? (
             <div className="rounded-[8px] bg-[#FEFCE8] p-4 text-sm border-2 border-[#ededef]">
               <h3 className="text-primary mb-2">Dietary Advice Highlights</h3>
               <div className="flex items-start gap-2">
@@ -195,7 +169,7 @@ const Month = ({ referenceDate }) => {
           ) : null}
 
           {/* Detail cards */}
-          {showAnalysis && isEnoughData && (
+          {showAnalysis && (
             <>
               {perMacroAdvice && perMacroAdvice.length ? (
                 perMacroAdvice.map((item, index) => (

@@ -4,7 +4,6 @@ import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 import { postTrendBowelPremiumMonthAdvice } from "@/api/http";
 import Loader from "@/components/common/Loader";
-import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 
 const PremiumMonth = () => {
   const navigate = useNavigate();
@@ -24,7 +23,6 @@ const PremiumMonth = () => {
   };
 
   const [foodData, setFoodData] = useState([]);
-  const [isEnoughData, setIsEnoughData] = useState(false);
 
   const getTooltipData = (food, week, percentage) => {
     const aiFood = aiTooltipMap?.[food]?.[week];
@@ -33,10 +31,6 @@ const PremiumMonth = () => {
         note: aiFood.note,
         tip: aiFood.tip,
       };
-    }
-
-    if (!isEnoughData) {
-      return { note: "", tip: "" };
     }
 
     const tooltipMap = {
@@ -117,7 +111,6 @@ const PremiumMonth = () => {
         });
         const data = res.data?.data ?? res.data;
         if (data) {
-          setIsEnoughData(data.is_enough_data === true);
           if (Array.isArray(data.foods)) {
             setFoodData(data.foods);
           }
@@ -140,14 +133,7 @@ const PremiumMonth = () => {
       <div className="text-base pl-[15px] font-medium mb-[11px] text-primary">
         Food vs Symptoms
       </div>
-      {!aiLoading && !isEnoughData && (
-        <div className="pl-[15px] pr-[15px] mb-3">
-          <TrendInsufficientNotice />
-        </div>
-      )}
-      <div
-        className={`w-full max-w-2xl rounded-[8px] bg-white p-4 shadow-[0_2px_4px_rgba(0,0,0,0.08)] relative ${!aiLoading && !isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
-      >
+      <div className="w-full max-w-2xl rounded-[8px] bg-white p-4 shadow-[0_2px_4px_rgba(0,0,0,0.08)] relative">
         {/* Table */}
         <div className="overflow-x-auto bg-quinary rounded-[8px]">
           <table className="w-full border-collapse">

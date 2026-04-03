@@ -22,7 +22,6 @@ import { FaUtensils } from "react-icons/fa6";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 import { getTrendUrineYearlySummary, postTrendUrineYearlyAdvice } from "@/api/http";
-import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 import Loader from "@/components/common/Loader";
 
 const Year = ({ referenceDate }) => {
@@ -31,7 +30,6 @@ const Year = ({ referenceDate }) => {
   const api = useApiClient();
 
   const [summaryLoading, setSummaryLoading] = useState(true);
-  const [isEnoughData, setIsEnoughData] = useState(false);
   const [radarLabels, setRadarLabels] = useState([]);
   const [radarDatasets, setRadarDatasets] = useState([]);
 
@@ -53,15 +51,8 @@ const Year = ({ referenceDate }) => {
         });
         const payload = res.data?.data ?? res.data;
         if (!payload) return;
-        const enough = payload.is_enough_data === true;
-        setIsEnoughData(enough);
         setRadarLabels(Array.isArray(payload.radarLabels) ? payload.radarLabels : []);
         setRadarDatasets(Array.isArray(payload.radarDatasets) ? payload.radarDatasets : []);
-
-        if (!enough) {
-          setYearlyAdvice(null);
-          return;
-        }
 
         setAdviceLoading(true);
         try {
@@ -91,7 +82,6 @@ const Year = ({ referenceDate }) => {
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Failed to load yearly urine summary:", error);
-        setIsEnoughData(false);
       } finally {
         setSummaryLoading(false);
       }
@@ -182,10 +172,7 @@ const Year = ({ referenceDate }) => {
     <div className="pl-[15px] pr-[15px] mt-[20px]">
       <div className="">
         <div className="w-full rounded-[20px] bg-white p-5 shadow-md mb-[32px]">
-          {!summaryLoading && !isEnoughData && <TrendInsufficientNotice className="mb-3" />}
-          <div
-            className={`h-64 flex items-center justify-center ${!summaryLoading && !isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
-          >
+          <div className="h-64 flex items-center justify-center">
             {summaryLoading ? (
               <div className="absolute inset-0 flex items-center justify-center bg-white/60">
                 <Loader />
@@ -212,7 +199,7 @@ const Year = ({ referenceDate }) => {
             <div className="col-span-2 flex items-center justify-center py-4">
               <span className="text-xs text-gray-400">Loading…</span>
             </div>
-          ) : isEnoughData && items.length ? (
+          ) : items.length ? (
             items.map((item) => (
               <div key={item.title} className="rounded-[8px] bg-white p-2">
                 <p className="mb-3 text-sm font-medium text-primary">{item.title}</p>
@@ -225,12 +212,12 @@ const Year = ({ referenceDate }) => {
             ))
           ) : (
             <div className="col-span-2 text-xs text-gray-400 text-center py-2">
-              {isEnoughData ? "" : ""}
+              {""}
             </div>
           )}
         </div>
 
-        {showAnalysis && isEnoughData && (
+        {showAnalysis && (
           <div>
             <div className="w-full max-w-sm rounded-[12px] p-5 bg-white mt-8 space-y-4">
               <div className="flex items-center gap-2 mb-5">

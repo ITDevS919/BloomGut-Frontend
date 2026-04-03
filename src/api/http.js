@@ -158,3 +158,9 @@ export const getSettingApp = (client, config) =>
 
 export const postSettingApp = (client, data, config) =>
   client.post("/setting/app", data, config);
+
+export const getPlayBillingStatus = (client, config) =>
+  client.get("/billing/play/status", config);
+
+export const postPlayBillingAcknowledge = (client, data, config) =>
+  client.post("/billing/play/acknowledge", data, config);

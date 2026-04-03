@@ -27,7 +27,6 @@ import {
   getTrendWaterMonthlyDailyMl,
   postTrendUrineMonthlyAdvice,
 } from "@/api/http";
-import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 import Loader from "@/components/common/Loader";
 
 const Month = ({ referenceDate }) => {
@@ -43,8 +42,6 @@ const Month = ({ referenceDate }) => {
   const [adviceLoading, setAdviceLoading] = useState(false);
   const [urineLoading, setUrineLoading] = useState(false);
   const [intakeLoading, setIntakeLoading] = useState(false);
-  const [urineEnough, setUrineEnough] = useState(false);
-
   useEffect(() => {
     if (!auth?.user?.id) return;
 
@@ -59,7 +56,6 @@ const Month = ({ referenceDate }) => {
         });
         const payload = response.data?.data || response.data;
         if (!payload) return;
-        setUrineEnough(payload.is_enough_data === true);
         if (!Array.isArray(payload.days) || !Array.isArray(payload.volumes)) {
           setDailyVolumes([]);
           return;
@@ -120,7 +116,7 @@ const Month = ({ referenceDate }) => {
   }, [api, auth?.user?.id, referenceDate]);
 
   useEffect(() => {
-    if (!auth?.user?.id || dailyVolumes.length === 0 || !urineEnough) return;
+    if (!auth?.user?.id || dailyVolumes.length === 0) return;
 
     const fetchMonthlyAdvice = async () => {
       setAdviceLoading(true);
@@ -166,7 +162,7 @@ const Month = ({ referenceDate }) => {
     };
 
     fetchMonthlyAdvice();
-  }, [api, auth?.user?.id, dailyVolumes, urineEnough]);
+  }, [api, auth?.user?.id, dailyVolumes]);
 
   const labels = useMemo(
     () => (dailyVolumes.length ? dailyVolumes.map((d) => d.label) : []),
@@ -286,12 +282,7 @@ const Month = ({ referenceDate }) => {
           </Tab>
         </div>
 
-        {!chartLoading && !urineEnough && <TrendInsufficientNotice className="mb-2" />}
-
-        {/* Chart */}
-        <div
-          className={`h-56 ${!chartLoading && !urineEnough ? "opacity-40 grayscale pointer-events-none" : ""}`}
-        >
+        <div className="h-56">
           {chartLoading ? (
             <div className="absolute inset-0 flex items-center justify-center bg-white/60">
               <Loader />

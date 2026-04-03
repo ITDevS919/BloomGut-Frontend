@@ -14,7 +14,6 @@ import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 import { getTrendDietMacroWeekly, postTrendDietWeeklyAdvice } from "@/api/http";
 import Loader from "@/components/common/Loader";
-import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 
@@ -25,7 +24,6 @@ const Week = ({ referenceDate }) => {
 
   const [loadingMacro, setLoadingMacro] = useState(true);
   const [loadingAdvice, setLoadingAdvice] = useState(false);
-  const [isEnoughData, setIsEnoughData] = useState(false);
   const [chartLabels, setChartLabels] = useState([]);
   const [fiber, setFiber] = useState([]);
   const [protein, setProtein] = useState([]);
@@ -48,24 +46,14 @@ const Week = ({ referenceDate }) => {
         });
         const payload = res.data?.data ?? res.data;
         if (!payload) {
-          setIsEnoughData(false);
           return;
         }
-
-        const enough = payload.is_enough_data === true;
-        setIsEnoughData(enough);
 
         if (Array.isArray(payload.labels)) setChartLabels(payload.labels);
         if (Array.isArray(payload.fiber)) setFiber(payload.fiber);
         if (Array.isArray(payload.protein)) setProtein(payload.protein);
         if (Array.isArray(payload.fat)) setFat(payload.fat);
         if (Array.isArray(payload.sugar)) setSugar(payload.sugar);
-
-        if (!enough) {
-          setAiAnalysis([]);
-          setAiRecommendations([]);
-          return;
-        }
 
         const avg = (arr) =>
           Array.isArray(arr) && arr.length
@@ -121,7 +109,6 @@ const Week = ({ referenceDate }) => {
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Failed to load macro weekly:", error);
-        setIsEnoughData(false);
       } finally {
         setLoadingMacro(false);
       }
@@ -204,11 +191,7 @@ const Week = ({ referenceDate }) => {
           </p>
         </div>
 
-        {!loadingMacro && !isEnoughData && <TrendInsufficientNotice />}
-
-        <div
-          className={`h-52 ${!loadingMacro && !isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
-        >
+        <div className="h-52">
           {loadingMacro ? (
             <div className="flex h-full items-center justify-center">
               <Loader />
@@ -224,7 +207,7 @@ const Week = ({ referenceDate }) => {
             <div className="flex items-center justify-center py-2">
               <Loader />
             </div>
-          ) : isEnoughData && aiAnalysis.length ? (
+          ) : aiAnalysis.length ? (
             <ul className="list-disc list-inside space-y-0.5">
               {aiAnalysis.slice(0, 3).map((row, index) => (
                 // eslint-disable-next-line react/no-array-index-key
@@ -233,7 +216,7 @@ const Week = ({ referenceDate }) => {
             </ul>
           ) : (
             <p className="text-custom-12">
-              {isEnoughData ? "No AI patterns returned for this week." : ""}
+              No AI patterns returned for this week.
             </p>
           )}
         </div>
@@ -244,7 +227,7 @@ const Week = ({ referenceDate }) => {
             <div className="flex items-center justify-center py-2">
               <Loader />
             </div>
-          ) : isEnoughData && aiAnalysis.length ? (
+          ) : aiAnalysis.length ? (
             <p className="text-secondary">
               {aiAnalysis.find((row) => row.type === "warn")?.text ||
                 aiAnalysis[0]?.text ||
@@ -261,7 +244,7 @@ const Week = ({ referenceDate }) => {
             <div className="flex items-center justify-center py-2">
               <Loader />
             </div>
-          ) : isEnoughData && aiRecommendations.length ? (
+          ) : aiRecommendations.length ? (
             aiRecommendations.map((line, index) => (
               // eslint-disable-next-line react/no-array-index-key
               <p key={index} className="text-secondary">

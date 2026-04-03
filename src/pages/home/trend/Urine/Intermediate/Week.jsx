@@ -11,7 +11,6 @@ import {
   postTrendUrineWeeklyAdvice,
 } from "@/api/http";
 import Loader from "@/components/common/Loader";
-import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 import Free from "../Free";
@@ -79,31 +78,25 @@ const Week = ({ referenceDate }) => {
   const [timeLoading, setTimeLoading] = useState(false);
 
   const [urineTrendLoading, setUrineTrendLoading] = useState(true);
-  const [urineTrendOk, setUrineTrendOk] = useState(false);
 
   useEffect(() => {
     if (!auth?.user?.id) {
       setUrineTrendLoading(false);
-      setUrineTrendOk(false);
       return;
     }
     let cancelled = false;
     (async () => {
       setUrineTrendLoading(true);
       try {
-        const response = await getTrendUrineWeeklyScore(api, {
+        await getTrendUrineWeeklyScore(api, {
           params: {
             userId: auth.user.id,
             referenceDate: referenceDate ? referenceDate.toISOString() : undefined,
             timezoneOffsetMinutes: new Date().getTimezoneOffset(),
           },
         });
-        const payload = response.data?.data || response.data;
-        if (!cancelled) {
-          setUrineTrendOk(payload?.is_enough_data === true);
-        }
       } catch (e) {
-        if (!cancelled) setUrineTrendOk(false);
+        /* error logged elsewhere if needed */
       } finally {
         if (!cancelled) setUrineTrendLoading(false);
       }
@@ -156,10 +149,6 @@ const Week = ({ referenceDate }) => {
     if (!auth?.user?.id) return;
 
     const fetchWeeklyAdvice = async () => {
-      if (!urineTrendOk) {
-        setAdviceLoading(false);
-        return;
-      }
       setAdviceLoading(true);
       try {
         const response = await postTrendUrineWeeklyAdvice(api, {
@@ -197,7 +186,6 @@ const Week = ({ referenceDate }) => {
   }, [
     api,
     auth?.user?.id,
-    urineTrendOk,
     daytimeEpisodes,
     nightEpisodes,
     daytimePercent,
@@ -237,26 +225,6 @@ const Week = ({ referenceDate }) => {
     let isCancelled = false;
 
     const fetchWeeklyClarity = async () => {
-      if (!urineTrendOk) {
-        setClaritySegments({
-          clearPercent: 0,
-          lightYellowPercent: 0,
-          darkYellowPercent: 0,
-        });
-        setClarityStats({
-          dailyVolumeMl: 0,
-          nighttimePercent: 0,
-          urinationAvgPerDay: 0,
-        });
-        setClarityAdvice({
-          primaryTitle: "",
-          primaryDesc: "",
-          secondaryTitle: "",
-          secondaryDesc: "",
-        });
-        setClarityLoading(false);
-        return;
-      }
       setClarityLoading(true);
       try {
         const response = await getTrendUrineWeeklyScore(api, {
@@ -376,7 +344,6 @@ const Week = ({ referenceDate }) => {
     daytimeEpisodes,
     nightEpisodes,
     nightPercent,
-    urineTrendOk,
   ]);
 
   // Fetch time distribution + advice
@@ -386,29 +353,6 @@ const Week = ({ referenceDate }) => {
     let isCancelled = false;
 
     const fetchWeeklyTime = async () => {
-      if (!urineTrendOk) {
-        setTimeSegments({
-          morningPercent: 0,
-          forenoonPercent: 0,
-          afternoonPercent: 0,
-          eveningPercent: 0,
-          nightPercent: 0,
-        });
-        setTimeStats({
-          dailyVolumeMl: 0,
-          nighttimePercent: 0,
-          urinationAvgPerDay: 0,
-        });
-        setTimeHighlight({ title: "", desc: "" });
-        setTimeAdvice({
-          primaryTitle: "",
-          primaryDesc: "",
-          secondaryTitle: "",
-          secondaryDesc: "",
-        });
-        setTimeLoading(false);
-        return;
-      }
       setTimeLoading(true);
       try {
         const response = await getTrendWaterWeeklyTime(api, {
@@ -494,7 +438,7 @@ const Week = ({ referenceDate }) => {
     return () => {
       isCancelled = true;
     };
-  }, [api, auth?.user?.id, referenceDate, urineTrendOk]);
+  }, [api, auth?.user?.id, referenceDate]);
 
   const [active, setActive] = useState("Day/Night");
   const tabs = ["Day/Night", "Clarity", "Time"];
@@ -530,8 +474,7 @@ const Week = ({ referenceDate }) => {
           </div>
         ) : (
           <>
-            {!urineTrendOk && <TrendInsufficientNotice className="mb-3" />}
-            <div className={!urineTrendOk ? "opacity-40 grayscale pointer-events-none" : ""}>
+            <div>
               {active === "Day/Night" && (
                 <>
                   {/* Donut card */}

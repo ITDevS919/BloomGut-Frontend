@@ -8,7 +8,6 @@ import useApiClient from "@/hooks/useApiClient";
 import { getTrendWaterMonthlyTime, postTrendWaterMonthlyAdvice } from "@/api/http";
 import Free from "../Free";
 import Loader from "@/components/common/Loader";
-import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -36,7 +35,6 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
     totalMl: 0,
     avgDailyMl: 0,
   });
-  const [isEnoughData, setIsEnoughData] = useState(false);
   const [bestTime, setBestTime] = useState({
     name: "—",
     description: "—",
@@ -89,9 +87,6 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
         const payload = response.data?.data || response.data;
         if (!payload) return;
 
-        const enough = payload.is_enough_data === true;
-        setIsEnoughData(enough);
-
         const updated = SESSION_NAMES.map((name, i) => ({
           name,
           percentage: {
@@ -110,7 +105,7 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
           color: SESSION_COLORS[i],
         }));
 
-        setSessions(enough ? updated : emptySessions());
+        setSessions(updated);
 
         const backendTotal =
           typeof payload.totalMl === "number"
@@ -126,11 +121,7 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
           avgDailyMl: backendAvgDaily,
         });
 
-        if (!enough) {
-          setBestTime({ name: "—", description: "—" });
-          setMonthlyAdvice(null);
-          setTipsLoading(false);
-        } else if (updated.length) {
+        if (updated.length) {
           const top = updated.reduce((max, s) =>
             (s.percentage || 0) > (max.percentage || 0) ? s : max
           );
@@ -200,30 +191,16 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
         Water Intake Chart
       </div>
       <div className="p-4">
-        {!isEnoughData && !loadingMonthlyTime && (
-          <TrendInsufficientNotice className="mb-3 max-w-md" />
-        )}
-        <div
-          className={`w-full max-w-md space-y-4 ${!isEnoughData ? "opacity-50 grayscale pointer-events-none" : ""}`}
-        >
-          {/* Donut Card — no chart series when below month threshold */}
+        <div className="w-full max-w-md space-y-4">
           <div className="relative rounded-[27.44px] bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.15)] mb-[28px]">
-            <div
-              className={`relative mx-auto h-52 w-52 ${!isEnoughData ? "flex items-center justify-center rounded-full border border-dashed border-gray-200 bg-gray-50/80" : ""}`}
-            >
-              {isEnoughData ? (
-                <>
-                  <Doughnut data={data} options={options} />
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-3xl font-bold text-gray-800">{total}</span>
-                    <span className="text-sm text-gray-500">ml</span>
-                  </div>
-                </>
-              ) : (
-                <span className="text-2xl text-gray-300 select-none" aria-hidden>
-                  —
-                </span>
-              )}
+            <div className="relative mx-auto h-52 w-52">
+              <>
+                <Doughnut data={data} options={options} />
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-3xl font-bold text-gray-800">{total}</span>
+                  <span className="text-sm text-gray-500">ml</span>
+                </div>
+              </>
             </div>
 
             {loadingMonthlyTime && (
@@ -237,38 +214,32 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
           <div className="grid grid-cols-3 gap-3">
             <StatCard
               title="Monthly"
-              value={isEnoughData ? `${total} ml` : "—"}
-              sub={isEnoughData ? `Daily Avg: ${monthlySummary.avgDailyMl || 0} ml` : "—"}
+              value={`${total} ml`}
+              sub={`Daily Avg: ${monthlySummary.avgDailyMl || 0} ml`}
             />
             <StatCard
               title="Rate"
               value={
-                !isEnoughData
-                  ? "—"
-                  : monthlyAdvice?.changePercent != null
-                    ? `${monthlyAdvice.changePercent > 0 ? "+" : ""}${monthlyAdvice.changePercent}%`
-                    : "—"
+                monthlyAdvice?.changePercent != null
+                  ? `${monthlyAdvice.changePercent > 0 ? "+" : ""}${monthlyAdvice.changePercent}%`
+                  : "—"
               }
               sub={
-                !isEnoughData
-                  ? "—"
-                  : monthlyAdvice?.changePercent != null
-                    ? `${100 + monthlyAdvice.changePercent}% of Last Month`
-                    : "—"
+                monthlyAdvice?.changePercent != null
+                  ? `${100 + monthlyAdvice.changePercent}% of Last Month`
+                  : "—"
               }
             />
             <StatCard
               title="Best Time"
-              value={isEnoughData ? bestTime.name : "—"}
-              sub={isEnoughData ? bestTime.description : "—"}
+              value={bestTime.name}
+              sub={bestTime.description}
             />
           </div>
         </div>
 
         {/* Water Intake Sessions */}
-        <div
-          className={`w-full max-w-md mt-8 shadow-[0_2px_4px_rgba(0,0,0,0.15)] rounded-[27px] bg-white p-5 space-y-4 ${!isEnoughData ? "opacity-50 grayscale pointer-events-none" : ""}`}
-        >
+        <div className="w-full max-w-md mt-8 shadow-[0_2px_4px_rgba(0,0,0,0.15)] rounded-[27px] bg-white p-5 space-y-4">
           {/* Main Session Card */}
           <div className="rounded-[12px] bg-[#eff6ff] p-5 shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
             <div className="flex items-center justify-between mb-3">
@@ -277,13 +248,11 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
                 <h3 className="text-base font-medium text-primary">{currentSession.name} Session</h3>
               </div>
               <span className="text-xs font-medium text-secondary">
-                {isEnoughData
-                  ? `${currentSession.ml}ml (${currentSession.percentage}%)`
-                  : "—"}
+                {`${currentSession.ml}ml (${currentSession.percentage}%)`}
               </span>
             </div>
             <div className="space-y-1">
-              {!isEnoughData ? null : tipsLoading ? (
+              {tipsLoading ? (
                 <div className="flex items-center justify-center py-2">
                   <Loader />
                 </div>
@@ -314,7 +283,7 @@ const Month = ({ showUpgrade = true, referenceDate }) => {
                 }`}
                 ></div>
                 <span>
-                  {session.name}: {isEnoughData ? `${session.percentage}%` : "—"}
+                  {session.name}: {`${session.percentage}%`}
                 </span>
               </button>
             ))}

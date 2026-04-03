@@ -14,7 +14,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 import { getTrendWaterMonthlyWeeks } from "@/api/http";
-import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 import Loader from "@/components/common/Loader";
 
 ChartJS.register(
@@ -56,7 +55,6 @@ const Month = ({ referenceDate }) => {
   const [aiAdviceByWeek, setAiAdviceByWeek] = useState({});
   const [aiLoadingWeek, setAiLoadingWeek] = useState(null);
   const [chartLoading, setChartLoading] = useState(true);
-  const [isEnoughData, setIsEnoughData] = useState(false);
 
   useEffect(() => {
     if (!auth?.user?.id) return;
@@ -73,7 +71,6 @@ const Month = ({ referenceDate }) => {
         });
         const payload = res.data?.data ?? res.data;
         if (!payload) return;
-        setIsEnoughData(payload.is_enough_data === true);
         if (Array.isArray(payload.labels) && payload.labels.length === 4) {
           setLabels(payload.labels);
         }
@@ -363,12 +360,7 @@ const Month = ({ referenceDate }) => {
         </h2>
         <p className="mb-4 text-center text-xs text-gray-400">Monthly Trend</p>
 
-        {!chartLoading && !isEnoughData && <TrendInsufficientNotice className="mb-3" />}
-
-        {/* Chart */}
-        <div
-          className={`relative h-60 ${!chartLoading && !isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
-        >
+        <div className="relative h-60">
           {chartLoading ? (
             <div className="absolute inset-0 flex items-center justify-center bg-white/60">
               <Loader />

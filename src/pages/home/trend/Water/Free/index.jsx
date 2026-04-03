@@ -110,7 +110,6 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
   const [loadingDailyMl, setLoadingDailyMl] = useState(false);
   const [loadingWeeklySummary, setLoadingWeeklySummary] = useState(false);
-  const [trendSufficient, setTrendSufficient] = useState(false);
 
   const goal = 2000;
   const toPercentRaw = (ml) => Math.round((ml / goal) * 100);
@@ -120,10 +119,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
     return Math.max(0, Math.min(100, raw));
   };
 
-  const chartMl =
-    trendSufficient && Array.isArray(mlPerDay)
-      ? mlPerDay
-      : [0, 0, 0, 0, 0, 0, 0];
+  const chartMl = Array.isArray(mlPerDay) ? mlPerDay : [0, 0, 0, 0, 0, 0, 0];
   const dayPercents = chartMl.map((ml) => toPercent(ml, { cap: false }));
   const totalWeekPercent = dayPercents.reduce((sum, v) => sum + v, 0);
   const avgPercent = dayPercents.length
@@ -152,7 +148,6 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
           if (!isCancelled) {
             setLabels(payload.days);
             setMlPerDay(payload.mlPerDay);
-            setTrendSufficient(payload.is_enough_data === true);
           }
         }
       } catch (error) {
@@ -183,10 +178,6 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
         const payload = response.data?.data || response.data;
         if (!payload) return;
-
-        if (!isCancelled) {
-          setTrendSufficient(payload.is_enough_data === true);
-        }
 
         if (typeof payload.score === "number") {
           const rounded = Math.round(payload.score);
@@ -236,44 +227,40 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
 
   const effectiveWeekScore = hasTodayWaterRecord ? score : 0;
   const effectiveStatus =
-    !trendSufficient
-      ? "Insufficient data, continue recording"
-      : hasTodayWaterRecord && effectiveWeekScore > 0
-        ? effectiveWeekScore > 75
-          ? "Excellent"
-          : effectiveWeekScore > 50
-            ? "Good"
-            : effectiveWeekScore > 25
-              ? "Fair"
-              : "Poor"
-        : "Not Recorded";
+    hasTodayWaterRecord && effectiveWeekScore > 0
+      ? effectiveWeekScore > 75
+        ? "Excellent"
+        : effectiveWeekScore > 50
+          ? "Good"
+          : effectiveWeekScore > 25
+            ? "Fair"
+            : "Poor"
+      : "Not Recorded";
   const effectiveChangeText =
-    trendSufficient && hasTodayWaterRecord && weeklyChangePercent !== null
+    hasTodayWaterRecord && weeklyChangePercent !== null
       ? `${weeklyChangePercent < 0 ? "-" : "+"}${Math.abs(weeklyChangePercent)}% vs Last`
       : "";
   const changePercentTextColor =
-    trendSufficient && hasTodayWaterRecord && weeklyChangePercent !== null
+    hasTodayWaterRecord && weeklyChangePercent !== null
       ? weeklyChangePercent > 0
         ? "#1ABC9C"
         : weeklyChangePercent < 0
           ? "#F66B6B"
           : "#999999"
       : "#F09129";
-  const scorePosition = getScorePosition(
-    trendSufficient ? effectiveWeekScore : 0
-  );
+  const scorePosition = getScorePosition(effectiveWeekScore);
 
   const loadingStats = loadingDailyMl || loadingWeeklySummary;
 
   return (
     <main className="pl-[15px] pr-[15px]">
       <div
-        className={`bg-white rounded-[27px] p-[32px] shadow-md mb-[36px] relative ${!trendSufficient ? "opacity-60 grayscale" : ""}`}
+        className="bg-white rounded-[27px] p-[32px] shadow-md mb-[36px] relative"
       >
         <div className="flex items-center justify-between">
           <div className="pl-[50px]">
             <div className="text-3xl font-medium text-[#F09129] text-center">
-              {trendSufficient ? effectiveWeekScore : "—"}
+              {effectiveWeekScore}
             </div>
             <div className="text-sm text-custom-12 text-center">
               {effectiveStatus}
@@ -328,7 +315,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         Daily Intake (ml)
       </div>
       <div
-        className={`bg-white rounded-[12px] shadow p-6 mb-[39px] relative ${!trendSufficient ? "opacity-60 grayscale" : ""}`}
+        className="bg-white rounded-[12px] shadow p-6 mb-[39px] relative"
       >
         <Suspense
           fallback={
@@ -351,7 +338,7 @@ const Free = ({ showUpgrade = true, referenceDate }) => {
         Daily Intake Rate
       </div>
       <div
-        className={`bg-white rounded-[27px] shadow p-6 flex gap-8 justify-center mb-5 relative ${!trendSufficient ? "opacity-60 grayscale" : ""}`}
+        className="bg-white rounded-[27px] shadow p-6 flex gap-8 justify-center mb-5 relative"
       >
         <Suspense
           fallback={

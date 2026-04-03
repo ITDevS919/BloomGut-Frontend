@@ -16,7 +16,6 @@ import { getTrendWaterWeeklyTime, postTrendWaterWeeklyAdvice } from "@/api/http"
 import Upgrade from "./Upgrade";
 import Free from "../Free";
 import Loader from "@/components/common/Loader";
-import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 import { useLocation, useSearchParams } from "react-router-dom";
 
 ChartJS.register(
@@ -44,7 +43,6 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
     afternoonPercent: 0,
     eveningPercent: 0,
   });
-  const [isEnoughData, setIsEnoughData] = useState(false);
   const [advice, setAdvice] = useState({ message: "", tip: "" });
   const [adviceLoading, setAdviceLoading] = useState(false);
   const [loadingTime, setLoadingTime] = useState(false);
@@ -67,8 +65,6 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
         });
         const payload = response.data?.data || response.data;
         if (!payload) return;
-
-        setIsEnoughData(payload.is_enough_data === true);
 
         setTimeMl({
           morningMl: payload.morningMl ?? 0,
@@ -100,7 +96,7 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
   }, [api, auth?.user?.id, referenceDate]);
 
   useEffect(() => {
-    if (!auth?.user?.id || !isEnoughData) {
+    if (!auth?.user?.id) {
       setAdvice({ message: "", tip: "" });
       return;
     }
@@ -145,7 +141,6 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
   }, [
     api,
     auth?.user?.id,
-    isEnoughData,
     timeMl.morningMl,
     timeMl.noonMl,
     timeMl.afternoonMl,
@@ -195,16 +190,14 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
     ? timePeriods.reduce((min, p) => (p.percentage < min.percentage ? p : min))
     : null;
   const weeklyTargetMl = 7000;
-  const balanceLabel = !isEnoughData
-    ? "—"
-    : lowestPeriod && lowestPeriod.percentage < 20
+  const balanceLabel =
+    lowestPeriod && lowestPeriod.percentage < 20
       ? "Low"
       : totalWeekMl < weeklyTargetMl
         ? "Below target"
         : "Good";
-  const balanceSub = !isEnoughData
-    ? "—"
-    : lowestPeriod && lowestPeriod.percentage < 20
+  const balanceSub =
+    lowestPeriod && lowestPeriod.percentage < 20
       ? `${lowestPeriod.shortLabel} low`
       : totalWeekMl < weeklyTargetMl
         ? "Increase daily intake"
@@ -290,31 +283,17 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
       </div>
       <div className="p-4">
         <div className="w-full max-w-md rounded-[27px] bg-white p-5 shadow-md mb-[68px] relative">
-          {!loadingTime && !isEnoughData && (
-            <TrendInsufficientNotice className="mb-4" />
-          )}
           {/* Info Block */}
           <div className="mb-4 rounded-[12px] bg-[#eff6ff] px-4 py-3 text-sm text-custom-12">
             Chart shows intake by time period to check balance. Concentrated
             drinking may cause constipation or night urination.
           </div>
 
-          {/* Chart — no series rendered when record_days below threshold */}
-          <div
-            className={`mb-4 h-48 ${!isEnoughData ? "rounded-xl border border-dashed border-gray-200 bg-gray-50/80 flex items-center justify-center pointer-events-none" : ""}`}
-          >
-            {isEnoughData ? (
-              <Bar data={data} options={options} />
-            ) : (
-              <span className="text-2xl text-gray-300 select-none" aria-hidden>
-                —
-              </span>
-            )}
+          <div className="mb-4 h-48">
+            <Bar data={data} options={options} />
           </div>
 
-          {/* Analysis & Advice (AI) */}
-          {isEnoughData && (
-            <div className="mt-5 space-y-3 rounded-[8px] bg-yellow-50 p-4">
+          <div className="mt-5 space-y-3 rounded-[8px] bg-yellow-50 p-4">
               <div className="flex items-center gap-2 text-sm text-gray-700 mb-[12px]">
                 <span className="h-3 w-3 rounded-full bg-yellow-400" />
                 <span className="text-secondary font-medium">Analysis & Advice</span>
@@ -341,31 +320,23 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
                 </>
               )}
             </div>
-          )}
 
-          {/* Summary Cards — no intake/balance analysis when insufficient */}
-          <div
-            className={`mt-5 grid grid-cols-2 gap-3 ${!isEnoughData ? "opacity-50 grayscale" : ""}`}
-          >
+          <div className="mt-5 grid grid-cols-2 gap-3">
             <StatCard
               title="Weekly Intake"
-              value={isEnoughData ? `${totalWeekMl}ml` : "—"}
+              value={`${totalWeekMl}ml`}
               sub={
-                isEnoughData
-                  ? totalWeekMl < weeklyTargetMl
-                    ? "Below Std."
-                    : "On target"
-                  : "—"
+                totalWeekMl < weeklyTargetMl
+                  ? "Below Std."
+                  : "On target"
               }
             />
             <StatCard2 title="Balance" value={balanceLabel} sub={balanceSub} />
           </div>
 
-          {isEnoughData ? (
-            <p className="mt-[22px] italic text-center text-xs text-custom-12">
-              Tap period for tips & impacts.
-            </p>
-          ) : null}
+          <p className="mt-[22px] italic text-center text-xs text-custom-12">
+            Tap period for tips & impacts.
+          </p>
 
           {loadingTime && (
             <div className="absolute inset-0 flex items-center justify-center bg-white/60">
@@ -378,7 +349,7 @@ const Week = ({ showUpgrade = true, referenceDate }) => {
           <div className="flex items-center justify-center mb-[47px]">
             <button
               className="flex items-center justify-center bg-white rounded-[8px] px-6 py-2 text-lg text-secondary shadow-md"
-              onClick={() => navigate("/trend-analysis?plan=premium", { state: { trendType: "diet" } })}
+              onClick={() => navigate("/trend-admin?plan=premium", { state: { trendType: "water" } })}
             >
               In-depth Analysis
             </button>

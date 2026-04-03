@@ -13,7 +13,6 @@ import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import useApiClient from "@/hooks/useApiClient";
 import { getTrendWaterYearlySummary } from "@/api/http";
-import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 import Loader from "@/components/common/Loader";
 
 ChartJS.register(LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend);
@@ -28,7 +27,6 @@ const Year = ({ referenceDate }) => {
   const [yearAdvice, setYearAdvice] = useState({ title: "", message: "", tip: "" });
   const [yearAdviceLoading, setYearAdviceLoading] = useState(false);
   const [chartLoading, setChartLoading] = useState(true);
-  const [isEnoughData, setIsEnoughData] = useState(false);
 
   const monthNames = [
     "January",
@@ -64,7 +62,6 @@ const Year = ({ referenceDate }) => {
         });
         const payload = res.data?.data ?? res.data;
         if (!payload) return;
-        setIsEnoughData(payload.is_enough_data === true);
         if (Array.isArray(payload.labels) && payload.labels.length === 12) {
           // keep numeric 1..12 labels for chart but use payload labels for tooltips
           setLabels(payload.labels.map((_, idx) => idx + 1));
@@ -246,12 +243,7 @@ const Year = ({ referenceDate }) => {
           Yearly Intake & Regularity
         </p>
 
-        {!chartLoading && !isEnoughData && <TrendInsufficientNotice className="mb-3" />}
-
-        {/* Chart */}
-        <div
-          className={`relative h-72 ${!chartLoading && !isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
-        >
+        <div className="relative h-72">
           {chartLoading ? (
             <div className="absolute inset-0 flex items-center justify-center bg-white/60">
               <Loader />
@@ -267,7 +259,6 @@ const Year = ({ referenceDate }) => {
                 onMouseEnter={(e) => {
                   const rect = e.currentTarget.getBoundingClientRect();
                   if (
-                    isEnoughData &&
                     !yearAdvice.title &&
                     !yearAdvice.message &&
                     !yearAdvice.tip &&

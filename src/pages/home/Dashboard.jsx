@@ -276,8 +276,8 @@ const Dashboard = () => {
           typeof payload.todayScore === "number"
             ? payload.todayScore
             : typeof payload.dailyScores?.[jsDay] === "number"
-            ? payload.dailyScores[jsDay]
-            : score;
+              ? payload.dailyScores[jsDay]
+              : score;
 
         let statusText = "";
         if (todayScore <= 0 && !payload.status) {
@@ -392,7 +392,7 @@ const Dashboard = () => {
         // Convert today's ml into percentage of user's daily water goal
         const goal =
           typeof auth?.user?.waterIntakeGoal === "number" &&
-          !Number.isNaN(auth.user.waterIntakeGoal)
+            !Number.isNaN(auth.user.waterIntakeGoal)
             ? auth.user.waterIntakeGoal
             : 2000;
 
@@ -491,9 +491,8 @@ const Dashboard = () => {
         </div>
         <div className="flex flex-col gap-5 mt-4">
           <div
-            className={`relative flex justify-start gap-3 bg-[#dfd2b2] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)] ${
-              isPageLoading ? "opacity-60 pointer-events-none" : ""
-            }`}
+            className={`relative flex justify-start gap-3 bg-[#dfd2b2] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)] ${isPageLoading ? "opacity-60 pointer-events-none" : ""
+              }`}
             onClick={() => navigate("/stool")}
           >
             <div className="flex-0">
@@ -544,9 +543,8 @@ const Dashboard = () => {
           </div>
 
           <div
-            className={`relative flex justify-start gap-3 bg-[#e0d5e6] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)] ${
-              isPageLoading ? "opacity-60 pointer-events-none" : ""
-            }`}
+            className={`relative flex justify-start gap-3 bg-[#e0d5e6] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)] ${isPageLoading ? "opacity-60 pointer-events-none" : ""
+              }`}
             onClick={() => navigate("/diet-record")}
           >
             <div>
@@ -597,9 +595,8 @@ const Dashboard = () => {
           </div>
 
           <div
-            className={`relative flex justify-start gap-3 bg-[#d7eaf8] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)] ${
-              isPageLoading ? "opacity-60 pointer-events-none" : ""
-            }`}
+            className={`relative flex justify-start gap-3 bg-[#d7eaf8] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)] ${isPageLoading ? "opacity-60 pointer-events-none" : ""
+              }`}
             onClick={() => navigate("/water-record")}
           >
             <div>
@@ -653,9 +650,8 @@ const Dashboard = () => {
           </div>
 
           <div
-            className={`relative flex justify-start gap-3 bg-[#fff3cd] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)] ${
-              isPageLoading ? "opacity-60 pointer-events-none" : ""
-            }`}
+            className={`relative flex justify-start gap-3 bg-[#fff3cd] rounded-[15px] p-5 cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.16)] ${isPageLoading ? "opacity-60 pointer-events-none" : ""
+              }`}
             onClick={() => navigate("/urine-record")}
           >
             <div>
@@ -708,14 +704,6 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-
-      {isPageLoading && (
-        <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-auto bg-black/5">
-          <div className="rounded-full bg-white px-4 py-3 shadow-md">
-            <InlineLoader />
-          </div>
-        </div>
-      )}
     </main>
   );
 };

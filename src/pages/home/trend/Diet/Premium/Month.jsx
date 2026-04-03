@@ -8,7 +8,6 @@ import useApiClient from "@/hooks/useApiClient";
 import { postTrendDietMonthlyAdvice } from "@/api/http";
 import Loader from "@/components/common/Loader";
 import { useNavigate } from "react-router-dom";
-import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 
 ChartJS.register(ArcElement, Tooltip, ChartDataLabels);
 
@@ -21,7 +20,6 @@ const Month = ({ referenceDate }) => {
     { label: "Water", value: 0, color: "#06B6D4" },
     { label: "Iron", value: 0, color: "#F87171" },
   ]);
-  const [isEnoughData, setIsEnoughData] = useState(false);
 
   const data = {
     datasets: rings.map((r, i) => ({
@@ -69,24 +67,6 @@ const Month = ({ referenceDate }) => {
         });
         const payload = res.data?.data ?? res.data;
         if (!payload) return;
-
-        const enough = payload.is_enough_data === true;
-        setIsEnoughData(enough);
-
-        if (!enough) {
-          setRings([
-            { label: "Fiber", value: 0, color: "#22C55E" },
-            { label: "Protein", value: 0, color: "#3B82F6" },
-            { label: "Calcium", value: 0, color: "#F59E0B" },
-            { label: "Vit C", value: 0, color: "#FACC15" },
-            { label: "Water", value: 0, color: "#06B6D4" },
-            { label: "Iron", value: 0, color: "#F87171" },
-          ]);
-          setFocusText("");
-          setSummaryText("");
-          setGoalLines([]);
-          return;
-        }
 
         const percents = payload.percents || {};
         const fiberVal = typeof percents.fiber === "number" ? percents.fiber : 0;
@@ -143,12 +123,7 @@ const Month = ({ referenceDate }) => {
       <div className="w-full rounded-[20px] bg-white p-5 shadow-[2px_0_10px_rgba(0,0,0,0.15)] space-y-4">
         <h2 className="text-base mt-1 text-secondary">Monthly Overview</h2>
 
-        {!loadingAdvice && !isEnoughData && <TrendInsufficientNotice className="mb-3" />}
-
-        {/* Chart */}
-        <div
-          className={`flex justify-center ${!loadingAdvice && !isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
-        >
+        <div className="flex justify-center">
           <div className="h-52 w-52 flex items-center justify-center">
             {loadingAdvice ? (
               <Loader />
@@ -174,7 +149,7 @@ const Month = ({ referenceDate }) => {
             </span>
           </div>
           <p className="text-secondary">
-            {loadingAdvice ? "Analyzing monthly diet focus…" : isEnoughData ? focusText : ""}
+            {loadingAdvice ? "Analyzing monthly diet focus…" : focusText}
           </p>
         </div>
 

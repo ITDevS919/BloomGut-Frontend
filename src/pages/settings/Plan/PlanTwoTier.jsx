@@ -1,15 +1,171 @@
 import { ChevronLeft, Check } from "lucide-react";
 import { FaCrown } from "react-icons/fa";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "@clerk/clerk-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { useSwipe } from "@/hooks/useSwipe";
+import usePremiumEntitlement from "@/hooks/usePremiumEntitlement";
+import useApiClient from "@/hooks/useApiClient";
+import { postPlayBillingAcknowledge } from "@/api/http";
+import {
+  getSkuDetails,
+  isPlayBillingApiAvailable,
+  requestPlayPurchase,
+} from "@/lib/playBilling";
+import {
+  getConfiguredPremiumSku,
+  premiumDevUnlockEnabled,
+} from "@/lib/premiumEntitlement";
 
 const PlanTwoTier = () => {
   const navigate = useNavigate();
+  const api = useApiClient();
+  const { isSignedIn, isLoaded } = useAuth();
+  const {
+    premiumEntitled,
+    refreshEntitlement,
+    isLoadingEntitlement,
+  } = usePremiumEntitlement();
   const [searchParams] = useSearchParams();
   const trendTypeParam = searchParams.get("trendType");
   const showPremium = searchParams.get("showPremium");
   const [activeSlide, setActiveSlide] = useState(showPremium === "true" ? 1 : 0);
+  const [localizedPremiumPrice, setLocalizedPremiumPrice] = useState(null);
+  const [purchasing, setPurchasing] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+
+  const premiumSku = getConfiguredPremiumSku();
+  const canUsePlayBilling =
+    isPlayBillingApiAvailable() && Boolean(premiumSku);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!premiumSku || !canUsePlayBilling) return;
+      try {
+        const detail = await getSkuDetails(premiumSku);
+        if (cancelled || !detail?.price) return;
+        const formatted = new Intl.NumberFormat(navigator.language, {
+          style: "currency",
+          currency: detail.price.currency,
+        }).format(detail.price.value);
+        setLocalizedPremiumPrice(formatted);
+      } catch {
+        /* keep static fallback label */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [premiumSku, canUsePlayBilling]);
+
+  const goPremiumTrends = () => {
+    if (trendTypeParam) {
+      navigate("/trend-analysis?plan=premium", {
+        state: { trendType: trendTypeParam },
+      });
+    } else {
+      navigate("/trend-analysis?plan=free");
+    }
+  };
+
+  const handlePremiumAction = async () => {
+    if (premiumEntitled) {
+      goPremiumTrends();
+      return;
+    }
+
+    if (!isLoaded) return;
+
+    if (!isSignedIn) {
+      toast.error("Sign in to subscribe to Premium.");
+      navigate("/login");
+      return;
+    }
+
+    if (canUsePlayBilling) {
+      setPurchasing(true);
+      let paymentResponse = null;
+      try {
+        const { response, purchaseToken } = await requestPlayPurchase(premiumSku);
+        paymentResponse = response;
+        await postPlayBillingAcknowledge(api, {
+          purchaseToken,
+          sku: premiumSku,
+        });
+        await paymentResponse.complete("success");
+        await refreshEntitlement();
+        toast.success("Premium is active.");
+        goPremiumTrends();
+      } catch (err) {
+        const name = err?.name || "";
+        if (name === "AbortError") {
+          toast.message("Purchase cancelled.");
+        } else {
+          const msg =
+            err?.response?.data?.message ||
+            err?.message ||
+            "Purchase could not be completed.";
+          toast.error(msg);
+        }
+        if (paymentResponse) {
+          try {
+            await paymentResponse.complete("fail");
+          } catch {
+            /* ignore */
+          }
+        }
+      } finally {
+        setPurchasing(false);
+      }
+      return;
+    }
+
+    if (premiumDevUnlockEnabled()) {
+      goPremiumTrends();
+      return;
+    }
+
+    toast.error(
+      "Google Play purchases are only available in the Bloomgut app from the Play Store."
+    );
+  };
+
+  const handleRestorePurchases = async () => {
+    if (!isLoaded) return;
+    if (!isSignedIn) {
+      toast.error("Sign in to restore purchases.");
+      navigate("/login");
+      return;
+    }
+    if (!canUsePlayBilling) {
+      toast.message(
+        "Restore is only available in the Bloomgut app from the Play Store."
+      );
+      return;
+    }
+    setRestoring(true);
+    try {
+      const { entitled } = await refreshEntitlement();
+      if (entitled) {
+        toast.success("Your subscription is active.");
+      } else {
+        toast.message("No active subscription found for this account.");
+      }
+    } catch {
+      toast.error("Could not restore purchases.");
+    } finally {
+      setRestoring(false);
+    }
+  };
+
+  const premiumPrimaryDisabled =
+    purchasing ||
+    (isLoadingEntitlement &&
+      isSignedIn &&
+      !premiumEntitled &&
+      !premiumDevUnlockEnabled());
 
   const plans = [
     {
@@ -32,7 +188,7 @@ const PlanTwoTier = () => {
     {
       id: 1,
       name: "PREMIUM",
-      price: "$4.99",
+      price: localizedPremiumPrice || "$4.99",
       subtitle: "Unlock full health insights",
       features: [
         "Week / Month / Year views",
@@ -42,18 +198,23 @@ const PlanTwoTier = () => {
         "Advanced charts and comparisons",
         "Trend analysis",
       ],
-      buttonText: "Use premium",
+      buttonText: purchasing
+        ? "Processing…"
+        : isLoadingEntitlement &&
+            isSignedIn &&
+            !premiumEntitled &&
+            !premiumDevUnlockEnabled()
+          ? "Checking…"
+          : premiumEntitled
+            ? "Open premium"
+            : canUsePlayBilling
+              ? "Subscribe with Google Play"
+              : premiumDevUnlockEnabled()
+                ? "Use premium"
+                : "Subscribe (Play app)",
       buttonClass: "bg-[#FBB667] text-secondary",
       borderClass: "border-2 border-[#fbb667]",
-      handleClick: () => {
-        if (trendTypeParam) {
-          navigate("/trend-analysis?plan=premium", {
-            state: { trendType: trendTypeParam },
-          });
-        } else {
-          navigate("/trend-analysis?plan=free");
-        }
-      },
+      handleClick: handlePremiumAction,
     },
   ];
 
@@ -100,8 +261,8 @@ const PlanTwoTier = () => {
           className="flex-1 flex items-center overflow-hidden cursor-grab active:cursor-grabbing"
           {...swipeHandlers}
           style={{
-            userSelect: 'none',
-            touchAction: 'pan-y',
+            userSelect: "none",
+            touchAction: "pan-y",
           }}
         >
           <div
@@ -153,11 +314,26 @@ const PlanTwoTier = () => {
 
                   <button
                     type="button"
-                    className={`w-[176px] md:w-[183px] flex justify-center items-center mx-auto py-[10px] md:py-2 rounded-[8px] text-sm shadow-sm mb-[52px] ${plan.buttonClass}`}
+                    disabled={plan.id === 1 && premiumPrimaryDisabled}
+                    className={`w-[176px] md:w-[183px] flex justify-center items-center mx-auto py-[10px] md:py-2 rounded-[8px] text-sm shadow-sm ${
+                      plan.id === 1 && canUsePlayBilling && isSignedIn
+                        ? "mb-3"
+                        : "mb-[52px]"
+                    } disabled:opacity-60 ${plan.buttonClass}`}
                     onClick={plan.handleClick}
                   >
                     {plan.buttonText}
                   </button>
+                  {plan.id === 1 && canUsePlayBilling && isSignedIn ? (
+                    <button
+                      type="button"
+                      className="w-full text-center text-xs text-secondary underline underline-offset-2 mb-[52px] disabled:opacity-50"
+                      disabled={restoring || purchasing}
+                      onClick={handleRestorePurchases}
+                    >
+                      {restoring ? "Restoring purchases…" : "Restore purchases"}
+                    </button>
+                  ) : null}
                 </div>
               </div>
             ))}
@@ -180,7 +356,21 @@ const PlanTwoTier = () => {
 
         {/* Footer */}
         <div className="text-center text-xs text-gray-400 flex-shrink-0">
-          Selecting indicates agreement to [Terms of Service] and [Privacy Policy]
+          Selecting indicates agreement to the{" "}
+          <Link
+            to="/setting/privacy-policy/terms-of-use"
+            className="text-custom-7 underline underline-offset-2"
+          >
+            Terms of Service
+          </Link>{" "}
+          and{" "}
+          <Link
+            to="/setting/privacy-policy"
+            className="text-custom-7 underline underline-offset-2"
+          >
+            Privacy Policy
+          </Link>
+          .
         </div>
       </div>
     </div>
@@ -188,4 +378,3 @@ const PlanTwoTier = () => {
 };
 
 export default PlanTwoTier;
-

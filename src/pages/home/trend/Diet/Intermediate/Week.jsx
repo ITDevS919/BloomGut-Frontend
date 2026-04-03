@@ -15,7 +15,6 @@ import useApiClient from "@/hooks/useApiClient";
 import { getTrendDietMacroWeekly, postTrendDietWeeklyAdvice } from "@/api/http";
 import Free from "../Free";
 import Loader from "@/components/common/Loader";
-import TrendInsufficientNotice from "@/components/trend/TrendInsufficientNotice";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import Upgrade from "./Upgrade";
 
@@ -36,7 +35,6 @@ const Week = ({ referenceDate }) => {
   const auth = useSelector((state) => state.auth);
   const api = useApiClient();
 
-  const [isEnoughData, setIsEnoughData] = useState(false);
   const [fiberAvg, setFiberAvg] = useState(0);
   const [proteinAvg, setProteinAvg] = useState(0);
   const [fatAvg, setFatAvg] = useState(0);
@@ -63,20 +61,6 @@ const Week = ({ referenceDate }) => {
         });
         const payload = res.data?.data ?? res.data;
         if (!payload) return;
-
-        const enough = payload.is_enough_data === true;
-        setIsEnoughData(enough);
-
-        if (!enough) {
-          setFiberAvg(0);
-          setProteinAvg(0);
-          setFatAvg(0);
-          setSugarAvg(0);
-          setSodiumAvg(0);
-          setAiAnalysis([]);
-          setAiRecommendations([]);
-          return;
-        }
 
         const avg = (arr) =>
           Array.isArray(arr) && arr.length
@@ -154,21 +138,6 @@ const Week = ({ referenceDate }) => {
 
   const radarData = useMemo(() => {
     const labels = ["Fiber", "Protein", "Fat", "Sugar", "Sodium"];
-    if (!isEnoughData) {
-      return {
-        labels,
-        datasets: [
-          {
-            label: "Actual",
-            data: [0, 0, 0, 0, 0],
-            borderColor: "#E5E7EB",
-            backgroundColor: "rgba(229,231,235,0.2)",
-            pointBackgroundColor: "#D1D5DB",
-            pointRadius: 3,
-          },
-        ],
-      };
-    }
     return {
       labels,
       datasets: [
@@ -190,7 +159,7 @@ const Week = ({ referenceDate }) => {
         },
       ],
     };
-  }, [isEnoughData, fiberAvg, proteinAvg, fatAvg, sugarAvg, sodiumAvg]);
+  }, [fiberAvg, proteinAvg, fatAvg, sugarAvg, sodiumAvg]);
 
   const options = {
     responsive: true,
@@ -242,23 +211,16 @@ const Week = ({ referenceDate }) => {
 
       <div className="pl-[15px] pr-[15px]">
         <div className="text-primary text-base pl-[15px] mb-3">Weekly Diet Analysis</div>
-        {!isEnoughData && !loading && (
-          <TrendInsufficientNotice className="mb-3 max-w-sm mx-auto" />
-        )}
-        <div
-          className={`w-full max-w-sm rounded-[20px] bg-white p-5 shadow-md space-y-4 mx-auto ${!isEnoughData ? "opacity-40 grayscale pointer-events-none" : ""}`}
-        >
+        <div className="w-full max-w-sm rounded-[20px] bg-white p-5 shadow-md space-y-4 mx-auto">
           {/* Header */}
           <div className="flex justify-between items-center text-sm">
             <span className="text-primary text-sm">This Week</span>
-            {isEnoughData ? (
-              <button
-                className="text-blue-500"
-                onClick={() => setShowAnalysis(!showAnalysis)}
-              >
-                {showAnalysis ? "Hide Analysis" : "View Analysis"}
-              </button>
-            ) : null}
+            <button
+              className="text-blue-500"
+              onClick={() => setShowAnalysis(!showAnalysis)}
+            >
+              {showAnalysis ? "Hide Analysis" : "View Analysis"}
+            </button>
           </div>
 
           {/* Radar Chart */}
@@ -272,7 +234,7 @@ const Week = ({ referenceDate }) => {
           </div>
 
           {/* Diet Analysis */}
-          {showAnalysis && isEnoughData && (
+          {showAnalysis && (
             <>
               <div className="rounded-[8px] bg-blue-50 p-4 text-sm space-y-2 shadow-[2px_0_10px_rgba(3,3,3,0.1)]">
                 <p className="font-medium text-primary">Diet Analysis</p>
