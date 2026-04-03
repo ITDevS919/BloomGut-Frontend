@@ -72,48 +72,35 @@ const SegmentedControl: React.FC<Props> = ({
   // Pointer drag: thumb follows cursor/finger continuously; value commits on release.
   useEffect(() => {
     let dragging = false;
+    let activePointerId: number | null = null;
 
-    const getClientX = (ev: MouseEvent | TouchEvent): number => {
-      if ("touches" in ev && ev.touches.length > 0) {
-        return ev.touches[0].clientX;
-      }
-      if ("changedTouches" in ev && ev.changedTouches.length > 0) {
-        return ev.changedTouches[0].clientX;
-      }
-      return (ev as MouseEvent).clientX;
-    };
-
-    const setPctFromEvent = (ev: MouseEvent | TouchEvent) => {
+    const setPctFromEvent = (ev: PointerEvent) => {
       if (!trackRef.current) return;
       const rect = trackRef.current.getBoundingClientRect();
-      const x = getClientX(ev) - rect.left;
+      const x = ev.clientX - rect.left;
       const pct = Math.max(0, Math.min(1, x / rect.width));
       lastPctRef.current = pct;
       setDragPercent(pct * 100);
     };
 
-    const onMove = (ev: MouseEvent | TouchEvent) => {
+    const onMove = (ev: PointerEvent) => {
       if (!dragging || !trackRef.current) return;
+      if (activePointerId !== null && ev.pointerId !== activePointerId) return;
       ev.preventDefault();
       setPctFromEvent(ev);
     };
 
-    const onUp = (ev: Event) => {
+    const onUp = (ev: PointerEvent) => {
       if (!dragging) return;
-      if (
-        "changedTouches" in ev &&
-        (ev as TouchEvent).changedTouches.length > 0
-      ) {
-        setPctFromEvent(ev as TouchEvent);
-      }
+      if (activePointerId !== null && ev.pointerId !== activePointerId) return;
+      setPctFromEvent(ev);
       dragging = false;
+      activePointerId = null;
       document.body.style.userSelect = "";
       document.body.style.touchAction = "";
-      window.removeEventListener("mousemove", onMove as EventListener);
-      window.removeEventListener("mouseup", onUp);
-      window.removeEventListener("touchmove", onMove as EventListener);
-      window.removeEventListener("touchend", onUp);
-      window.removeEventListener("touchcancel", onUp);
+      window.removeEventListener("pointermove", onMove as EventListener);
+      window.removeEventListener("pointerup", onUp as EventListener);
+      window.removeEventListener("pointercancel", onUp as EventListener);
 
       const nearest = Math.round(lastPctRef.current * (count - 1));
       notify(nearest);
@@ -121,32 +108,36 @@ const SegmentedControl: React.FC<Props> = ({
       suppressClickRef.current = true;
     };
 
-    const onDown = (ev: MouseEvent | TouchEvent) => {
+    const onDown = (ev: PointerEvent) => {
       if (!(ev.target instanceof HTMLElement) || !trackRef.current) return;
       if (ev.target.closest(".segmented-track") == null) return;
       dragging = true;
+      activePointerId = ev.pointerId;
+
       document.body.style.userSelect = "none";
       document.body.style.touchAction = "none";
 
+      // Ensure we still receive pointerup/pointercancel even if the user releases
+      // outside the component (prevents the thumb from "sticking").
+      try {
+        ev.target.setPointerCapture(ev.pointerId);
+      } catch {
+        // setPointerCapture can throw if capture is not allowed; drag will still work via window listeners.
+      }
+
       setPctFromEvent(ev);
 
-      window.addEventListener("mousemove", onMove as EventListener);
-      window.addEventListener("mouseup", onUp);
-      window.addEventListener("touchmove", onMove as EventListener, { passive: false });
-      window.addEventListener("touchend", onUp);
-      window.addEventListener("touchcancel", onUp);
+      window.addEventListener("pointermove", onMove as EventListener, { passive: false });
+      window.addEventListener("pointerup", onUp as EventListener);
+      window.addEventListener("pointercancel", onUp as EventListener);
     };
 
-    window.addEventListener("mousedown", onDown as EventListener);
-    window.addEventListener("touchstart", onDown as EventListener, { passive: false });
+    window.addEventListener("pointerdown", onDown as EventListener, { passive: false });
     return () => {
-      window.removeEventListener("mousedown", onDown as EventListener);
-      window.removeEventListener("touchstart", onDown as EventListener);
-      window.removeEventListener("mousemove", onMove as EventListener);
-      window.removeEventListener("mouseup", onUp);
-      window.removeEventListener("touchmove", onMove as EventListener);
-      window.removeEventListener("touchend", onUp);
-      window.removeEventListener("touchcancel", onUp);
+      window.removeEventListener("pointerdown", onDown as EventListener);
+      window.removeEventListener("pointermove", onMove as EventListener);
+      window.removeEventListener("pointerup", onUp as EventListener);
+      window.removeEventListener("pointercancel", onUp as EventListener);
     };
   }, [count, notify]);
 
@@ -223,6 +214,7 @@ const SegmentedControl: React.FC<Props> = ({
             }}
             className="cursor-pointer"
             onMouseDown={(e) => e.preventDefault()}
+            onPointerDown={(e) => e.preventDefault()}
             onFocus={(e) => (e.currentTarget.style.outline = "2px solid rgba(246,160,42,0.25)")}
             onBlur={(e) => (e.currentTarget.style.outline = "")}
           />
