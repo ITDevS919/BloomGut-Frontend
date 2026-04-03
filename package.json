@@ -9,7 +9,10 @@
     "prebuild": "npm run icons",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "android:twa:init": "node scripts/android-twa.mjs",
+    "android:twa:build": "node scripts/android-twa-build.mjs",
+    "android:twa:doctor": "node scripts/android-twa-doctor.mjs"
   },
   "dependencies": {
     "@clerk/clerk-js": "^5.119.1",
