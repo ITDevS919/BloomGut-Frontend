@@ -10,6 +10,7 @@ import { existsSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { resolveAndroidSdk } from "./android-sdk-resolve.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.join(__dirname, "..", "..");
@@ -53,13 +54,17 @@ if (!javaHome) {
   }
 }
 
-const androidHome = (process.env.ANDROID_HOME || process.env.ANDROID_SDK_ROOT || "").trim();
-if (!androidHome) {
+const androidResolved = resolveAndroidSdk(null);
+if (!androidResolved) {
   ok = false;
-  log("✗", "ANDROID_HOME (or ANDROID_SDK_ROOT) is not set");
+  log("✗", "Android SDK not found (set ANDROID_HOME, install Studio, or add adb to PATH)");
 } else {
-  log("✓", `Android SDK root=${androidHome}`);
-  const adb = path.join(androidHome, "platform-tools", process.platform === "win32" ? "adb.exe" : "adb");
+  log("✓", `Android SDK root=${androidResolved}`);
+  const adb = path.join(
+    androidResolved,
+    "platform-tools",
+    process.platform === "win32" ? "adb.exe" : "adb"
+  );
   if (!existsSync(adb)) {
     ok = false;
     log("✗", `adb not found at ${adb}`);

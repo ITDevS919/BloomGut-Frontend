@@ -27,7 +27,10 @@ import { existsSync, writeFileSync, unlinkSync } from "node:fs";
 import { spawn } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveAndroidSdk } from "./android-sdk-resolve.mjs";
+import {
+  resolveAndroidSdk,
+  formatDefaultSdkSearchHints,
+} from "./android-sdk-resolve.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.join(__dirname, "..", "..");
@@ -80,7 +83,10 @@ if (!androidHome) {
   console.error(`
 android:twa:apk-release — Android SDK not found.
 
-Install Android Studio / SDK, or set ANDROID_HOME, or run:
+Install Android Studio (SDK + platform-tools), set ANDROID_HOME, add platform-tools to PATH,
+or pass --sdk. Default folders tried:
+${formatDefaultSdkSearchHints()}
+
   npm run android:twa:apk-release -- --sdk "C:\\Users\\YOU\\AppData\\Local\\Android\\Sdk"
 `);
   process.exit(1);

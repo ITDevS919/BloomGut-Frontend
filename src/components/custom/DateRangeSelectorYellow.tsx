@@ -30,7 +30,6 @@ const DateRangeSelectorYellow = (props) => {
       "Apr",
       "May",
       "Jun",
-      "Jun",
       "Jul",
       "Aug",
       "Sep",
@@ -43,8 +42,8 @@ const DateRangeSelectorYellow = (props) => {
       // Get start and end of week
       const startOfWeek = new Date(date);
       const day = startOfWeek.getDay();
-      const diff = startOfWeek.getDate() - day; // Adjust to Monday as start
-      startOfWeek.setDate(diff);
+      const diffToMonday = day === 0 ? 6 : day - 1;
+      startOfWeek.setDate(startOfWeek.getDate() - diffToMonday);
 
       const endOfWeek = new Date(startOfWeek);
       endOfWeek.setDate(startOfWeek.getDate() + 6);

@@ -72,6 +72,8 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
   const [change, setChange] = useState("");
   /** Raw Δ from API for coloring (+ / − / 0); null if no numeric comparison. */
   const [changePercentDelta, setChangePercentDelta] = useState(null);
+  const [currentPeriodScore, setCurrentPeriodScore] = useState(null);
+  const [previousPeriodScore, setPreviousPeriodScore] = useState(null);
   const [scorePosition, setScorePosition] = useState(0);
   const [dailyTypeValues, setDailyTypeValues] = useState([0, 0, 0, 0, 0]);
   const [aiWeeklySummary, setAiWeeklySummary] = useState("");
@@ -132,6 +134,8 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
         setLoadingSummary(true);
         setChangePercentDelta(null);
         setChange("");
+        setCurrentPeriodScore(null);
+        setPreviousPeriodScore(null);
         const timezoneOffsetMinutes = new Date().getTimezoneOffset();
 
         if (viewMode === "month") {
@@ -160,6 +164,29 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
               setScorePosition(clamped);
             }
           }
+          if (
+            typeof payload?.comparison?.thisPeriodScore === "number" &&
+            Number.isFinite(payload.comparison.thisPeriodScore) &&
+            !isCancelled
+          ) {
+            setCurrentPeriodScore(payload.comparison.thisPeriodScore);
+          } else if (monthlyAvgRaw !== null && !isCancelled) {
+            setCurrentPeriodScore(Math.round(monthlyAvgRaw));
+          }
+          if (
+            typeof payload?.comparison?.lastPeriodScore === "number" &&
+            Number.isFinite(payload.comparison.lastPeriodScore) &&
+            !isCancelled
+          ) {
+            setPreviousPeriodScore(payload.comparison.lastPeriodScore);
+          } else if (
+            typeof payload.previousMonthAverageScore === "number" &&
+            Number.isFinite(payload.previousMonthAverageScore) &&
+            payload.previousMonthRecordCount > 0 &&
+            !isCancelled
+          ) {
+            setPreviousPeriodScore(payload.previousMonthAverageScore);
+          }
 
           if (typeof payload.monthRecordCount === "number" && !isCancelled) {
             setRecordCount(payload.monthRecordCount);
@@ -167,7 +194,7 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
 
           const versusMonth =
             typeof payload.changeVersusPreviousLabel === "string" &&
-            payload.changeVersusPreviousLabel.trim()
+              payload.changeVersusPreviousLabel.trim()
               ? payload.changeVersusPreviousLabel.trim()
               : "vs last month";
 
@@ -217,6 +244,28 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
             setScorePosition(clamped);
           }
         }
+        if (
+          typeof payload?.comparison?.thisPeriodScore === "number" &&
+          Number.isFinite(payload.comparison.thisPeriodScore) &&
+          !isCancelled
+        ) {
+          setCurrentPeriodScore(payload.comparison.thisPeriodScore);
+        } else if (weeklyAvgRaw !== null && !isCancelled) {
+          setCurrentPeriodScore(Math.round(weeklyAvgRaw));
+        }
+        if (
+          typeof payload?.comparison?.lastPeriodScore === "number" &&
+          Number.isFinite(payload.comparison.lastPeriodScore) &&
+          !isCancelled
+        ) {
+          setPreviousPeriodScore(payload.comparison.lastPeriodScore);
+        } else if (
+          typeof payload.previousWeekAverageScore === "number" &&
+          Number.isFinite(payload.previousWeekAverageScore) &&
+          !isCancelled
+        ) {
+          setPreviousPeriodScore(payload.previousWeekAverageScore);
+        }
 
         if (typeof payload.weekRecordCount === "number" && !isCancelled) {
           setRecordCount(payload.weekRecordCount);
@@ -224,7 +273,7 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
 
         const versusWeek =
           typeof payload.changeVersusPreviousLabel === "string" &&
-          payload.changeVersusPreviousLabel.trim()
+            payload.changeVersusPreviousLabel.trim()
             ? payload.changeVersusPreviousLabel.trim()
             : "vs last week";
 
@@ -410,6 +459,29 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
       : "Not Recorded";
   /** Period-over-period copy from API; not gated on hasBowelData so it still shows when comparable */
   const effectiveChange = change.trim();
+  const comparePeriodText = viewMode === "month" ? "month" : "week";
+  const effectiveChangeDisplay = (() => {
+    const hasCurrent =
+      typeof currentPeriodScore === "number" &&
+      Number.isFinite(currentPeriodScore);
+    const hasPrevious =
+      typeof previousPeriodScore === "number" &&
+      Number.isFinite(previousPeriodScore);
+    if (hasCurrent && hasPrevious) {
+      if (currentPeriodScore - previousPeriodScore > 0) {
+        return `+${currentPeriodScore - previousPeriodScore}%`;
+      } else {
+        return `${currentPeriodScore - previousPeriodScore}%`;
+      }
+    }
+    if (hasCurrent) return `${currentPeriodScore} vs -`;
+    if (effectiveChange) return effectiveChange;
+    if (typeof changePercentDelta === "number" && !Number.isNaN(changePercentDelta)) {
+      const sign = changePercentDelta > 0 ? "+" : "";
+      return `${sign}${changePercentDelta}%`;
+    }
+    return "0 vs -";
+  })();
   const effectiveChangeColor = (() => {
     // if (!showTrendAnalysis || !hasBowelData || !effectiveChange) return "#999999";
     const d = changePercentDelta;
@@ -424,6 +496,13 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
     hasBowelData ? scorePosition : 0;
   const effectiveDailyTypeValues =
     hasBowelData ? dailyTypeValues : [0, 0, 0, 0, 0];
+  const scoreCardTrackBackground = hasBowelData
+    ? bowelScoreTrackGradient
+    : "#ECEEF1";
+  const scoreCardIndicatorPosition = hasBowelData ? effectiveScorePosition : 50;
+  const scoreCardIndicatorBorderColor = hasBowelData
+    ? getIndicatorColor(effectiveScore)
+    : "#FFFFFF";
 
   const chartDailyCounts =
     Array.isArray(dailyData)
@@ -615,33 +694,53 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
       `}</style>
       {/* Score Card */}
       <div
-        className={`bg-white rounded-[27px] p-[32px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[29px] relative`}
+        className={`bg-white rounded-[27px] p-[25px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[29px] relative`}
       >
         <>
           <div className="flex items-center justify-between mb-4">
-            <div className="pl-[50px]">
-              <div className="text-3xl font-bold text-[#F66B6B] text-center">
+            <div className="">
+              <div
+                className="text-3xl font-bold text-left"
+                style={{ color: hasBowelData ? "#F66B6B" : "#B9C0C9" }}
+              >
                 {effectiveScore}
               </div>
-              <div className="text-sm text-custom-12 text-center mt-1">
+              <div
+                className="text-sm text-center mt-1"
+                style={{ color: hasBowelData ? "#888888" : "#B9C0C9" }}
+              >
                 {effectiveStatus}
               </div>
             </div>
             <div
-              className="text-base pr-[50px] text-center max-w-[140px] leading-snug"
-              style={{ color: effectiveChangeColor }}
+              className="text-base text-right max-w-[140px] leading-tight"
+              style={{ color: hasBowelData ? effectiveChangeColor : "#B9C0C9" }}
               aria-label={
                 viewMode === "month"
-                  ? `Score change vs last month: ${effectiveChange || "not available"}`
-                  : `Score change vs last week: ${effectiveChange || "not available"}`
+                  ? `Score comparison this month vs last month: ${effectiveChangeDisplay}`
+                  : `Score comparison this week vs last week: ${effectiveChangeDisplay}`
               }
             >
-              {effectiveChange}
+              {hasBowelData ? (
+                <>
+                  <div className="text-2xl font-semibold leading-none">{effectiveChangeDisplay}</div>
+                  <div className="text-base leading-none mt-1">
+                    vs last
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-3xl font-semibold leading-none">-%</div>
+                  <div className="text-base leading-none mt-1">
+                    vs Last
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
           {/* Progress bar: gradient zones = score bands; thumb = live score + matching zone color */}
-          <div className="mt-4">
+          <div className="mt-6">
             <div
               className="relative overflow-visible"
               role="meter"
@@ -652,36 +751,42 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
             >
               <div
                 className="h-2 rounded-full relative overflow-hidden"
-                style={{ background: bowelScoreTrackGradient }}
+                style={{ background: scoreCardTrackBackground }}
               />
+              {hasBowelData && (
+                <div
+                  className="pointer-events-none absolute left-0 right-0 top-0 z-1 h-2"
+                  aria-hidden
+                >
+                  <span
+                    className="absolute top-0 bottom-0 w-px bg-black/20"
+                    style={{
+                      left: `${BOWEL_SCORE_RED_MAX}%`,
+                      transform: "translateX(-50%)",
+                    }}
+                  />
+                  <span
+                    className="absolute top-0 bottom-0 w-px bg-black/20"
+                    style={{
+                      left: `${BOWEL_SCORE_YELLOW_MAX}%`,
+                      transform: "translateX(-50%)",
+                    }}
+                  />
+                </div>
+              )}
               <div
-                className="pointer-events-none absolute left-0 right-0 top-0 z-1 h-2"
-                aria-hidden
-              >
-                <span
-                  className="absolute top-0 bottom-0 w-px bg-black/20"
-                  style={{
-                    left: `${BOWEL_SCORE_RED_MAX}%`,
-                    transform: "translateX(-50%)",
-                  }}
-                />
-                <span
-                  className="absolute top-0 bottom-0 w-px bg-black/20"
-                  style={{
-                    left: `${BOWEL_SCORE_YELLOW_MAX}%`,
-                    transform: "translateX(-50%)",
-                  }}
-                />
-              </div>
-              <div
-                className="w-3 h-2 rounded-full absolute -top-0.5 border-2 box-border shadow-[0_2px_6px_rgba(0,0,0,0.12)] z-10"
+                className="w-5 h-5 rounded-full absolute -top-[6px] border-2 box-border shadow-[0_4px_12px_rgba(0,0,0,0.18)] z-10"
                 style={{
                   backgroundColor: "white",
-                  borderColor: getIndicatorColor(effectiveScore),
-                  ...getIndicatorStyle(effectiveScorePosition),
+                  borderColor: scoreCardIndicatorBorderColor,
+                  ...getIndicatorStyle(scoreCardIndicatorPosition),
                 }}
                 aria-hidden
               />
+            </div>
+            <div className="flex items-center justify-between mt-3 px-0.5 text-sm text-[#B9C0C9] font-medium">
+              <span>0</span>
+              <span>100</span>
             </div>
           </div>
         </>

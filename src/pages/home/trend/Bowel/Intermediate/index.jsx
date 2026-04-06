@@ -298,8 +298,10 @@ const Intermediate = () => {
             <div className="text-base pl-[15px] font-medium mb-5 text-primary">
               Weekly Stats
             </div>
-            <div className="flex items-center justify-center gap-6 rounded-[27px] bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[20px]">
-              {!(weeklyData.datasets[0].data[0] == 0 && weeklyData.datasets[0].data[1] == 0 && weeklyData.datasets[0].data[2] == 0 && weeklyData.datasets[0].data[3] == 0) ?
+            <div className="relative flex items-center justify-center gap-6 rounded-[27px] bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[20px] min-h-[210px]">
+              {isLoading ? (
+                <Loader />
+              ) : !(weeklyData.datasets[0].data[0] == 0 && weeklyData.datasets[0].data[1] == 0 && weeklyData.datasets[0].data[2] == 0 && weeklyData.datasets[0].data[3] == 0) ?
                 (<>
                   {/* Pie */}
                   <div className="w-40 h-40">

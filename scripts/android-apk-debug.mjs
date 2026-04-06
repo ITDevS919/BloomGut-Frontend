@@ -15,7 +15,10 @@ import { existsSync, writeFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveAndroidSdk } from "./android-sdk-resolve.mjs";
+import {
+  resolveAndroidSdk,
+  formatDefaultSdkSearchHints,
+} from "./android-sdk-resolve.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.join(__dirname, "..", "..");
@@ -35,12 +38,12 @@ if (!androidHome) {
   console.error(`
 android:twa:apk-debug — Android SDK not found.
 
-1. Install Android Studio → SDK Manager → ensure "Android SDK" is installed.
-2. This script checks (in order): --sdk, ANDROID_HOME, ANDROID_SDK_ROOT,
-   then default paths:
-   - Windows:  %LOCALAPPDATA%\\Android\\Sdk
-   - macOS:    ~/Library/Android/sdk
-   - Linux:    ~/Android/Sdk
+1. Install Android Studio → SDK Manager → install "Android SDK" (includes platform-tools).
+2. This script checks (in order): --sdk, ANDROID_HOME, ANDROID_SDK_ROOT, adb on PATH
+   (parent of platform-tools), default folders, then Windows registry (Android SDK Tools).
+
+   Default folders tried on this machine:
+${formatDefaultSdkSearchHints()}
 
 3. Or pass the SDK path explicitly:
    npm run android:twa:apk-debug -- --sdk "C:\\Users\\YOU\\AppData\\Local\\Android\\Sdk"
