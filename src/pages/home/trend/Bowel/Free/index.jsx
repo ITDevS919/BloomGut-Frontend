@@ -21,6 +21,8 @@ import Loader from "@/components/common/Loader";
 const DailyBowelChart = lazy(() => import("./DailyBowelChart"));
 
 const BOWEL_PRIMARY_COLOR = "#1abc9c";
+const MIN_REQUIRED_ENTRIES = 3;
+const INSUFFICIENT_DATA_TOOLTIP = "Requires at least 3 entries.";
 
 /** 0–100 score zones: bar gradient + thumb color use the same bounds. */
 const BOWEL_SCORE_RED_MAX = 60;
@@ -78,6 +80,7 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
   const [dailyTypeValues, setDailyTypeValues] = useState([0, 0, 0, 0, 0]);
   const [aiWeeklySummary, setAiWeeklySummary] = useState("");
   const [aiDayTooltips, setAiDayTooltips] = useState([]);
+  const [activeTooltipKey, setActiveTooltipKey] = useState(null);
   const referenceTimeKey =
     referenceDate instanceof Date && !Number.isNaN(referenceDate.getTime())
       ? referenceDate.getTime()
@@ -88,6 +91,16 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
   useEffect(() => {
     setHasRequestedAdvice(false);
   }, [referenceTimeKey, viewMode]);
+
+  useEffect(() => {
+    const handleDocumentClick = () => {
+      setActiveTooltipKey(null);
+    };
+    document.addEventListener("click", handleDocumentClick);
+    return () => {
+      document.removeEventListener("click", handleDocumentClick);
+    };
+  }, []);
 
   useEffect(() => {
     if (!auth?.user?.id) return;
@@ -322,13 +335,6 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
     };
   }, [api, auth?.user?.id, referenceTimeKey, viewMode]);
 
-  // Function to get color based on value
-  const getPointColor = (value) => {
-    if (value === 0) return "#ef4444"; // Red
-    if (value === 3) return "#f59e0b"; // Gold/Orange
-    return "#10b981"; // Green (for 1-2)
-  };
-
   const dailyTypeLabels = [
     {
       color: '#9AD0A1',
@@ -382,6 +388,7 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
     if (!Array.isArray(dailyData) || !dailyData.length) return;
     if (loadingDailyCounts || loadingSummary) return;
     if (hasRequestedAdvice) return;
+    if (recordCount < MIN_REQUIRED_ENTRIES) return;
 
     const hasAnyData = dailyData.some((v) => Number(v || 0) > 0);
     if (!hasAnyData) {
@@ -441,22 +448,21 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
     loadingSummary,
     hasRequestedAdvice,
     premiumEntitled,
+    recordCount,
   ]);
 
-  /** Week mode: any log in the week (API count or daily chart). Month mode: any log in the month. */
-  const hasBowelData =
-    viewMode === "month"
-      ? recordCount > 0
-      : recordCount > 0 ||
-      (Array.isArray(dailyData) &&
-        dailyData.some((v) => Number(v || 0) > 0));
+  const trendState =
+    recordCount <= 0
+      ? "EMPTY"
+      : recordCount < MIN_REQUIRED_ENTRIES
+        ? "DISABLED"
+        : "ACTIVE";
+  const isActiveState = trendState === "ACTIVE";
+  const isInsufficientState = trendState !== "ACTIVE";
 
   /** Same as `score`: this week’s shape-based average (week mode) or this month’s (month mode). */
-  const effectiveScore = hasBowelData ? score : 0;
-  const effectiveStatus =
-    hasBowelData
-      ? status
-      : "Not Recorded";
+  const effectiveScore = isActiveState ? score : 0;
+  const effectiveStatus = isActiveState ? status : "Not Recorded";
   /** Period-over-period copy from API; not gated on hasBowelData so it still shows when comparable */
   const effectiveChange = change.trim();
   const comparePeriodText = viewMode === "month" ? "month" : "week";
@@ -493,21 +499,45 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
     return "#999999";
   })();
   const effectiveScorePosition =
-    hasBowelData ? scorePosition : 0;
+    isActiveState ? scorePosition : 0;
   const effectiveDailyTypeValues =
-    hasBowelData ? dailyTypeValues : [0, 0, 0, 0, 0];
-  const scoreCardTrackBackground = hasBowelData
+    isActiveState ? dailyTypeValues : [0, 0, 0, 0, 0];
+  const scoreCardTrackBackground = isActiveState
     ? bowelScoreTrackGradient
     : "#ECEEF1";
-  const scoreCardIndicatorPosition = hasBowelData ? effectiveScorePosition : 50;
-  const scoreCardIndicatorBorderColor = hasBowelData
+  const scoreCardIndicatorPosition = isActiveState ? effectiveScorePosition : 50;
+  const scoreCardIndicatorBorderColor = isActiveState
     ? getIndicatorColor(effectiveScore)
     : "#FFFFFF";
 
   const chartDailyCounts =
-    Array.isArray(dailyData)
-      ? dailyData
-      : [0, 0, 0, 0, 0, 0, 0];
+    trendState === "EMPTY"
+      ? [0, 0, 0, 0, 0, 0, 0]
+      : Array.isArray(dailyData)
+        ? dailyData
+        : [0, 0, 0, 0, 0, 0, 0];
+
+  const getDailyNodeColorByState = (value) => {
+    if (trendState === "EMPTY") return "#D1D5DB";
+    if (value === null || value === undefined || value === "") return "#D1D5DB";
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue)) return "#D1D5DB";
+    if (numericValue === 0) return "#ef4444";
+    if (numericValue === 3) return "#f59e0b";
+    return "#10b981";
+  };
+
+  const attachInsufficientTooltipHandlers = (key) =>
+    isInsufficientState
+      ? {
+        onMouseEnter: () => setActiveTooltipKey(key),
+        onMouseLeave: () => setActiveTooltipKey((prev) => (prev === key ? null : prev)),
+        onClick: (event) => {
+          event.stopPropagation();
+          setActiveTooltipKey((prev) => (prev === key ? null : key));
+        },
+      }
+      : {};
 
   const periodAverageLabel =
     viewMode === "month" ? "This month's average" : "This week's average";
@@ -523,7 +553,7 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
         borderDash: [5, 5], // Dotted line
         pointRadius: 16, // Size of circles
         pointBackgroundColor: "white",
-        pointBorderColor: chartDailyCounts.map(getPointColor),
+        pointBorderColor: chartDailyCounts.map(getDailyNodeColorByState),
         pointBorderWidth: 2,
         pointHoverRadius: 18,
         tension: 0.4, // Smooth curve,
@@ -541,7 +571,7 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
     plugins: {
       legend: { display: false },
       tooltip: {
-        enabled: true,
+        enabled: isActiveState,
         backgroundColor: "#FFFFFF",
         titleColor: "#4b332d",
         titleFont: { size: 16, weight: "700", family: "sans-serif" },
@@ -627,13 +657,16 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
         align: "center",
         color: (context) => {
           const value = context.parsed?.y ?? context.dataset.data[context.dataIndex];
-          return getPointColor(value);
+          return getDailyNodeColorByState(value);
         },
         font: {
           weight: "bold",
           size: 14,
         },
-        formatter: (value) => value,
+        formatter: (value) => {
+          if (value === null || value === undefined || value === "") return "0";
+          return value;
+        },
       },
     },
     scales: {
@@ -695,33 +728,34 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
       {/* Score Card */}
       <div
         className={`bg-white rounded-[27px] p-[25px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[29px] relative`}
+        {...attachInsufficientTooltipHandlers("health-card")}
       >
         <>
           <div className="flex items-center justify-between mb-4">
             <div className="">
               <div
                 className="text-3xl font-bold text-left"
-                style={{ color: hasBowelData ? "#F66B6B" : "#B9C0C9" }}
+                style={{ color: isActiveState ? "#F66B6B" : "#B9C0C9" }}
               >
                 {effectiveScore}
               </div>
               <div
                 className="text-sm text-center mt-1"
-                style={{ color: hasBowelData ? "#888888" : "#B9C0C9" }}
+                style={{ color: isActiveState ? "#888888" : "#B9C0C9" }}
               >
                 {effectiveStatus}
               </div>
             </div>
             <div
               className="text-base text-right max-w-[140px] leading-tight"
-              style={{ color: hasBowelData ? effectiveChangeColor : "#B9C0C9" }}
+              style={{ color: isActiveState ? effectiveChangeColor : "#B9C0C9" }}
               aria-label={
                 viewMode === "month"
                   ? `Score comparison this month vs last month: ${effectiveChangeDisplay}`
                   : `Score comparison this week vs last week: ${effectiveChangeDisplay}`
               }
             >
-              {hasBowelData ? (
+              {isActiveState ? (
                 <>
                   <div className="text-2xl font-semibold leading-none">{effectiveChangeDisplay}</div>
                   <div className="text-base leading-none mt-1">
@@ -730,7 +764,7 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
                 </>
               ) : (
                 <>
-                  <div className="text-3xl font-semibold leading-none">-%</div>
+                  <div className="text-3xl font-semibold leading-none">-</div>
                   <div className="text-base leading-none mt-1">
                     vs Last
                   </div>
@@ -746,14 +780,14 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
               role="meter"
               aria-valuemin={0}
               aria-valuemax={100}
-              aria-valuenow={hasBowelData ? effectiveScore : 0}
-              aria-label={`Bowel ${viewMode === "month" ? "monthly" : "weekly"} average score ${hasBowelData ? effectiveScore : 0} out of 100`}
+              aria-valuenow={isActiveState ? effectiveScore : 0}
+              aria-label={`Bowel ${viewMode === "month" ? "monthly" : "weekly"} average score ${isActiveState ? effectiveScore : 0} out of 100`}
             >
               <div
                 className="h-2 rounded-full relative overflow-hidden"
                 style={{ background: scoreCardTrackBackground }}
               />
-              {hasBowelData && (
+              {isActiveState && (
                 <div
                   className="pointer-events-none absolute left-0 right-0 top-0 z-1 h-2"
                   aria-hidden
@@ -791,6 +825,12 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
           </div>
         </>
 
+        {isInsufficientState && activeTooltipKey === "health-card" && (
+          <div className="pointer-events-none absolute -top-2 left-1/2 z-20 -translate-x-1/2 -translate-y-full rounded-md bg-[#2F2F2F] px-3 py-2 text-xs text-white shadow-lg whitespace-nowrap">
+            {INSUFFICIENT_DATA_TOOLTIP}
+          </div>
+        )}
+
         {loadingSummary && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/60">
             <Loader />
@@ -801,6 +841,7 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
       <div className="text-base mb-3 font-medium pl-[15px] text-primary">Daily Types</div>
       <div
         className={`bg-white rounded-[20px] p-6 shadow-[2px_0_10px_rgba(3,3,3,0.1)] mb-[34px] relative`}
+        {...attachInsufficientTooltipHandlers("daily-types")}
       >
         <div className="flex items-end justify-between gap-2">
           {effectiveDailyTypeValues.map((value, index) => (
@@ -822,6 +863,10 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
                     ][index]}
                     alt={`Type ${index + 1}`}
                     className="w-12 h-12 object-contain"
+                    style={{
+                      filter: isActiveState ? "none" : "grayscale(100%)",
+                      opacity: isActiveState ? 1 : 0.55,
+                    }}
                   />
                 </div>
                 {/* Colored Bar Fill */}
@@ -829,7 +874,7 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
                   className="w-full rounded-lg absolute bottom-0"
                   style={{
                     height: `${value}%`,
-                    backgroundColor: dailyTypeColors[index],
+                    backgroundColor: isActiveState ? dailyTypeColors[index] : "#D1D5DB",
                   }}
                 />
 
@@ -841,18 +886,24 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
                     pointerEvents: "none",
                   }}
                 >
-                  {value}%
+                  {isActiveState ? `${value}%` : ""}
                 </span>
               </div>
               {/* Label Below Bar */}
               <div className="text-xs text-primary mt-2 text-center">
-                <span style={{ color: dailyTypeLabels[index].color }}>
+                <span style={{ color: isActiveState ? dailyTypeLabels[index].color : "#9CA3AF" }}>
                   {dailyTypeLabels[index].label}
                 </span>
               </div>
             </div>
           ))}
         </div>
+
+        {isInsufficientState && activeTooltipKey === "daily-types" && (
+          <div className="pointer-events-none absolute -top-2 left-1/2 z-20 -translate-x-1/2 -translate-y-full rounded-md bg-[#2F2F2F] px-3 py-2 text-xs text-white shadow-lg whitespace-nowrap">
+            {INSUFFICIENT_DATA_TOOLTIP}
+          </div>
+        )}
 
         {loadingSummary && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/60">
@@ -868,6 +919,7 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
       <div className="mb-[35px]">
         <div
           className={`bg-white rounded-[27px] px-6 pt-6 pb-6 shadow-[0_2px_4px_rgba(0,0,0,0.08)] relative`}
+          {...attachInsufficientTooltipHandlers("daily-count")}
         >
           <div className="relative h-50 w-full min-h-0">
             <Suspense
@@ -890,6 +942,11 @@ const Free = ({ showUpgrade = true, referenceDate, viewMode = "week" }) => {
             </div>
           )}
         </div>
+        {isInsufficientState && activeTooltipKey === "daily-count" && (
+          <div className="pointer-events-none absolute -top-2 left-1/2 z-20 -translate-x-1/2 -translate-y-full rounded-md bg-[#2F2F2F] px-3 py-2 text-xs text-white shadow-lg whitespace-nowrap">
+            {INSUFFICIENT_DATA_TOOLTIP}
+          </div>
+        )}
         {/* Day labels sit below the card; insets match card px-6 + chart layout.padding (10px) */}
         <div
           className="mt-3 flex w-full justify-between gap-4 text-xs font-medium text-[#6b7280]"

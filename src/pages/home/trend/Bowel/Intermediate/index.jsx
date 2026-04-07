@@ -13,6 +13,8 @@ import DateRangeSelectorYellowUpdate from "@/components/custom/DateRangeSelector
 import DateRangeSelectorYellow from "@/components/custom/DateRangeSelectorYellow";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
+const MIN_REQUIRED_ENTRIES = 3;
+const INSUFFICIENT_DATA_TOOLTIP = "Requires at least 3 entries.";
 
 function Stat({ label, value, valueColor = "text-gray-800" }) {
   return (
@@ -72,6 +74,7 @@ const Intermediate = () => {
         display: false,
       },
       tooltip: {
+        enabled: false,
         callbacks: {
           label: (ctx) => `${ctx.label}: ${ctx.raw}%`,
         },
@@ -148,6 +151,8 @@ const Intermediate = () => {
   })();
 
   const [isLoading, setIsLoading] = useState(true);
+  const [weeklyRecordCount, setWeeklyRecordCount] = useState(0);
+  const [activeTooltipKey, setActiveTooltipKey] = useState(null);
 
   const monthlyData = {
     datasets: [
@@ -189,6 +194,16 @@ const Intermediate = () => {
   }, [location.state]);
 
   useEffect(() => {
+    const handleDocumentClick = () => {
+      setActiveTooltipKey(null);
+    };
+    document.addEventListener("click", handleDocumentClick);
+    return () => {
+      document.removeEventListener("click", handleDocumentClick);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!auth?.user?.id) return;
 
     let isCancelled = false;
@@ -227,6 +242,9 @@ const Intermediate = () => {
             },
           ],
         }));
+        if (typeof payload.weekRecordCount === "number") {
+          setWeeklyRecordCount(payload.weekRecordCount);
+        }
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Failed to load bowel weekly stats:", error);
@@ -277,6 +295,38 @@ const Intermediate = () => {
     };
   }, [api, auth?.user?.id, referenceDate]);
 
+  const weeklyTrendState =
+    weeklyRecordCount <= 0
+      ? "EMPTY"
+      : weeklyRecordCount < MIN_REQUIRED_ENTRIES
+        ? "DISABLED"
+        : "ACTIVE";
+  const showWeeklyStats = weeklyTrendState === "ACTIVE";
+
+  const disabledWeeklyData = {
+    labels: ["Hard", "Firm", "Normal", "Soft"],
+    datasets: [
+      {
+        data: [1, 1, 1, 1],
+        backgroundColor: ["#D1D5DB", "#D1D5DB", "#D1D5DB", "#D1D5DB"],
+        borderColor: "#FFFFFF",
+        borderWidth: 2,
+      },
+    ],
+  };
+
+  const attachInsufficientTooltipHandlers = (key) =>
+    !showWeeklyStats
+      ? {
+        onMouseEnter: () => setActiveTooltipKey(key),
+        onMouseLeave: () => setActiveTooltipKey((prev) => (prev === key ? null : prev)),
+        onClick: (event) => {
+          event.stopPropagation();
+          setActiveTooltipKey((prev) => (prev === key ? null : key));
+        },
+      }
+      : {};
+
   return (
     <main>
       {/* Date Range Selector Header */}
@@ -298,10 +348,13 @@ const Intermediate = () => {
             <div className="text-base pl-[15px] font-medium mb-5 text-primary">
               Weekly Stats
             </div>
-            <div className="relative flex items-center justify-center gap-6 rounded-[27px] bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[20px] min-h-[210px]">
+            <div
+              className="relative flex items-center justify-center gap-6 rounded-[27px] bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.08)] mb-[20px] min-h-[210px]"
+              {...attachInsufficientTooltipHandlers("weekly-stats")}
+            >
               {isLoading ? (
                 <Loader />
-              ) : !(weeklyData.datasets[0].data[0] == 0 && weeklyData.datasets[0].data[1] == 0 && weeklyData.datasets[0].data[2] == 0 && weeklyData.datasets[0].data[3] == 0) ?
+              ) : showWeeklyStats ?
                 (<>
                   {/* Pie */}
                   <div className="w-40 h-40">
@@ -326,11 +379,32 @@ const Intermediate = () => {
                     ))}
                   </div>
                 </>) : (
-                  <div className="text-center text-gray-500 items-center justify-center">
-                    Not Record
-                  </div>
+                  <>
+                    <div className="w-40 h-40">
+                      <Pie data={disabledWeeklyData} options={weeklyoptions} />
+                    </div>
+                    <div className="space-y-3 text-sm">
+                      {disabledWeeklyData.labels.map((label, i) => (
+                        <div key={label} className="flex items-center gap-2">
+                          <span
+                            className="h-3 w-3 rounded-full"
+                            style={{
+                              backgroundColor:
+                                disabledWeeklyData.datasets[0].backgroundColor[i],
+                            }}
+                          />
+                          <span className="text-[#9CA3AF]">{label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
                 )
               }
+              {!showWeeklyStats && activeTooltipKey === "weekly-stats" && (
+                <div className="pointer-events-none absolute top-2 left-1/2 z-20 -translate-x-1/2 rounded-md bg-[#2F2F2F] px-3 py-2 text-xs text-white shadow-lg whitespace-nowrap">
+                  {INSUFFICIENT_DATA_TOOLTIP}
+                </div>
+              )}
             </div>
             <div className="flex items-center justify-center text-xs text-custom-12 pb-[46px]">
               Data for reference only
