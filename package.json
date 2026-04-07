@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host --port 3000",
+    "dev": "node init && vite --host --port 3000",
     "icons": "node scripts/generate-pwa-icons.mjs",
     "prebuild": "npm run icons",
-    "build": "vite build",
+    "build": "node init && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "android:twa:init": "node scripts/android-twa.mjs",
